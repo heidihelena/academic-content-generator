@@ -8,7 +8,7 @@ from langchain.llms import Ollama
 ollama_llm = Ollama(model="mixtral")  
   
 # Enter your research topic  
-research_topic= "Machine Learning and lung cancer decision making"  
+research_topic= "what should MDT leadership course teach"  
   
 from langchain.tools import DuckDuckGoSearchRun  
 search_tool = DuckDuckGoSearchRun()  
@@ -44,7 +44,7 @@ llm=ollama_llm
 )  
   
 task_report = Task(  
-description="""Conduct a thorough examination of the latest advancements in artificial intelligence (AI) in lung cancer decision making in 2024.  
+description="""Conduct a thorough examination of the latest advancements in what should MDT leadership course teach.  
 Identify the key trends, breakthrough technologies, and potential industry impacts.  
 Your final product should be a comprehensive analysis report.  
 """,  
