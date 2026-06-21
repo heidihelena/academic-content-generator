@@ -1,0 +1,45 @@
+name: Server CI
+
+# Type-checks and builds the NestJS backend on pull requests and pushes that
+# touch the server (or this workflow).
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+  pull_request:
+    paths:
+      - 'server/**'
+      - '.github/workflows/server-ci.yml'
+
+concurrency:
+  group: server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Type-check & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build

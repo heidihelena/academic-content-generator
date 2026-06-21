@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-surface-950 text-slate-200 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* Thin, dark scrollbars to match the dashboard aesthetic. */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    @apply bg-surface-600 rounded-full;
+  }
+  *::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-900 border border-surface-700 rounded-xl;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium
+      transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400
+      disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 hover:bg-brand-500 text-white;
+  }
+  .btn-secondary {
+    @apply btn bg-surface-700 hover:bg-surface-600 text-slate-100;
+  }
+  .btn-ghost {
+    @apply btn hover:bg-surface-700 text-slate-300;
+  }
+  .btn-danger {
+    @apply btn bg-status-failed/15 text-status-failed hover:bg-status-failed/25;
+  }
+
+  .input {
+    @apply w-full rounded-lg bg-surface-800 border border-surface-600 px-3 py-2 text-sm text-slate-100
+      placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent;
+  }
+
+  .label {
+    @apply block text-xs font-medium text-slate-400 mb-1.5;
+  }
+}
