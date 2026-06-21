@@ -7,7 +7,7 @@ import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
 import { PostEditorModal } from './components/PostEditorModal';
-import { LoadingState } from './components/ui/States';
+import { LoadingState, ErrorState } from './components/ui/States';
 
 /**
  * Application root. Wires the navigation views, the persistent post editor modal,
@@ -15,6 +15,7 @@ import { LoadingState } from './components/ui/States';
  */
 export default function App() {
   const initialize = useStore((s) => s.initialize);
+  const loadError = useStore((s) => s.loadError);
   const [view, setView] = useState<View>('calendar');
   const [ready, setReady] = useState(false);
 
@@ -33,6 +34,12 @@ export default function App() {
         <main className="flex-1 overflow-x-hidden px-4 py-5 sm:px-6">
           {!ready ? (
             <LoadingState label="Loading your workspace…" />
+          ) : loadError ? (
+            <ErrorState
+              title="Couldn't reach the server"
+              message={loadError}
+              onRetry={() => initialize()}
+            />
           ) : (
             <div className="mx-auto max-w-7xl">
               {view === 'calendar' && <WeeklyCalendar />}

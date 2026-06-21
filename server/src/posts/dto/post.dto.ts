@@ -2,6 +2,8 @@ import type { MediaAttachment, Platform, PostStatus } from '../../domain/types';
 
 /** Request body for creating a post. */
 export interface CreatePostDto {
+  /** Optional client-supplied id, honored so optimistic UIs keep stable ids. */
+  id?: string;
   platform: Platform;
   body: string;
   scheduledAt: string; // ISO 8601

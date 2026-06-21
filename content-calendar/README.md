@@ -47,6 +47,28 @@ npm run typecheck    # type-check only
 > **No real API keys required.** The app ships with realistic sample data and
 > mock integrations so it runs end-to-end out of the box.
 
+### Local mode vs. API mode
+
+The dashboard runs against either backend, chosen by one env var:
+
+| Mode | When | Data |
+| --- | --- | --- |
+| **Local** (default) | `VITE_API_URL` unset | Sample data + `localStorage`, mock integrations, client-side AI |
+| **API** | `VITE_API_URL` set | Posts/accounts/AI come from the NestJS server (`server/`) |
+
+```bash
+# Terminal 1 — backend (see ../server/README.md)
+cd ../server && npm install && npm run start:dev   # http://localhost:3000/api
+
+# Terminal 2 — frontend pointed at it
+echo "VITE_API_URL=http://localhost:3000/api" > .env.local
+npm run dev
+```
+
+The selection lives in `src/lib/dataSource.ts` (`LocalDataSource` vs
+`ApiDataSource`) and `src/main.tsx` (AI generator). The store depends only on the
+`DataSource` interface, so nothing in the UI changes between modes.
+
 ---
 
 ## Architecture

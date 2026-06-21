@@ -33,7 +33,7 @@ export class PostsService {
   create(dto: CreatePostDto): Promise<Post> {
     const now = new Date().toISOString();
     const post: Post = {
-      id: `post_${randomUUID()}`,
+      id: dto.id ?? `post_${randomUUID()}`,
       platform: dto.platform,
       body: dto.body,
       scheduledAt: dto.scheduledAt,

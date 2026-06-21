@@ -7,52 +7,45 @@ import type {
   PostDraft,
   PostStatus,
 } from '../types';
-import {
-  LocalStoragePersistence,
-  type PersistenceAdapter,
-} from '../lib/persistence';
-import { createSampleAccounts, createSamplePosts } from '../data/sampleData';
-import { applyReschedule } from '../lib/scheduling';
+import type { PersistenceAdapter } from '../lib/persistence';
+import { createDataSource, LocalDataSource, type DataSource } from '../lib/dataSource';
+import { reschedulePost as computeReschedule } from '../lib/scheduling';
 import { createId } from '../lib/id';
-import { getIntegration } from '../integrations/registry';
-import type { AccessToken } from '../integrations/types';
 
 /**
  * Central application store (state management layer).
  *
  * The store is the only stateful surface the UI talks to. It depends on the
- * `PersistenceAdapter` and `PlatformIntegration` interfaces, not concrete
- * implementations, so backends can be swapped without UI changes.
+ * `DataSource` interface, so the backing store (local sample data / localStorage
+ * or the NestJS API) is swappable without UI changes.
+ *
+ * Mutations are optimistic: local state updates immediately, then the data
+ * source is told (fire-and-forget, errors surfaced). This keeps the UI snappy
+ * and the actions synchronous from the caller's perspective.
  */
 
 export interface StoreState {
-  // --- Data ---
   posts: Post[];
   accounts: ConnectedAccount[];
 
-  // --- UI state ---
-  weekAnchor: string; // ISO date for the currently viewed week
+  weekAnchor: string;
   platformFilter: PlatformFilter;
   statusFilter: PostStatus | 'all';
   editingPostId: string | null;
   isEditorOpen: boolean;
 
-  // --- Async/UX state ---
-  /** Per-platform busy flag while connecting/disconnecting. */
   accountBusy: Partial<Record<Platform, boolean>>;
-  /** Per-platform error message for the connected-accounts panel. */
   accountError: Partial<Record<Platform, string | undefined>>;
+  /** Error from the initial data load (API mode). */
+  loadError?: string;
 
-  // --- Lifecycle ---
   initialize: () => void;
 
-  // --- Filters & navigation ---
   setPlatformFilter: (filter: PlatformFilter) => void;
   setStatusFilter: (filter: PostStatus | 'all') => void;
   goToWeek: (date: Date) => void;
   goToToday: () => void;
 
-  // --- Post CRUD ---
   openEditor: (postId?: string) => void;
   openEditorForNewPost: (platform: Platform, scheduledAt: string) => void;
   closeEditor: () => void;
@@ -60,27 +53,23 @@ export interface StoreState {
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
 
-  // --- Account actions (async, via integration layer) ---
   connectAccount: (platform: Platform) => Promise<void>;
   disconnectAccount: (platform: Platform) => Promise<void>;
 
-  // --- Derived selectors ---
   filteredPosts: () => Post[];
 }
 
-// Persistence adapter is injectable for tests (see __setPersistence below).
-let persistence: PersistenceAdapter = new LocalStoragePersistence();
+// Data source is injectable for tests (see __setDataSource / __setPersistence).
+let dataSource: DataSource = createDataSource();
 
-/** Test seam: swap the persistence adapter (e.g. MemoryPersistence). */
-export function __setPersistence(adapter: PersistenceAdapter): void {
-  persistence = adapter;
+/** Test/runtime seam: swap the data source (e.g. ApiDataSource). */
+export function __setDataSource(ds: DataSource): void {
+  dataSource = ds;
 }
 
-// Mock token store. A real app would store these securely server-side.
-const tokens = new Map<Platform, AccessToken>();
-
-function persist(state: Pick<StoreState, 'posts' | 'accounts'>): void {
-  persistence.save({ posts: state.posts, accounts: state.accounts });
+/** Back-compat test seam: wrap a PersistenceAdapter in a LocalDataSource. */
+export function __setPersistence(adapter: PersistenceAdapter): void {
+  dataSource = new LocalDataSource(adapter);
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -95,15 +84,19 @@ export const useStore = create<StoreState>((set, get) => ({
   accountError: {},
 
   initialize: () => {
-    const saved = persistence.load();
-    if (saved) {
-      set({ posts: saved.posts, accounts: saved.accounts });
-    } else {
-      const posts = createSamplePosts();
-      const accounts = createSampleAccounts();
-      set({ posts, accounts });
-      persist({ posts, accounts });
+    // Offline/local: hydrate synchronously so the first render has data.
+    if (dataSource.loadSync) {
+      const { posts, accounts } = dataSource.loadSync();
+      set({ posts, accounts, loadError: undefined });
+      return;
     }
+    // Remote: fetch and fill in when ready.
+    set({ loadError: undefined });
+    Promise.all([dataSource.loadPosts(), dataSource.loadAccounts()])
+      .then(([posts, accounts]) => set({ posts, accounts }))
+      .catch((err) =>
+        set({ loadError: err instanceof Error ? err.message : 'Failed to load data' }),
+      );
   },
 
   setPlatformFilter: (filter) => set({ platformFilter: filter }),
@@ -114,8 +107,6 @@ export const useStore = create<StoreState>((set, get) => ({
   openEditor: (postId) => set({ editingPostId: postId ?? null, isEditorOpen: true }),
 
   openEditorForNewPost: (platform, scheduledAt) => {
-    // Creates a draft shell post, then opens the editor on it. This keeps the
-    // editor logic uniform (it always edits an existing post object).
     const now = new Date().toISOString();
     const post: Post = {
       id: createId('post'),
@@ -127,59 +118,67 @@ export const useStore = create<StoreState>((set, get) => ({
       createdAt: now,
       updatedAt: now,
     };
-    const posts = [...get().posts, post];
-    set({ posts, editingPostId: post.id, isEditorOpen: true });
-    persist({ posts, accounts: get().accounts });
+    set({ posts: [...get().posts, post], editingPostId: post.id, isEditorOpen: true });
+    void dataSource.createPost(post).catch((err) => console.error('createPost failed', err));
   },
 
   closeEditor: () => set({ isEditorOpen: false, editingPostId: null }),
 
   savePost: (draft) => {
     const now = new Date().toISOString();
-    let posts: Post[];
-    if (draft.id && get().posts.some((p) => p.id === draft.id)) {
-      posts = get().posts.map((p) =>
-        p.id === draft.id
-          ? {
-              ...p,
-              platform: draft.platform,
-              body: draft.body,
-              scheduledAt: draft.scheduledAt,
-              status: draft.status,
-              media: draft.media,
-              updatedAt: now,
-            }
-          : p,
-      );
+    const existing = draft.id ? get().posts.find((p) => p.id === draft.id) : undefined;
+    if (existing) {
+      const patch = {
+        platform: draft.platform,
+        body: draft.body,
+        scheduledAt: draft.scheduledAt,
+        status: draft.status,
+        media: draft.media,
+        updatedAt: now,
+      };
+      set({
+        posts: get().posts.map((p) => (p.id === existing.id ? { ...p, ...patch } : p)),
+        isEditorOpen: false,
+        editingPostId: null,
+      });
+      void dataSource.updatePost(existing.id, patch).catch((err) => console.error('updatePost failed', err));
     } else {
-      posts = [
-        ...get().posts,
-        {
-          id: draft.id ?? createId('post'),
-          platform: draft.platform,
-          body: draft.body,
-          scheduledAt: draft.scheduledAt,
-          status: draft.status,
-          media: draft.media,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ];
+      const post: Post = {
+        id: draft.id ?? createId('post'),
+        platform: draft.platform,
+        body: draft.body,
+        scheduledAt: draft.scheduledAt,
+        status: draft.status,
+        media: draft.media,
+        createdAt: now,
+        updatedAt: now,
+      };
+      set({ posts: [...get().posts, post], isEditorOpen: false, editingPostId: null });
+      void dataSource.createPost(post).catch((err) => console.error('createPost failed', err));
     }
-    set({ posts, isEditorOpen: false, editingPostId: null });
-    persist({ posts, accounts: get().accounts });
   },
 
   deletePost: (postId) => {
-    const posts = get().posts.filter((p) => p.id !== postId);
-    set({ posts, isEditorOpen: false, editingPostId: null });
-    persist({ posts, accounts: get().accounts });
+    set({
+      posts: get().posts.filter((p) => p.id !== postId),
+      isEditorOpen: false,
+      editingPostId: null,
+    });
+    void dataSource.deletePost(postId).catch((err) => console.error('deletePost failed', err));
   },
 
   reschedulePost: (postId, targetDay) => {
-    const posts = applyReschedule(get().posts, postId, targetDay);
-    set({ posts });
-    persist({ posts, accounts: get().accounts });
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const scheduledAt = computeReschedule(post, targetDay);
+    if (scheduledAt === post.scheduledAt) return;
+    const updatedAt = new Date().toISOString();
+    set({
+      posts: get().posts.map((p) => (p.id === postId ? { ...p, scheduledAt, updatedAt } : p)),
+    });
+    void dataSource
+      .updatePost(postId, { scheduledAt, updatedAt })
+      .catch((err) => console.error('reschedule failed', err));
   },
 
   connectAccount: async (platform) => {
@@ -188,19 +187,18 @@ export const useStore = create<StoreState>((set, get) => ({
       accountError: { ...s.accountError, [platform]: undefined },
     }));
     try {
-      const integration = getIntegration(platform);
-      const { account, token } = await integration.connect();
-      tokens.set(platform, token);
-      const accounts = get().accounts.map((a) => (a.platform === platform ? account : a));
-      set((s) => ({ accounts, accountBusy: { ...s.accountBusy, [platform]: false } }));
-      persist({ posts: get().posts, accounts });
+      const account = await dataSource.connectAccount(platform);
+      set((s) => ({
+        accounts: get().accounts.map((a) => (a.platform === platform ? account : a)),
+        accountBusy: { ...s.accountBusy, [platform]: false },
+        accountError: { ...s.accountError, [platform]: account.statusDetail },
+      }));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Connection failed.';
-      const accounts = get().accounts.map((a) =>
-        a.platform === platform ? { ...a, status: 'error' as const, statusDetail: message } : a,
-      );
       set((s) => ({
-        accounts,
+        accounts: get().accounts.map((a) =>
+          a.platform === platform ? { ...a, status: 'error' as const, statusDetail: message } : a,
+        ),
         accountBusy: { ...s.accountBusy, [platform]: false },
         accountError: { ...s.accountError, [platform]: message },
       }));
@@ -209,21 +207,18 @@ export const useStore = create<StoreState>((set, get) => ({
 
   disconnectAccount: async (platform) => {
     set((s) => ({ accountBusy: { ...s.accountBusy, [platform]: true } }));
-    const token = tokens.get(platform);
     try {
-      if (token) await getIntegration(platform).disconnect(token);
-    } finally {
-      tokens.delete(platform);
-      const accounts = get().accounts.map((a) =>
-        a.platform === platform
-          ? {
-              platform,
-              status: 'disconnected' as const,
-            }
-          : a,
-      );
-      set((s) => ({ accounts, accountBusy: { ...s.accountBusy, [platform]: false } }));
-      persist({ posts: get().posts, accounts });
+      const account = await dataSource.disconnectAccount(platform);
+      set((s) => ({
+        accounts: get().accounts.map((a) => (a.platform === platform ? account : a)),
+        accountBusy: { ...s.accountBusy, [platform]: false },
+      }));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Disconnect failed.';
+      set((s) => ({
+        accountBusy: { ...s.accountBusy, [platform]: false },
+        accountError: { ...s.accountError, [platform]: message },
+      }));
     }
   },
 

@@ -6,3 +6,6 @@ coverage
 .DS_Store
 .vite
 *.log
+
+# TS incremental build cache
+*.tsbuildinfo
