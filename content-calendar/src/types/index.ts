@@ -9,8 +9,24 @@
 /** Social platforms the product supports. Extend this union to add platforms. */
 export type Platform = 'instagram' | 'linkedin' | 'threads';
 
-/** Lifecycle of a post as it moves from idea to published (or failure). */
-export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+/**
+ * Lifecycle of a post as it moves through the editorial pipeline:
+ * Brief → Drafting → Review → Approved → Scheduled → Published → Learn
+ * (`failed` is a publish error that surfaces alongside Scheduled).
+ *
+ * The legacy names `draft`/`scheduled`/`published`/`failed` are preserved so the
+ * scheduler, analytics and persisted data keep working; `draft` is shown as
+ * "Drafting" in the UI.
+ */
+export type PostStatus =
+  | 'brief'
+  | 'draft'
+  | 'review'
+  | 'approved'
+  | 'scheduled'
+  | 'published'
+  | 'learn'
+  | 'failed';
 
 /** A media attachment placeholder. Real uploads would carry a CDN URL + size. */
 export interface MediaAttachment {
@@ -36,6 +52,14 @@ export interface Post {
   owner?: string;
   /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
   campaign?: string;
+  /** Brief: the assignment — objective / why this post exists. */
+  brief?: string;
+  /** Brief: who this is for. */
+  audience?: string;
+  /** Theme / content pillar this post ladders up to. */
+  theme?: string;
+  /** Hook: the scroll-stopping opening line. */
+  hook?: string;
   /** Mock engagement metrics, populated for published posts. */
   engagement?: PostEngagement;
   createdAt: string;
@@ -92,6 +116,10 @@ export interface PostDraft {
   media: MediaAttachment[];
   owner?: string;
   campaign?: string;
+  brief?: string;
+  audience?: string;
+  theme?: string;
+  hook?: string;
 }
 
 /** Calendar canvas view granularity. */

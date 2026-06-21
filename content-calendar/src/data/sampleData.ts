@@ -19,6 +19,10 @@ interface Seed {
   body: string;
   owner?: string;
   campaign?: string;
+  brief?: string;
+  audience?: string;
+  theme?: string;
+  hook?: string;
   media?: { type: 'image' | 'video'; label: string };
   engagement?: { likes: number; comments: number; shares: number; impressions: number };
 }
@@ -29,10 +33,12 @@ const SEEDS: Seed[] = [
     dayOffset: 0,
     hour: 9,
     minute: 0,
-    status: 'published',
+    status: 'learn',
     body: 'Monday motivation ☕️ Behind every effortless brand is a relentless content engine. Here are 3 systems we use at vahtian to never miss a post. #contentstrategy #socialmedia',
     owner: 'Heidi',
     campaign: 'Q2 Brand',
+    theme: 'Behind the scenes',
+    hook: 'Behind every effortless brand is a relentless content engine.',
     media: { type: 'image', label: 'Studio flat-lay' },
     engagement: { likes: 842, comments: 37, shares: 64, impressions: 12400 },
   },
@@ -52,7 +58,8 @@ const SEEDS: Seed[] = [
     dayOffset: 1,
     hour: 8,
     minute: 15,
-    status: 'scheduled',
+    status: 'review',
+    owner: 'Sam',
     body: 'Hot take: your engagement rate matters more than your follower count. Reply with your niche and I\'ll tell you a realistic benchmark.',
   },
   {
@@ -60,7 +67,8 @@ const SEEDS: Seed[] = [
     dayOffset: 1,
     hour: 18,
     minute: 0,
-    status: 'scheduled',
+    status: 'approved',
+    owner: 'Alex',
     body: 'New Reel dropping tonight 🎬 A 30-second teardown of a viral campaign and why it actually worked. Save this for later!',
     media: { type: 'video', label: 'Reel: campaign teardown' },
   },
@@ -80,7 +88,12 @@ const SEEDS: Seed[] = [
     dayOffset: 2,
     hour: 15,
     minute: 45,
-    status: 'draft',
+    status: 'brief',
+    owner: 'Sam',
+    campaign: 'Founder Voice',
+    brief: 'Spark a discussion that positions us as transparent operators and grows the Threads following.',
+    audience: 'Early-stage founders',
+    theme: 'Build in public',
     body: 'Drafting a thread on building in public. What\'s the one metric you wish more founders shared openly?',
   },
   {
@@ -105,7 +118,10 @@ const SEEDS: Seed[] = [
     dayOffset: 4,
     hour: 9,
     minute: 30,
-    status: 'scheduled',
+    status: 'draft',
+    owner: 'Sam',
+    theme: 'Engagement bait',
+    hook: 'What\'s a "best practice" you\'ve stopped following — and your results got better?',
     body: 'Friday question: what\'s a social media "best practice" you\'ve stopped following — and your results got better?',
   },
   {
@@ -122,7 +138,9 @@ const SEEDS: Seed[] = [
     dayOffset: 5,
     hour: 11,
     minute: 0,
-    status: 'scheduled',
+    status: 'approved',
+    owner: 'Heidi',
+    campaign: 'Data Series',
     body: 'Weekend read: our 2026 social media trend report is live. 22 pages, zero fluff. Link in comments.',
     media: { type: 'image', label: 'Report cover' },
   },
@@ -131,7 +149,11 @@ const SEEDS: Seed[] = [
     dayOffset: 6,
     hour: 17,
     minute: 0,
-    status: 'draft',
+    status: 'brief',
+    owner: 'Alex',
+    brief: 'Crowdsource next week\'s topics and signal that we listen to the audience.',
+    audience: 'Existing followers',
+    theme: 'Community',
     body: 'Planning next week\'s content. Drop a topic you want us to cover and we might build a whole post around it.',
   },
 ];
@@ -151,6 +173,10 @@ export function createSamplePosts(now: Date = new Date()): Post[] {
       status: seed.status,
       owner: seed.owner,
       campaign: seed.campaign,
+      brief: seed.brief,
+      audience: seed.audience,
+      theme: seed.theme,
+      hook: seed.hook,
       media: seed.media
         ? [{ id: createId('media'), type: seed.media.type, label: seed.media.label }]
         : [],

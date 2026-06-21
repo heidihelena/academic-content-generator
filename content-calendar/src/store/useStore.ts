@@ -78,6 +78,8 @@ export interface StoreState {
   savePost: (draft: PostDraft) => void;
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
+  /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
+  setPostStatus: (postId: string, status: PostStatus) => void;
 
   connectAccount: (platform: Platform) => Promise<void>;
   disconnectAccount: (platform: Platform) => Promise<void>;
@@ -207,6 +209,10 @@ export const useStore = create<StoreState>((set, get) => ({
         media: draft.media,
         owner: draft.owner,
         campaign: draft.campaign,
+        brief: draft.brief,
+        audience: draft.audience,
+        theme: draft.theme,
+        hook: draft.hook,
         updatedAt: now,
       };
       set({
@@ -225,6 +231,10 @@ export const useStore = create<StoreState>((set, get) => ({
         media: draft.media,
         owner: draft.owner,
         campaign: draft.campaign,
+        brief: draft.brief,
+        audience: draft.audience,
+        theme: draft.theme,
+        hook: draft.hook,
         createdAt: now,
         updatedAt: now,
       };
@@ -240,6 +250,18 @@ export const useStore = create<StoreState>((set, get) => ({
       editingPostId: null,
     });
     void dataSource.deletePost(postId).catch((err) => console.error('deletePost failed', err));
+  },
+
+  setPostStatus: (postId, status) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post || post.status === status) return;
+    const updatedAt = new Date().toISOString();
+    set({
+      posts: get().posts.map((p) => (p.id === postId ? { ...p, status, updatedAt } : p)),
+    });
+    void dataSource
+      .updatePost(postId, { status, updatedAt })
+      .catch((err) => console.error('setPostStatus failed', err));
   },
 
   reschedulePost: (postId, targetDay) => {

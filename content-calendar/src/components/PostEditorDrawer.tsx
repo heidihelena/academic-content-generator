@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { MediaAttachment, Platform, PostDraft, PostStatus } from '../types';
 import { useStore } from '../store/useStore';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
+import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 import { Drawer } from './ui/Drawer';
@@ -9,7 +10,7 @@ import { Spinner } from './ui/Spinner';
 import { PostPreview } from './PostPreview';
 import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon } from './icons';
 
-const STATUS_OPTIONS: PostStatus[] = ['draft', 'scheduled', 'published', 'failed'];
+const STAGE_OPTIONS: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
 /**
  * Create/edit panel for a single post, rendered as a right-side drawer so the
@@ -49,13 +50,17 @@ export function PostEditorDrawer() {
         media: existing.media,
         owner: existing.owner,
         campaign: existing.campaign,
+        brief: existing.brief,
+        audience: existing.audience,
+        theme: existing.theme,
+        hook: existing.hook,
       };
     }
     return {
       platform: 'instagram',
       body: '',
       scheduledAt: new Date().toISOString(),
-      status: 'draft',
+      status: 'brief',
       media: [],
     };
   }
@@ -155,9 +160,66 @@ export function PostEditorDrawer() {
         </div>
 
         <div>
+          <label htmlFor="post-brief" className="label">
+            Brief <span className="font-normal text-slate-500">— why this post exists</span>
+          </label>
+          <textarea
+            id="post-brief"
+            rows={2}
+            className="input resize-none"
+            placeholder="Objective / goal for this post…"
+            value={draft.brief ?? ''}
+            onChange={(e) => update('brief', e.target.value || undefined)}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="post-audience" className="label">
+              Audience
+            </label>
+            <input
+              id="post-audience"
+              type="text"
+              className="input"
+              placeholder="Who is this for?"
+              value={draft.audience ?? ''}
+              onChange={(e) => update('audience', e.target.value || undefined)}
+            />
+          </div>
+          <div>
+            <label htmlFor="post-theme" className="label">
+              Theme
+            </label>
+            <input
+              id="post-theme"
+              type="text"
+              className="input"
+              placeholder="Content pillar / topic"
+              value={draft.theme ?? ''}
+              onChange={(e) => update('theme', e.target.value || undefined)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="post-hook" className="label">
+            Hook <span className="font-normal text-slate-500">— the opening line</span>
+          </label>
+          <input
+            id="post-hook"
+            type="text"
+            className="input"
+            placeholder="The scroll-stopping first line…"
+            value={draft.hook ?? ''}
+            onChange={(e) => update('hook', e.target.value || undefined)}
+          />
+        </div>
+
+        <div>
           <div className="flex items-center justify-between">
             <label htmlFor="post-body" className="label">
-              Caption
+              Script / Copy
             </label>
             <span
               data-testid="char-count"
@@ -196,7 +258,7 @@ export function PostEditorDrawer() {
           </div>
           <div>
             <label htmlFor="post-status" className="label">
-              Status
+              Stage
             </label>
             <select
               id="post-status"
@@ -204,14 +266,19 @@ export function PostEditorDrawer() {
               value={draft.status}
               onChange={(e) => update('status', e.target.value as PostStatus)}
             >
-              {STATUS_OPTIONS.map((s) => (
+              {STAGE_OPTIONS.map((s) => (
                 <option key={s} value={s}>
-                  {s[0].toUpperCase() + s.slice(1)}
+                  {STAGE_META[s].label}
                 </option>
               ))}
             </select>
           </div>
         </div>
+
+        <p className="rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2 text-[11px] leading-relaxed text-slate-400">
+          <span className="font-medium text-slate-300">{STAGE_META[draft.status].label}:</span>{' '}
+          {STAGE_META[draft.status].hint}
+        </p>
 
         <div className="grid grid-cols-2 gap-3">
           <div>

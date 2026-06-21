@@ -1,14 +1,15 @@
 import type { PlatformFilter, PostStatus } from '../types';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
+import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS } from './icons';
 
 const STATUS_OPTIONS: Array<{ value: PostStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'All statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'scheduled', label: 'Scheduled' },
-  { value: 'published', label: 'Published' },
-  { value: 'failed', label: 'Failed' },
+  { value: 'all', label: 'All stages' },
+  ...[...STAGE_ORDER, 'failed' as const].map((value) => ({
+    value,
+    label: STAGE_META[value].label,
+  })),
 ];
 
 /** Platform + status filters for the calendar. */

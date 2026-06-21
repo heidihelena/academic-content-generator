@@ -41,6 +41,10 @@ export class PostsService {
       media: dto.media ?? [],
       owner: dto.owner,
       campaign: dto.campaign,
+      brief: dto.brief,
+      audience: dto.audience,
+      theme: dto.theme,
+      hook: dto.hook,
       createdAt: now,
       updatedAt: now,
     };

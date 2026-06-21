@@ -1,8 +1,9 @@
-import { CalendarIcon, ChartIcon, PlugIcon, SparkleIcon } from './icons';
+import { BoardIcon, CalendarIcon, ChartIcon, PlugIcon, SparkleIcon } from './icons';
 
-export type View = 'calendar' | 'analytics' | 'accounts' | 'ideas';
+export type View = 'board' | 'calendar' | 'analytics' | 'accounts' | 'ideas';
 
 const NAV: Array<{ id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element }> = [
+  { id: 'board', label: 'Pipeline', icon: BoardIcon },
   { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
   { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
   { id: 'analytics', label: 'Analytics', icon: ChartIcon },

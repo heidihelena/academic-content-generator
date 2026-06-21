@@ -23,33 +23,33 @@ describe('PostEditorModal', () => {
   beforeEach(resetStore);
 
   it('opens when a post card is clicked and shows its content', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     fireEvent.click(screen.getByText(/Monday motivation/i));
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     expect(screen.getByText('Edit post')).toBeInTheDocument();
     // The caption textarea is pre-filled with the post being edited.
-    expect((screen.getByLabelText('Caption') as HTMLTextAreaElement).value).toMatch(
+    expect((screen.getByLabelText('Script / Copy') as HTMLTextAreaElement).value).toMatch(
       /Monday motivation/,
     );
   });
 
   it('updates the character count as the caption changes', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));
-    const caption = screen.getByLabelText('Caption');
+    const caption = screen.getByLabelText('Script / Copy');
     fireEvent.change(caption, { target: { value: 'Hello world' } });
     expect(screen.getByTestId('char-count')).toHaveTextContent('11 / 2200');
   });
 
   it('warns and blocks saving when over the platform character limit', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));
     // Switch to Threads (500 char limit) then exceed it. Scope to the dialog so
     // we don't match the calendar's Threads filter button underneath.
     const dialog = screen.getByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: /Threads/i }));
-    const caption = screen.getByLabelText('Caption');
+    const caption = screen.getByLabelText('Script / Copy');
     fireEvent.change(caption, { target: { value: 'x'.repeat(501) } });
     expect(screen.getByTestId('char-count')).toHaveTextContent('501 / 500');
     expect(screen.getByText(/exceeds the Threads limit/i)).toBeInTheDocument();
@@ -57,10 +57,10 @@ describe('PostEditorModal', () => {
   });
 
   it('saves an edited caption back to the store', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     const original = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
     fireEvent.click(screen.getByText(/Monday motivation/i));
-    const caption = screen.getByLabelText('Caption');
+    const caption = screen.getByLabelText('Script / Copy');
     fireEvent.change(caption, { target: { value: 'Updated Monday caption' } });
     fireEvent.click(screen.getByRole('button', { name: /Save post/i }));
 
@@ -71,10 +71,10 @@ describe('PostEditorModal', () => {
   });
 
   it('creates a new post from the header action', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     const before = useStore.getState().posts.length;
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));
-    fireEvent.change(screen.getByLabelText('Caption'), { target: { value: 'Fresh post' } });
+    fireEvent.change(screen.getByLabelText('Script / Copy'), { target: { value: 'Fresh post' } });
     fireEvent.click(screen.getByRole('button', { name: /Save post/i }));
     const posts = useStore.getState().posts;
     expect(posts).toHaveLength(before + 1);
@@ -82,7 +82,7 @@ describe('PostEditorModal', () => {
   });
 
   it('deletes a post from the editor', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     const target = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
     fireEvent.click(screen.getByText(/Monday motivation/i));
     fireEvent.click(screen.getByRole('button', { name: /Delete/i }));
@@ -90,9 +90,9 @@ describe('PostEditorModal', () => {
   });
 
   it('saves owner and campaign with a new post and shows them on the card', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));
-    fireEvent.change(screen.getByLabelText('Caption'), { target: { value: 'Owned post' } });
+    fireEvent.change(screen.getByLabelText('Script / Copy'), { target: { value: 'Owned post' } });
     fireEvent.change(screen.getByLabelText('Owner'), { target: { value: 'Dana' } });
     fireEvent.change(screen.getByLabelText('Campaign'), { target: { value: 'Launch Week' } });
     fireEvent.click(screen.getByRole('button', { name: /Save post/i }));
@@ -106,9 +106,9 @@ describe('PostEditorModal', () => {
   });
 
   it('renders a live preview reflecting the caption', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));
-    fireEvent.change(screen.getByLabelText('Caption'), { target: { value: 'Preview me please' } });
+    fireEvent.change(screen.getByLabelText('Script / Copy'), { target: { value: 'Preview me please' } });
     // The preview duplicates the caption text outside the textarea.
     const matches = screen.getAllByText(/Preview me please/);
     expect(matches.length).toBeGreaterThanOrEqual(1);

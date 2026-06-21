@@ -3,6 +3,7 @@ import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ContentCalendarPage } from './components/ContentCalendarPage';
+import { PipelineBoard } from './components/board/PipelineBoard';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
@@ -13,10 +14,10 @@ import { LoadingState, ErrorState } from './components/ui/States';
  * Application root. Wires the navigation views, the persistent post editor modal,
  * and store initialization (loads from mock persistence or seeds sample data).
  */
-export default function App() {
+export default function App({ initialView = 'board' }: { initialView?: View } = {}) {
   const initialize = useStore((s) => s.initialize);
   const loadError = useStore((s) => s.loadError);
-  const [view, setView] = useState<View>('calendar');
+  const [view, setView] = useState<View>(initialView);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function App() {
             />
           ) : (
             <div className="mx-auto max-w-7xl">
+              {view === 'board' && <PipelineBoard />}
               {view === 'calendar' && <ContentCalendarPage />}
               {view === 'analytics' && <Analytics />}
               {view === 'accounts' && (

@@ -11,6 +11,10 @@ export interface CreatePostDto {
   media?: MediaAttachment[];
   owner?: string;
   campaign?: string;
+  brief?: string;
+  audience?: string;
+  theme?: string;
+  hook?: string;
 }
 
 /** Request body for updating a post (all fields optional). */

@@ -4,7 +4,20 @@
  */
 
 export type Platform = 'instagram' | 'linkedin' | 'threads';
-export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+/**
+ * Editorial pipeline stages. `draft` is shown as "Drafting" in the UI; the
+ * scheduler keys on `scheduled` and publishing sets `published`, so those names
+ * are preserved for compatibility.
+ */
+export type PostStatus =
+  | 'brief'
+  | 'draft'
+  | 'review'
+  | 'approved'
+  | 'scheduled'
+  | 'published'
+  | 'learn'
+  | 'failed';
 export type ConnectionStatus = 'connected' | 'disconnected' | 'expired' | 'error';
 
 export interface MediaAttachment {
@@ -32,6 +45,14 @@ export interface Post {
   owner?: string;
   /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
   campaign?: string;
+  /** Brief / objective for this post. */
+  brief?: string;
+  /** Target audience. */
+  audience?: string;
+  /** Theme / content pillar. */
+  theme?: string;
+  /** The opening hook. */
+  hook?: string;
   engagement?: PostEngagement;
   /** Platform-native id + permalink once published. */
   remoteId?: string;

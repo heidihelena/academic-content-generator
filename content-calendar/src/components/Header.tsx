@@ -3,6 +3,7 @@ import { postsThisWeek, scheduledVsPublished } from '../analytics/calculations';
 import type { View } from './Sidebar';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
+  board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
   calendar: { title: 'Content Calendar', subtitle: 'Plan and schedule your week across every channel' },
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted post ideas tailored to your audience' },
   analytics: { title: 'Analytics', subtitle: 'Understand what is working across your channels' },
