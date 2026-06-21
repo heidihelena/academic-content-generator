@@ -1,0 +1,33 @@
+{
+  "name": "vahtian-content-calendar-server",
+  "version": "1.0.0",
+  "description": "NestJS backend for the vahtian content calendar: posts, scheduling, social integrations, a markdown/Obsidian vault with vector search, and an AI idea generator.",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/main.js",
+    "start:dev": "ts-node src/main.ts",
+    "test": "echo \"(add e2e/unit tests here)\" && exit 0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "@nestjs/common": "^10.4.4",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "^10.4.4",
+    "@nestjs/platform-express": "^10.4.4",
+    "@nestjs/schedule": "^4.1.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^11.3.0",
+    "sqlite-vec": "^0.1.6",
+    "pg": "^8.13.0"
+  }
+}
