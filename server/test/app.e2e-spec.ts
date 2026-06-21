@@ -2,11 +2,17 @@ import 'reflect-metadata';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
+import { mkdtempSync, rmSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 // Force the dependency-free in-memory driver before AppModule is imported
 // (PersistenceModule.forRoot reads this at registration time).
 process.env.PERSISTENCE_DRIVER = 'memory';
 process.env.VAULT_WATCH = 'false';
+// Write uploads to a throwaway temp dir so tests don't litter the repo.
+const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-uploads-'));
+process.env.UPLOADS_DIR = UPLOADS_DIR;
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { AppModule } from '../src/app.module';
@@ -25,6 +31,7 @@ describe('Content Calendar API (e2e, memory driver)', () => {
 
   afterAll(async () => {
     await app.close();
+    rmSync(UPLOADS_DIR, { recursive: true, force: true });
   });
 
   it('seeds three disconnected accounts', async () => {
@@ -88,6 +95,24 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(ingest.body.files).toBe(0);
     const search = await request(http).get('/api/vault/search?q=anything').expect(200);
     expect(search.body).toEqual([]);
+  });
+
+  it('uploads media and returns a public URL', async () => {
+    const png = Buffer.from('89504e470d0a1a0a0000000d49484452', 'hex'); // PNG header bytes
+    const res = await request(http)
+      .post('/api/media/upload')
+      .attach('file', png, { filename: 'pic.png', contentType: 'image/png' })
+      .expect(201);
+    expect(res.body.type).toBe('image');
+    expect(res.body.label).toBe('pic.png');
+    expect(res.body.url).toContain('/uploads/');
+  });
+
+  it('rejects unsupported media types', async () => {
+    await request(http)
+      .post('/api/media/upload')
+      .attach('file', Buffer.from('hello'), { filename: 'x.txt', contentType: 'text/plain' })
+      .expect(400);
   });
 
   it('generates 5 AI ideas and validates input', async () => {

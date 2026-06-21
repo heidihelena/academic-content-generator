@@ -39,12 +39,20 @@ services:
       FRONTEND_URL: http://localhost:8080
       VAULT_PATH: /vault
       VAULT_WATCH: 'false'
+      STORAGE_DRIVER: local
+      UPLOADS_DIR: /data/uploads
+      # Browser-reachable base for uploaded media. For real platform publishing
+      # this must be a public host the platforms can fetch (use S3) — localhost
+      # works only with the mock integrations.
+      PUBLIC_BASE_URL: http://localhost:3000
       # Real services (optional): uncomment + supply values to go live.
       # IDEA_GENERATOR: llm
       # ANTHROPIC_API_KEY: ...
       # INSTAGRAM_CLIENT_ID: ...    # see server/docs/PLATFORM_SETUP.md
     ports:
       - '3000:3000'
+    volumes:
+      - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -62,3 +70,4 @@ services:
 
 volumes:
   pgdata:
+  uploads:

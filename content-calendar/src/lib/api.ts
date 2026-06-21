@@ -45,4 +45,18 @@ export class ApiClient {
   delete<T>(path: string): Promise<T> {
     return this.request<T>(path, { method: 'DELETE' });
   }
+
+  /** Multipart upload — lets the browser set the multipart boundary header. */
+  async upload<T>(path: string, file: File): Promise<T> {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${this.baseUrl}${path}`, { method: 'POST', body: form });
+    const text = await res.text();
+    const body = text ? JSON.parse(text) : undefined;
+    if (!res.ok) {
+      const message = (body && (body.message || body.error)) || `Upload failed (${res.status})`;
+      throw new ApiError(Array.isArray(message) ? message.join(', ') : message, res.status);
+    }
+    return body as T;
+  }
 }
