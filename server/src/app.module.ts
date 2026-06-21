@@ -10,6 +10,7 @@ import { AccountsModule } from './accounts/accounts.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AiModule } from './ai/ai.module';
     SchedulerModule,
     VaultModule,
     AiModule,
+    MediaModule,
   ],
 })
 export class AppModule {}

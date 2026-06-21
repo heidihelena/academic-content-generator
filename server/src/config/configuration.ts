@@ -7,6 +7,7 @@
 export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
+export type StorageDriver = 'local' | 's3';
 
 /** Per-platform OAuth app credentials. When absent, the platform falls back to
  *  the mock integration so the demo still works. */
@@ -31,6 +32,14 @@ export interface AppConfig {
   vault: {
     path: string;
     watch: boolean;
+  };
+  storage: {
+    driver: StorageDriver;
+    uploadsDir: string;
+    /** Public base URL used to build media URLs (must be reachable by the
+     *  platforms when publishing real posts). */
+    publicBaseUrl: string;
+    s3: { bucket?: string; region?: string; publicBaseUrl?: string };
   };
   embeddings: {
     provider: EmbeddingsProvider;
@@ -71,6 +80,17 @@ export default (): AppConfig => ({
   vault: {
     path: process.env.VAULT_PATH ?? './vault',
     watch: process.env.VAULT_WATCH === 'true',
+  },
+  storage: {
+    driver: (process.env.STORAGE_DRIVER as StorageDriver) ?? 'local',
+    uploadsDir: process.env.UPLOADS_DIR ?? './data/uploads',
+    publicBaseUrl:
+      process.env.PUBLIC_BASE_URL ?? `http://localhost:${process.env.PORT ?? '3000'}`,
+    s3: {
+      bucket: process.env.S3_BUCKET,
+      region: process.env.S3_REGION,
+      publicBaseUrl: process.env.S3_PUBLIC_BASE_URL,
+    },
   },
   embeddings: {
     provider: (process.env.EMBEDDINGS_PROVIDER as EmbeddingsProvider) ?? 'mock',

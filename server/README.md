@@ -89,6 +89,7 @@ npm run test:cov             # with coverage
 | `POST` | `/api/accounts/:platform/disconnect` | Disconnect |
 | `GET` | `/api/accounts/oauth/:platform/authorize` | Start OAuth → `{ authorizeUrl }` |
 | `GET` | `/api/accounts/oauth/callback?code=&state=` | OAuth redirect target → connects |
+| `POST` | `/api/media/upload` | Upload an image/video (multipart `file`) → media w/ public URL |
 | `POST` | `/api/vault/ingest` | (Re)index the markdown vault |
 | `GET` | `/api/vault/search?q=&k=` | Semantic search |
 | `POST` | `/api/ai/ideas` | Generate 5 RAG-grounded ideas |
@@ -130,6 +131,12 @@ Every seam is marked in code with `// --- REAL API INTEGRATION POINT ---`:
 - **AI ideas** — set `IDEA_GENERATOR=llm` + `ANTHROPIC_API_KEY`. Uses
   `@anthropic-ai/sdk` with `claude-opus-4-8`, adaptive thinking, and structured
   outputs.
+
+- **Media storage** — `POST /api/media/upload` stores files via the
+  `StorageService`. Default `STORAGE_DRIVER=local` (served at `/uploads`); set
+  `STORAGE_DRIVER=s3` (+ `@aws-sdk/client-s3`, `S3_*`) for production. Instagram
+  publishing needs media at a **public** URL, so use S3 (or a public host) — a
+  `localhost` `PUBLIC_BASE_URL` only works with the mock integrations.
 
 ## Security notes
 

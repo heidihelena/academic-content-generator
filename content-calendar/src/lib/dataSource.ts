@@ -1,8 +1,9 @@
-import type { ConnectedAccount, Platform, Post } from '../types';
+import type { ConnectedAccount, MediaAttachment, Platform, Post } from '../types';
 import { LocalStoragePersistence, type PersistenceAdapter } from './persistence';
 import { createSampleAccounts, createSamplePosts } from '../data/sampleData';
 import { getIntegration } from '../integrations/registry';
 import type { AccessToken } from '../integrations/types';
+import { createId } from './id';
 import { ApiClient } from './api';
 
 /**
@@ -27,6 +28,8 @@ export interface DataSource {
   deletePost(id: string): Promise<void>;
   connectAccount(platform: Platform): Promise<ConnectedAccount>;
   disconnectAccount(platform: Platform): Promise<ConnectedAccount>;
+  /** Upload a media file and return an attachment with a usable URL. */
+  uploadMedia(file: File): Promise<MediaAttachment>;
 }
 
 /** Local, dependency-free data source backed by a PersistenceAdapter. */
@@ -103,6 +106,17 @@ export class LocalDataSource implements DataSource {
     this.save();
     return account;
   }
+  async uploadMedia(file: File): Promise<MediaAttachment> {
+    // Offline: use an object URL for preview. Note this URL is not publicly
+    // reachable, so it can't be used for real platform publishing — that needs
+    // the API/S3 path. Good enough for the local demo.
+    return {
+      id: createId('media'),
+      type: file.type.startsWith('video/') ? 'video' : 'image',
+      label: file.name,
+      url: URL.createObjectURL(file),
+    };
+  }
 }
 
 /** Remote data source backed by the NestJS API. */
@@ -139,6 +153,9 @@ export class ApiDataSource implements DataSource {
   }
   disconnectAccount(platform: Platform): Promise<ConnectedAccount> {
     return this.api.post<ConnectedAccount>(`/accounts/${platform}/disconnect`);
+  }
+  uploadMedia(file: File): Promise<MediaAttachment> {
+    return this.api.upload<MediaAttachment>('/media/upload', file);
   }
 }
 

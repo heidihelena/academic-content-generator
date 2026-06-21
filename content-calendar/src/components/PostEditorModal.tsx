@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { MediaAttachment, Platform, PostDraft, PostStatus } from '../types';
 import { useStore } from '../store/useStore';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 import { Modal } from './ui/Modal';
+import { Spinner } from './ui/Spinner';
 import { PostPreview } from './PostPreview';
 import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon } from './icons';
 
@@ -23,6 +24,11 @@ export function PostEditorModal() {
   const savePost = useStore((s) => s.savePost);
   const deletePost = useStore((s) => s.deletePost);
   const closeEditor = useStore((s) => s.closeEditor);
+  const uploadMedia = useStore((s) => s.uploadMedia);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const existing = posts.find((p) => p.id === editingPostId);
 
@@ -73,6 +79,24 @@ export function PostEditorModal() {
 
   const removeMedia = (id: string) =>
     update('media', draft.media.filter((m) => m.id !== id));
+
+  // Real upload: send the file to the storage backend (or an object URL offline)
+  // and attach the returned media (with a usable URL) to the draft.
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file
+    if (!file) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const media = await uploadMedia(file);
+      update('media', [...draft.media, media]);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const canSave = useMemo(
     () => draft.scheduledAt && !overLimit,
@@ -210,8 +234,25 @@ export function PostEditorModal() {
               <button className="btn-secondary py-1.5 text-xs" onClick={() => addMedia('video')}>
                 <VideoIcon width={14} height={14} /> Add video
               </button>
+              {/* Real upload: stores the file via the backend (or an object URL
+                  offline) and attaches a usable URL — required for Instagram. */}
+              <button
+                className="btn-secondary py-1.5 text-xs"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploading ? <Spinner size={14} label="Uploading" /> : <ImageIcon width={14} height={14} />}
+                {uploading ? 'Uploading…' : 'Upload file'}
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                className="hidden"
+                onChange={onPickFile}
+              />
             </div>
-            {/* Real media upload would POST to a storage service and store the URL. */}
+            {uploadError && <p className="mt-1 text-[11px] text-status-failed">{uploadError}</p>}
           </div>
         </div>
 

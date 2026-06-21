@@ -7,6 +7,7 @@ import type {
   PostDraft,
   PostStatus,
 } from '../types';
+import type { MediaAttachment } from '../types';
 import type { PersistenceAdapter } from '../lib/persistence';
 import { createDataSource, LocalDataSource, type DataSource } from '../lib/dataSource';
 import { reschedulePost as computeReschedule } from '../lib/scheduling';
@@ -55,6 +56,8 @@ export interface StoreState {
 
   connectAccount: (platform: Platform) => Promise<void>;
   disconnectAccount: (platform: Platform) => Promise<void>;
+
+  uploadMedia: (file: File) => Promise<MediaAttachment>;
 
   filteredPosts: () => Post[];
 }
@@ -221,6 +224,8 @@ export const useStore = create<StoreState>((set, get) => ({
       }));
     }
   },
+
+  uploadMedia: (file) => dataSource.uploadMedia(file),
 
   filteredPosts: () => {
     const { posts, platformFilter, statusFilter } = get();
