@@ -26,7 +26,10 @@ export class PgService implements OnModuleInit {
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Pool } = require('pg');
-    this.poolInstance = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
+    // Neon (and most hosted Postgres) require TLS — detected via `sslmode=require`
+    // in the URL. Local/docker Postgres typically has no TLS, so disable it there.
+    const ssl = /sslmode=require/.test(connectionString) ? { rejectUnauthorized: false } : false;
+    this.poolInstance = new Pool({ connectionString, ssl });
 
     const dim = this.config.get<number>('embeddings.dimensions')!;
     await this.migrate(dim);

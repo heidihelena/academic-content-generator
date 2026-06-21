@@ -1,0 +1,64 @@
+# One-command local stack for the vahtian content calendar:
+#   db   — Postgres + pgvector (the "neon" persistence driver target)
+#   api  — NestJS backend on the neon driver
+#   web  — React dashboard built in API mode, served by nginx
+#
+#   docker compose up --build
+#   → dashboard at http://localhost:8080, API at http://localhost:3000/api
+#
+# Runs entirely on mocks (no API keys): mock social integrations, mock embeddings,
+# mock AI generator. Add real credentials as env vars on `api` to go live
+# (see server/.env.example and server/docs/PLATFORM_SETUP.md).
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: content_calendar
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d content_calendar']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./server
+    environment:
+      PORT: '3000'
+      PERSISTENCE_DRIVER: neon
+      DATABASE_URL: postgres://postgres:postgres@db:5432/content_calendar
+      EMBEDDINGS_PROVIDER: mock
+      EMBEDDING_DIMENSIONS: '256'
+      IDEA_GENERATOR: mock
+      FRONTEND_URL: http://localhost:8080
+      VAULT_PATH: /vault
+      VAULT_WATCH: 'false'
+      # Real services (optional): uncomment + supply values to go live.
+      # IDEA_GENERATOR: llm
+      # ANTHROPIC_API_KEY: ...
+      # INSTAGRAM_CLIENT_ID: ...    # see server/docs/PLATFORM_SETUP.md
+    ports:
+      - '3000:3000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ./content-calendar
+      args:
+        # Browser runs on the host, so it reaches the API at localhost:3000.
+        VITE_API_URL: http://localhost:3000/api
+    ports:
+      - '8080:80'
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

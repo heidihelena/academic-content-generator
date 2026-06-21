@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.env
+.env.local
+data
+*.sqlite
+*.sqlite3
+*.log
+*.tsbuildinfo
