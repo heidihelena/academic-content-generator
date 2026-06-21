@@ -7,6 +7,7 @@ import {
   type TokenStore,
 } from '../persistence/repository.interfaces';
 import { IntegrationRegistry } from '../integrations/integration.registry';
+import type { ConnectParams } from '../integrations/integration.types';
 
 const PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads'];
 
@@ -32,13 +33,13 @@ export class AccountsService implements OnModuleInit {
   }
 
   /**
-   * Connects an account. In the real OAuth flow `code` arrives at the callback
-   * endpoint; the mock ignores it. Tokens are persisted in the TokenStore —
-   * never in the vault or returned to the client.
+   * Connects an account. In the real OAuth flow `code` + `redirectUri` arrive at
+   * the callback endpoint; the mock ignores them. Tokens are persisted in the
+   * TokenStore — never in the vault or returned to the client.
    */
-  async connect(platform: Platform, code?: string): Promise<ConnectedAccount> {
+  async connect(platform: Platform, params?: ConnectParams): Promise<ConnectedAccount> {
     try {
-      const { account, token } = await this.integrations.get(platform).connect(code);
+      const { account, token } = await this.integrations.get(platform).connect(params);
       await this.tokens.set(token);
       return this.accounts.upsert(account);
     } catch (err) {

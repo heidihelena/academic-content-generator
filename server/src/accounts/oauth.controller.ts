@@ -40,13 +40,18 @@ export class OAuthController {
   async callback(
     @Query('code') code: string,
     @Query('state') state: string,
+    @Req() req: any,
     @Res() res: any,
   ): Promise<void> {
     const platform = state ? this.stateService.consume(state) : null;
     if (!platform) throw new BadRequestException('Invalid or expired OAuth state');
     if (!code) throw new BadRequestException('Missing authorization code');
 
-    const account = await this.accounts.connect(platform, code);
+    // The redirect URI must match the one used to start the flow (token exchange).
+    const account = await this.accounts.connect(platform, {
+      code,
+      redirectUri: this.callbackUrl(req),
+    });
 
     const frontendUrl = this.config.get<string>('frontendUrl');
     if (frontendUrl) {

@@ -115,10 +115,12 @@ deploys.
 
 Every seam is marked in code with `// --- REAL API INTEGRATION POINT ---`:
 
-- **Social platforms** — implement `PlatformIntegration` per platform and
-  register it in `integrations/integration.registry.ts` (Instagram Graph API /
-  LinkedIn Marketing API / Threads API). Add the OAuth callback route that
-  receives the `code` and calls `AccountsService.connect(platform, code)`.
+- **Social platforms** — real Instagram, LinkedIn, and Threads clients are
+  implemented (`integrations/{instagram,linkedin,threads}.integration.ts`). Each
+  platform uses its real API when `*_CLIENT_ID`/`*_CLIENT_SECRET` are set, and
+  falls back to the mock otherwise — so you can go live one platform at a time.
+  The OAuth callback route is already wired. See **`docs/PLATFORM_SETUP.md`** for
+  app registration, scopes, the callback URL, and App Review notes.
 - **Persistence** — set `PERSISTENCE_DRIVER=sqlite` or `neon` (+ `DATABASE_URL`).
   For Neon, `pgvector` is enabled automatically on boot.
 - **Embeddings** — set `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY`

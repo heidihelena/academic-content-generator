@@ -13,7 +13,7 @@ export class AccountsController {
 
   @Post(':platform/connect')
   connect(@Param('platform') platform: Platform, @Body('code') code?: string) {
-    return this.accounts.connect(platform, code);
+    return this.accounts.connect(platform, { code });
   }
 
   @Post(':platform/disconnect')

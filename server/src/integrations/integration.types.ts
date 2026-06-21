@@ -10,6 +10,14 @@ export interface PublishResult {
   permalink: string;
 }
 
+/** Parameters for completing the OAuth handshake. */
+export interface ConnectParams {
+  /** Authorization code from the provider redirect. */
+  code?: string;
+  /** The redirect URI used to start the flow — token exchange must match it. */
+  redirectUri?: string;
+}
+
 /**
  * Per-platform integration contract. The app depends only on this interface, so
  * a mock can be swapped for a real Instagram/LinkedIn/Threads client with no
@@ -37,10 +45,10 @@ export interface PlatformIntegration {
    * // --- REAL API INTEGRATION POINT ---------------------------------------
    * // Real: exchange the OAuth `code` for access/refresh tokens, then fetch the
    * // profile. Instagram Graph API / LinkedIn Marketing API / Threads API.
-   * // The `code` would arrive at the OAuth callback controller and be passed in.
+   * // The `code` + `redirectUri` arrive at the OAuth callback controller.
    * // ----------------------------------------------------------------------
    */
-  connect(code?: string): Promise<OAuthResult>;
+  connect(params?: ConnectParams): Promise<OAuthResult>;
 
   disconnect(token: AccessToken): Promise<void>;
 

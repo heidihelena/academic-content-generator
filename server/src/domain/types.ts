@@ -55,6 +55,9 @@ export interface AccessToken {
   refreshToken?: string;
   expiresAt: number; // epoch ms
   scopes: string[];
+  /** Platform-native account id / URN used when publishing (e.g. IG user id,
+   *  LinkedIn person URN). Captured during the OAuth handshake. */
+  accountId?: string;
 }
 
 /** A chunk of vault content with its embedding, for semantic retrieval. */

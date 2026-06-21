@@ -1,6 +1,11 @@
 import { randomUUID } from 'crypto';
 import type { AccessToken, ConnectedAccount, Platform, Post } from '../domain/types';
-import type { OAuthResult, PlatformIntegration, PublishResult } from './integration.types';
+import type {
+  ConnectParams,
+  OAuthResult,
+  PlatformIntegration,
+  PublishResult,
+} from './integration.types';
 
 interface MockOptions {
   handle: string;
@@ -26,7 +31,7 @@ export class MockIntegration implements PlatformIntegration {
     return `${redirectUri}?${params.toString()}`;
   }
 
-  async connect(): Promise<OAuthResult> {
+  async connect(_params?: ConnectParams): Promise<OAuthResult> {
     if (this.options.failConnect) {
       throw new Error(`Authorization denied for ${this.platform}`);
     }
