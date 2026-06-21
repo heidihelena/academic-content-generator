@@ -59,7 +59,21 @@ them only for the `sqlite` / `neon` drivers.
 ```bash
 npm run build && npm start   # production build + run
 npm run typecheck            # type-check only
+npm test                     # Jest unit + e2e suite
+npm run test:cov             # with coverage
 ```
+
+## Tests
+
+`npm test` runs Jest (ts-jest) over:
+
+- **Unit** — vector math, markdown chunking, the OAuth state service, the mock
+  idea generator, and `PostsService` publish paths (success / no-account /
+  integration error).
+- **E2E** (`test/app.e2e-spec.ts`) — boots the app on the memory driver and
+  drives it over HTTP with supertest: account seeding, post CRUD, the full
+  OAuth authorize→callback→publish loop, vault ingest/search, and AI idea
+  generation (plus input validation). No native deps or API keys required.
 
 ## API
 
