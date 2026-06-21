@@ -8,6 +8,13 @@ export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
 
+/** Per-platform OAuth app credentials. When absent, the platform falls back to
+ *  the mock integration so the demo still works. */
+export interface PlatformCredentials {
+  clientId?: string;
+  clientSecret?: string;
+}
+
 export interface AppConfig {
   port: number;
   frontendUrl?: string;
@@ -15,6 +22,11 @@ export interface AppConfig {
     driver: PersistenceDriver;
     sqlitePath: string;
     databaseUrl?: string;
+  };
+  integrations: {
+    instagram: PlatformCredentials;
+    linkedin: PlatformCredentials & { version: string };
+    threads: PlatformCredentials;
   };
   vault: {
     path: string;
@@ -40,6 +52,21 @@ export default (): AppConfig => ({
     driver: (process.env.PERSISTENCE_DRIVER as PersistenceDriver) ?? 'memory',
     sqlitePath: process.env.SQLITE_PATH ?? './data/content-calendar.sqlite',
     databaseUrl: process.env.DATABASE_URL,
+  },
+  integrations: {
+    instagram: {
+      clientId: process.env.INSTAGRAM_CLIENT_ID,
+      clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
+    },
+    linkedin: {
+      clientId: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+      version: process.env.LINKEDIN_VERSION ?? '202401',
+    },
+    threads: {
+      clientId: process.env.THREADS_CLIENT_ID,
+      clientSecret: process.env.THREADS_CLIENT_SECRET,
+    },
   },
   vault: {
     path: process.env.VAULT_PATH ?? './vault',
