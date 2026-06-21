@@ -10,6 +10,7 @@ export type IdeaGeneratorKind = 'mock' | 'llm';
 
 export interface AppConfig {
   port: number;
+  frontendUrl?: string;
   persistence: {
     driver: PersistenceDriver;
     sqlitePath: string;
@@ -17,6 +18,7 @@ export interface AppConfig {
   };
   vault: {
     path: string;
+    watch: boolean;
   };
   embeddings: {
     provider: EmbeddingsProvider;
@@ -33,6 +35,7 @@ export interface AppConfig {
 
 export default (): AppConfig => ({
   port: parseInt(process.env.PORT ?? '3000', 10),
+  frontendUrl: process.env.FRONTEND_URL,
   persistence: {
     driver: (process.env.PERSISTENCE_DRIVER as PersistenceDriver) ?? 'memory',
     sqlitePath: process.env.SQLITE_PATH ?? './data/content-calendar.sqlite',
@@ -40,6 +43,7 @@ export default (): AppConfig => ({
   },
   vault: {
     path: process.env.VAULT_PATH ?? './vault',
+    watch: process.env.VAULT_WATCH === 'true',
   },
   embeddings: {
     provider: (process.env.EMBEDDINGS_PROVIDER as EmbeddingsProvider) ?? 'mock',

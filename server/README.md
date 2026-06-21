@@ -71,14 +71,31 @@ npm run typecheck            # type-check only
 | `DELETE` | `/api/posts/:id` | Delete a post |
 | `POST` | `/api/posts/:id/publish` | Publish immediately |
 | `GET` | `/api/accounts` | Connected-account states |
-| `POST` | `/api/accounts/:platform/connect` | Connect (mock OAuth) |
+| `POST` | `/api/accounts/:platform/connect` | Connect directly (mock OAuth) |
 | `POST` | `/api/accounts/:platform/disconnect` | Disconnect |
+| `GET` | `/api/accounts/oauth/:platform/authorize` | Start OAuth → `{ authorizeUrl }` |
+| `GET` | `/api/accounts/oauth/callback?code=&state=` | OAuth redirect target → connects |
 | `POST` | `/api/vault/ingest` | (Re)index the markdown vault |
 | `GET` | `/api/vault/search?q=&k=` | Semantic search |
 | `POST` | `/api/ai/ideas` | Generate 5 RAG-grounded ideas |
 
 The scheduler (`@Cron`, every minute) publishes posts whose `scheduledAt` has
 arrived via the integration layer.
+
+### OAuth flow
+
+`GET /api/accounts/oauth/:platform/authorize` returns an `authorizeUrl` and a
+single-use `state`. Send the user there; the provider (the mock auto-approves)
+redirects back to `/api/accounts/oauth/callback`, which verifies `state`,
+exchanges the `code` for tokens via the integration, persists the account, and
+redirects to `FRONTEND_URL` (or returns JSON if unset). Tokens are stored in the
+`TokenStore`, never exposed to the client.
+
+### Vault auto-reindex
+
+Set `VAULT_WATCH=true` to watch the vault (chokidar) and re-ingest on every
+add/edit/delete, debounced. Run the watcher on a single instance in multi-node
+deploys.
 
 ## Going live (real services)
 

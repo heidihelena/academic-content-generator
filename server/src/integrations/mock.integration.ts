@@ -17,6 +17,15 @@ export class MockIntegration implements PlatformIntegration {
     private readonly options: MockOptions,
   ) {}
 
+  authorizeUrl(redirectUri: string, state: string): string {
+    // The mock "consent screen" instantly approves: it points straight back at
+    // our callback with a fake code, so the full authorize→callback→connect loop
+    // is exercisable without a real provider. A real client returns the
+    // platform's hosted consent URL instead.
+    const params = new URLSearchParams({ code: `mock_code_${this.platform}`, state });
+    return `${redirectUri}?${params.toString()}`;
+  }
+
   async connect(): Promise<OAuthResult> {
     if (this.options.failConnect) {
       throw new Error(`Authorization denied for ${this.platform}`);

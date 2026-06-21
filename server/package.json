@@ -17,6 +17,7 @@
     "@nestjs/core": "^10.4.4",
     "@nestjs/platform-express": "^10.4.4",
     "@nestjs/schedule": "^4.1.1",
+    "chokidar": "^3.6.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },

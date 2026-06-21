@@ -19,6 +19,19 @@ export interface PlatformIntegration {
   readonly platform: Platform;
 
   /**
+   * Builds the OAuth consent URL the user is sent to. `state` is an opaque,
+   * single-use value the callback verifies (CSRF protection + platform lookup).
+   *
+   * // --- REAL API INTEGRATION POINT ---------------------------------------
+   * // Real: return the platform's authorize endpoint with client_id, scope,
+   * // redirect_uri and state, e.g.
+   * //   https://www.facebook.com/v19.0/dialog/oauth?client_id=...&state=...
+   * //   https://www.linkedin.com/oauth/v2/authorization?...&state=...
+   * // ----------------------------------------------------------------------
+   */
+  authorizeUrl(redirectUri: string, state: string): string;
+
+  /**
    * Completes the OAuth handshake and returns the account + tokens.
    *
    * // --- REAL API INTEGRATION POINT ---------------------------------------
