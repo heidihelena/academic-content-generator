@@ -9,6 +9,8 @@ export interface CreatePostDto {
   scheduledAt: string; // ISO 8601
   status?: PostStatus;
   media?: MediaAttachment[];
+  owner?: string;
+  campaign?: string;
 }
 
 /** Request body for updating a post (all fields optional). */

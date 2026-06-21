@@ -39,6 +39,8 @@ export class PostsService {
       scheduledAt: dto.scheduledAt,
       status: dto.status ?? 'draft',
       media: dto.media ?? [],
+      owner: dto.owner,
+      campaign: dto.campaign,
       createdAt: now,
       updatedAt: now,
     };

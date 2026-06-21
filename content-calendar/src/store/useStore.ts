@@ -205,6 +205,8 @@ export const useStore = create<StoreState>((set, get) => ({
         scheduledAt: draft.scheduledAt,
         status: draft.status,
         media: draft.media,
+        owner: draft.owner,
+        campaign: draft.campaign,
         updatedAt: now,
       };
       set({
@@ -221,6 +223,8 @@ export const useStore = create<StoreState>((set, get) => ({
         scheduledAt: draft.scheduledAt,
         status: draft.status,
         media: draft.media,
+        owner: draft.owner,
+        campaign: draft.campaign,
         createdAt: now,
         updatedAt: now,
       };

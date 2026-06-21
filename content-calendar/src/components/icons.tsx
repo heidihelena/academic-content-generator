@@ -97,6 +97,20 @@ export const CheckIcon = (p: IconProps) => (
   </svg>
 );
 
+export const UserIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21a8 8 0 0 1 16 0" />
+  </svg>
+);
+
+export const TagIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 11.5V4a1 1 0 0 1 1-1h7.5a1 1 0 0 1 .7.3l8 8a1 1 0 0 1 0 1.4l-7.5 7.5a1 1 0 0 1-1.4 0l-8-8a1 1 0 0 1-.3-.7z" />
+    <circle cx="7.5" cy="7.5" r="1.2" />
+  </svg>
+);
+
 export const AlertIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M12 9v4M12 17h.01M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />

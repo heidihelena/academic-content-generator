@@ -6,7 +6,7 @@ import { ContentCalendarPage } from './components/ContentCalendarPage';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
-import { PostEditorModal } from './components/PostEditorModal';
+import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
 
 /**
@@ -59,8 +59,8 @@ export default function App() {
         </main>
       </div>
 
-      {/* Editor modal is always mounted; visibility is store-driven. */}
-      <PostEditorModal />
+      {/* Editor drawer is always mounted; visibility is store-driven. */}
+      <PostEditorDrawer />
     </div>
   );
 }

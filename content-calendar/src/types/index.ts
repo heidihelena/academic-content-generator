@@ -32,6 +32,10 @@ export interface Post {
   scheduledAt: string;
   status: PostStatus;
   media: MediaAttachment[];
+  /** Person responsible for this post (free-text name today; a User ref later). */
+  owner?: string;
+  /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
+  campaign?: string;
   /** Mock engagement metrics, populated for published posts. */
   engagement?: PostEngagement;
   createdAt: string;
@@ -86,6 +90,8 @@ export interface PostDraft {
   scheduledAt: string;
   status: PostStatus;
   media: MediaAttachment[];
+  owner?: string;
+  campaign?: string;
 }
 
 /** Calendar canvas view granularity. */

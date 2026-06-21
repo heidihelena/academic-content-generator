@@ -2,7 +2,7 @@ import type { Post } from '../types';
 import { formatTime } from '../lib/dateUtils';
 import { useStore } from '../store/useStore';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
-import { ImageIcon, VideoIcon, AlertIcon } from './icons';
+import { ImageIcon, VideoIcon, AlertIcon, TagIcon, UserIcon } from './icons';
 
 interface Props {
   post: Post;
@@ -72,6 +72,28 @@ export function CalendarContentCard({ post, conflicted }: Props) {
       <p className="line-clamp-2 text-xs leading-snug text-slate-300">
         {post.body || <span className="italic text-slate-500">Empty draft…</span>}
       </p>
+      {(post.campaign || post.owner) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {post.campaign && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 rounded bg-surface-700 px-1.5 py-0.5 text-[10px] text-slate-300"
+              title={`Campaign: ${post.campaign}`}
+            >
+              <TagIcon width={10} height={10} />
+              <span className="truncate">{post.campaign}</span>
+            </span>
+          )}
+          {post.owner && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 text-[10px] text-slate-400"
+              title={`Owner: ${post.owner}`}
+            >
+              <UserIcon width={10} height={10} />
+              <span className="truncate">{post.owner}</span>
+            </span>
+          )}
+        </div>
+      )}
       <div className="mt-1.5 flex items-center justify-between">
         <StatusBadge status={post.status} />
         {media && (

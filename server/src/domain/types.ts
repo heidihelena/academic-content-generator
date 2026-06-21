@@ -28,6 +28,10 @@ export interface Post {
   scheduledAt: string; // ISO 8601
   status: PostStatus;
   media: MediaAttachment[];
+  /** Person responsible for this post (free-text name today; a User ref later). */
+  owner?: string;
+  /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
+  campaign?: string;
   engagement?: PostEngagement;
   /** Platform-native id + permalink once published. */
   remoteId?: string;

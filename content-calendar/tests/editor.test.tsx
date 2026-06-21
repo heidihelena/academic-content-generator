@@ -89,6 +89,22 @@ describe('PostEditorModal', () => {
     expect(useStore.getState().posts.find((p) => p.id === target.id)).toBeUndefined();
   });
 
+  it('saves owner and campaign with a new post and shows them on the card', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /New post/i }));
+    fireEvent.change(screen.getByLabelText('Caption'), { target: { value: 'Owned post' } });
+    fireEvent.change(screen.getByLabelText('Owner'), { target: { value: 'Dana' } });
+    fireEvent.change(screen.getByLabelText('Campaign'), { target: { value: 'Launch Week' } });
+    fireEvent.click(screen.getByRole('button', { name: /Save post/i }));
+
+    const saved = useStore.getState().posts.find((p) => p.body === 'Owned post')!;
+    expect(saved.owner).toBe('Dana');
+    expect(saved.campaign).toBe('Launch Week');
+    // Owner/campaign surface on the calendar card.
+    expect(screen.getByText('Dana')).toBeInTheDocument();
+    expect(screen.getByText('Launch Week')).toBeInTheDocument();
+  });
+
   it('renders a live preview reflecting the caption', () => {
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: /New post/i }));

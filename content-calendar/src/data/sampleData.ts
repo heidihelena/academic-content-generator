@@ -17,6 +17,8 @@ interface Seed {
   minute: number;
   status: PostStatus;
   body: string;
+  owner?: string;
+  campaign?: string;
   media?: { type: 'image' | 'video'; label: string };
   engagement?: { likes: number; comments: number; shares: number; impressions: number };
 }
@@ -29,6 +31,8 @@ const SEEDS: Seed[] = [
     minute: 0,
     status: 'published',
     body: 'Monday motivation ☕️ Behind every effortless brand is a relentless content engine. Here are 3 systems we use at vahtian to never miss a post. #contentstrategy #socialmedia',
+    owner: 'Heidi',
+    campaign: 'Q2 Brand',
     media: { type: 'image', label: 'Studio flat-lay' },
     engagement: { likes: 842, comments: 37, shares: 64, impressions: 12400 },
   },
@@ -39,6 +43,8 @@ const SEEDS: Seed[] = [
     minute: 30,
     status: 'published',
     body: 'We analyzed 10,000 B2B posts. The ones that performed best had one thing in common: they started with a specific number, not a hook cliché. Full breakdown below 👇',
+    owner: 'Heidi',
+    campaign: 'Data Series',
     engagement: { likes: 311, comments: 58, shares: 41, impressions: 9800 },
   },
   {
@@ -65,6 +71,8 @@ const SEEDS: Seed[] = [
     minute: 0,
     status: 'scheduled',
     body: 'Carousel: 7 content formats that consistently outperform on LinkedIn in 2026. Swipe through — slide 5 surprised even us.',
+    owner: 'Alex',
+    campaign: 'Data Series',
     media: { type: 'image', label: 'Carousel · 7 slides' },
   },
   {
@@ -141,6 +149,8 @@ export function createSamplePosts(now: Date = new Date()): Post[] {
       body: seed.body,
       scheduledAt: date.toISOString(),
       status: seed.status,
+      owner: seed.owner,
+      campaign: seed.campaign,
       media: seed.media
         ? [{ id: createId('media'), type: seed.media.type, label: seed.media.label }]
         : [],
