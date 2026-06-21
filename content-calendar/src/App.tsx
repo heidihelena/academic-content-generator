@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
 import { Header } from './components/Header';
-import { WeeklyCalendar } from './components/WeeklyCalendar';
+import { ContentCalendarPage } from './components/ContentCalendarPage';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
@@ -42,7 +42,7 @@ export default function App() {
             />
           ) : (
             <div className="mx-auto max-w-7xl">
-              {view === 'calendar' && <WeeklyCalendar />}
+              {view === 'calendar' && <ContentCalendarPage />}
               {view === 'analytics' && <Analytics />}
               {view === 'accounts' && (
                 <div className="mx-auto max-w-2xl">

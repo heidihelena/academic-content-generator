@@ -87,3 +87,20 @@ export interface PostDraft {
   status: PostStatus;
   media: MediaAttachment[];
 }
+
+/** Calendar canvas view granularity. */
+export type CalendarView = 'month' | 'week' | 'day';
+
+/**
+ * Capability flags (permissionsState). Defaults to all-true; a real role system
+ * would compute these from the signed-in user so the UI can gate create/edit/
+ * delete/publish/bulk actions without touching component logic.
+ */
+export interface Permissions {
+  canCreate: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  canPublish: boolean;
+  canBulk: boolean;
+}
+
