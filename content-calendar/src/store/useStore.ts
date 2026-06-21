@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type {
+  CalendarView,
   ConnectedAccount,
+  Permissions,
   Platform,
   PlatformFilter,
   Post,
@@ -29,11 +31,22 @@ export interface StoreState {
   posts: Post[];
   accounts: ConnectedAccount[];
 
+  // calendarState
   weekAnchor: string;
+  view: CalendarView;
+  // filterState
   platformFilter: PlatformFilter;
   statusFilter: PostStatus | 'all';
+  searchQuery: string;
+  // selectedContentState
   editingPostId: string | null;
   isEditorOpen: boolean;
+  // dragDropState
+  draggingId: string | null;
+  // bulkSelectionState
+  selectedIds: string[];
+  // permissionsState
+  permissions: Permissions;
 
   accountBusy: Partial<Record<Platform, boolean>>;
   accountError: Partial<Record<Platform, string | undefined>>;
@@ -42,10 +55,22 @@ export interface StoreState {
 
   initialize: () => void;
 
+  setView: (view: CalendarView) => void;
   setPlatformFilter: (filter: PlatformFilter) => void;
   setStatusFilter: (filter: PostStatus | 'all') => void;
+  setSearchQuery: (query: string) => void;
+  goToAnchor: (date: Date) => void;
   goToWeek: (date: Date) => void;
   goToToday: () => void;
+
+  // drag-and-drop
+  setDragging: (postId: string | null) => void;
+
+  // bulk selection
+  toggleSelected: (postId: string) => void;
+  clearSelection: () => void;
+  bulkDelete: () => void;
+  bulkSetStatus: (status: PostStatus) => void;
 
   openEditor: (postId?: string) => void;
   openEditorForNewPost: (platform: Platform, scheduledAt: string) => void;
@@ -79,10 +104,15 @@ export const useStore = create<StoreState>((set, get) => ({
   posts: [],
   accounts: [],
   weekAnchor: new Date().toISOString(),
+  view: 'week',
   platformFilter: 'all',
   statusFilter: 'all',
+  searchQuery: '',
   editingPostId: null,
   isEditorOpen: false,
+  draggingId: null,
+  selectedIds: [],
+  permissions: { canCreate: true, canEdit: true, canDelete: true, canPublish: true, canBulk: true },
   accountBusy: {},
   accountError: {},
 
@@ -102,10 +132,48 @@ export const useStore = create<StoreState>((set, get) => ({
       );
   },
 
+  setView: (view) => set({ view }),
   setPlatformFilter: (filter) => set({ platformFilter: filter }),
   setStatusFilter: (filter) => set({ statusFilter: filter }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  goToAnchor: (date) => set({ weekAnchor: date.toISOString() }),
   goToWeek: (date) => set({ weekAnchor: date.toISOString() }),
   goToToday: () => set({ weekAnchor: new Date().toISOString() }),
+
+  setDragging: (postId) => set({ draggingId: postId }),
+
+  toggleSelected: (postId) =>
+    set((s) => ({
+      selectedIds: s.selectedIds.includes(postId)
+        ? s.selectedIds.filter((id) => id !== postId)
+        : [...s.selectedIds, postId],
+    })),
+
+  clearSelection: () => set({ selectedIds: [] }),
+
+  bulkDelete: () => {
+    const ids = get().selectedIds;
+    if (!get().permissions.canDelete || ids.length === 0) return;
+    set({ posts: get().posts.filter((p) => !ids.includes(p.id)), selectedIds: [] });
+    ids.forEach((id) =>
+      dataSource.deletePost(id).catch((err) => console.error('bulkDelete failed', err)),
+    );
+  },
+
+  bulkSetStatus: (status) => {
+    const ids = get().selectedIds;
+    if (!get().permissions.canBulk || ids.length === 0) return;
+    const updatedAt = new Date().toISOString();
+    set({
+      posts: get().posts.map((p) => (ids.includes(p.id) ? { ...p, status, updatedAt } : p)),
+      selectedIds: [],
+    });
+    ids.forEach((id) =>
+      dataSource
+        .updatePost(id, { status, updatedAt })
+        .catch((err) => console.error('bulkSetStatus failed', err)),
+    );
+  },
 
   openEditor: (postId) => set({ editingPostId: postId ?? null, isEditorOpen: true }),
 
@@ -228,11 +296,14 @@ export const useStore = create<StoreState>((set, get) => ({
   uploadMedia: (file) => dataSource.uploadMedia(file),
 
   filteredPosts: () => {
-    const { posts, platformFilter, statusFilter } = get();
+    const { posts, platformFilter, statusFilter, searchQuery } = get();
+    const q = searchQuery.trim().toLowerCase();
     return posts.filter((p) => {
       const platformOk = platformFilter === 'all' || p.platform === platformFilter;
       const statusOk = statusFilter === 'all' || p.status === statusFilter;
-      return platformOk && statusOk;
+      const searchOk =
+        q === '' || p.body.toLowerCase().includes(q) || p.platform.toLowerCase().includes(q);
+      return platformOk && statusOk && searchOk;
     });
   },
 }));

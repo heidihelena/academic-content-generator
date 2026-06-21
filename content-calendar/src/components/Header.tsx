@@ -1,6 +1,5 @@
 import { useStore } from '../store/useStore';
 import { postsThisWeek, scheduledVsPublished } from '../analytics/calculations';
-import { PlusIcon } from './icons';
 import type { View } from './Sidebar';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
@@ -18,7 +17,6 @@ interface HeaderProps {
 export function Header({ view }: HeaderProps) {
   const posts = useStore((s) => s.posts);
   const weekAnchor = useStore((s) => s.weekAnchor);
-  const openEditor = useStore((s) => s.openEditor);
 
   const thisWeek = postsThisWeek(posts, new Date(weekAnchor));
   const { scheduled } = scheduledVsPublished(posts);
@@ -30,14 +28,9 @@ export function Header({ view }: HeaderProps) {
         <h1 className="text-lg font-semibold text-slate-100">{meta.title}</h1>
         <p className="text-xs text-slate-500">{meta.subtitle}</p>
       </div>
-      <div className="flex items-center gap-4">
-        <div className="hidden items-center gap-4 sm:flex">
-          <Stat label="This week" value={thisWeek} />
-          <Stat label="Scheduled" value={scheduled} />
-        </div>
-        <button className="btn-primary" onClick={() => openEditor()}>
-          <PlusIcon width={16} height={16} /> New post
-        </button>
+      <div className="hidden items-center gap-4 sm:flex">
+        <Stat label="This week" value={thisWeek} />
+        <Stat label="Scheduled" value={scheduled} />
       </div>
     </header>
   );
