@@ -3,6 +3,7 @@ import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ContentCalendarPage } from './components/ContentCalendarPage';
+import { ListView } from './components/ListView';
 import { PipelineBoard } from './components/board/PipelineBoard';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
@@ -46,6 +47,7 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
             <div className="mx-auto max-w-7xl">
               {view === 'board' && <PipelineBoard />}
               {view === 'calendar' && <ContentCalendarPage />}
+              {view === 'list' && <ListView />}
               {view === 'analytics' && <Analytics />}
               {view === 'accounts' && (
                 <div className="mx-auto max-w-2xl">

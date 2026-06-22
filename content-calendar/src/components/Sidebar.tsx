@@ -1,10 +1,11 @@
-import { BoardIcon, CalendarIcon, ChartIcon, PlugIcon, SparkleIcon } from './icons';
+import { BoardIcon, CalendarIcon, ChartIcon, ListIcon, PlugIcon, SparkleIcon } from './icons';
 
-export type View = 'board' | 'calendar' | 'analytics' | 'accounts' | 'ideas';
+export type View = 'board' | 'calendar' | 'list' | 'analytics' | 'accounts' | 'ideas';
 
 const NAV: Array<{ id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element }> = [
   { id: 'board', label: 'Pipeline', icon: BoardIcon },
   { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+  { id: 'list', label: 'List', icon: ListIcon },
   { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
   { id: 'analytics', label: 'Analytics', icon: ChartIcon },
   { id: 'accounts', label: 'Accounts', icon: PlugIcon },
@@ -21,11 +22,11 @@ export function Sidebar({ view, onChange }: SidebarProps) {
     <aside className="flex shrink-0 flex-row gap-1 border-b border-surface-800 bg-surface-900 p-2 md:w-56 md:flex-col md:border-b-0 md:border-r md:p-3">
       <div className="mb-0 hidden items-center gap-2 px-2 py-2 md:mb-4 md:flex">
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-          v
+          ✦
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-slate-100">vahtian</p>
-          <p className="text-[11px] text-slate-500">Content Studio</p>
+          <p className="text-sm font-semibold text-slate-100">Scholar Studio</p>
+          <p className="text-[11px] text-slate-500">Share your research</p>
         </div>
       </div>
 
