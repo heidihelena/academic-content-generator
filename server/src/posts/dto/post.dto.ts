@@ -1,4 +1,11 @@
-import type { MediaAttachment, Platform, PostStatus, ReviewEntry } from '../../domain/types';
+import type {
+  EvidenceLevel,
+  MediaAttachment,
+  Platform,
+  PostStatus,
+  ReviewEntry,
+  Source,
+} from '../../domain/types';
 
 /** Request body for creating a post. */
 export interface CreatePostDto {
@@ -15,6 +22,8 @@ export interface CreatePostDto {
   audience?: string;
   theme?: string;
   hook?: string;
+  source?: Source;
+  evidenceLevel?: EvidenceLevel;
   reviewer?: string;
   reviews?: ReviewEntry[];
 }

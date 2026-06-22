@@ -3,7 +3,7 @@
  * end-to-end. This is the single source of truth for the backend.
  */
 
-export type Platform = 'instagram' | 'linkedin' | 'threads';
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
 /**
  * Editorial pipeline stages. `draft` is shown as "Drafting" in the UI; the
  * scheduler keys on `scheduled` and publishing sets `published`, so those names
@@ -44,6 +44,19 @@ export interface PostEngagement {
   impressions: number;
 }
 
+/** How well-supported a post's central claim is (the academic spine). */
+export type EvidenceLevel = 'opinion' | 'preliminary' | 'peer_reviewed';
+
+/** A structured citation linked to a post (paper / preprint / dataset). */
+export interface Source {
+  title?: string;
+  authors?: string;
+  year?: number;
+  venue?: string;
+  doi?: string;
+  url?: string;
+}
+
 export interface Post {
   id: string;
   platform: Platform;
@@ -63,6 +76,10 @@ export interface Post {
   theme?: string;
   /** The opening hook. */
   hook?: string;
+  /** The paper / preprint / dataset this post communicates. */
+  source?: Source;
+  /** How well-supported the post's central claim is. */
+  evidenceLevel?: EvidenceLevel;
   /** Currently assigned reviewer. */
   reviewer?: string;
   /** Review history (approvals / change requests), newest last. */

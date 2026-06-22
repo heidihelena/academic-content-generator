@@ -24,13 +24,13 @@ describe('PostEditorModal', () => {
 
   it('opens when a post card is clicked and shows its content', () => {
     render(<App initialView="calendar" />);
-    fireEvent.click(screen.getByText(/Monday motivation/i));
+    fireEvent.click(screen.getByText(/urban tree canopy/i));
     const dialog = screen.getByRole('dialog');
     expect(dialog).toBeInTheDocument();
     expect(screen.getByText('Edit post')).toBeInTheDocument();
     // The caption textarea is pre-filled with the post being edited.
     expect((screen.getByLabelText('Script / Copy') as HTMLTextAreaElement).value).toMatch(
-      /Monday motivation/,
+      /urban tree canopy/,
     );
   });
 
@@ -58,8 +58,8 @@ describe('PostEditorModal', () => {
 
   it('saves an edited caption back to the store', () => {
     render(<App initialView="calendar" />);
-    const original = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
-    fireEvent.click(screen.getByText(/Monday motivation/i));
+    const original = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
+    fireEvent.click(screen.getByText(/urban tree canopy/i));
     const caption = screen.getByLabelText('Script / Copy');
     fireEvent.change(caption, { target: { value: 'Updated Monday caption' } });
     fireEvent.click(screen.getByRole('button', { name: /Save post/i }));
@@ -83,8 +83,8 @@ describe('PostEditorModal', () => {
 
   it('deletes a post from the editor', () => {
     render(<App initialView="calendar" />);
-    const target = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
-    fireEvent.click(screen.getByText(/Monday motivation/i));
+    const target = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
+    fireEvent.click(screen.getByText(/urban tree canopy/i));
     fireEvent.click(screen.getByRole('button', { name: /Delete/i }));
     expect(useStore.getState().posts.find((p) => p.id === target.id)).toBeUndefined();
   });

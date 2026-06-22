@@ -50,10 +50,10 @@ describe('SearchBar', () => {
 
   it('filters posts by caption text', () => {
     render(<App initialView="calendar" />);
-    expect(screen.getByText(/Monday motivation/i)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Search posts'), { target: { value: 'analyzed' } });
-    expect(screen.getByText(/We analyzed 10,000 B2B posts/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Monday motivation/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/urban tree canopy/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search posts'), { target: { value: 'plain language' } });
+    expect(screen.getByText(/in plain language/i)).toBeInTheDocument();
+    expect(screen.queryByText(/urban tree canopy/i)).not.toBeInTheDocument();
   });
 });
 

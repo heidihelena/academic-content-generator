@@ -1,14 +1,23 @@
 import { useMemo, useRef, useState } from 'react';
-import type { MediaAttachment, Platform, PostDraft, PostStatus } from '../types';
+import type { MediaAttachment, Platform, PostDraft, PostStatus, Source } from '../types';
 import { useStore } from '../store/useStore';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
+import {
+  EVIDENCE_ORDER,
+  EVIDENCE_META,
+  evidenceExpectsSource,
+  hasSourceLink,
+  normalizeDoi,
+  sourceLabel,
+} from '../lib/evidence';
+import { analyzeReadability, readabilityVerdict } from '../lib/readability';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 import { Drawer } from './ui/Drawer';
 import { Spinner } from './ui/Spinner';
 import { PostPreview } from './PostPreview';
-import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon } from './icons';
+import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon, BookIcon, AlertIcon } from './icons';
 
 const STAGE_OPTIONS: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
@@ -58,6 +67,8 @@ export function PostEditorDrawer() {
         audience: existing.audience,
         theme: existing.theme,
         hook: existing.hook,
+        source: existing.source,
+        evidenceLevel: existing.evidenceLevel,
         reviewer: existing.reviewer,
       };
     }
@@ -109,6 +120,20 @@ export function PostEditorDrawer() {
 
   const update = <K extends keyof PostDraft>(key: K, value: PostDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
+
+  /** Patch a single field of the structured source; clears it when fully empty. */
+  const updateSource = <K extends keyof Source>(key: K, value: Source[K]) =>
+    setDraft((d) => {
+      const next: Source = { ...d.source, [key]: value };
+      const empty = !next.title && !next.authors && !next.year && !next.venue && !next.doi && !next.url;
+      return { ...d, source: empty ? undefined : next };
+    });
+
+  // Plain-language check on the live copy.
+  const readability = useMemo(() => analyzeReadability(draft.body), [draft.body]);
+  const verdict = readabilityVerdict(readability);
+  // A peer-reviewed / preliminary claim should link its source.
+  const missingSource = evidenceExpectsSource(draft.evidenceLevel) && !hasSourceLink(draft.source);
 
   const addMedia = (type: MediaAttachment['type']) =>
     update('media', [
@@ -247,6 +272,109 @@ export function PostEditorDrawer() {
           />
         </div>
 
+        {/* Evidence & source — the academic spine: what claim, backed by what. */}
+        <div data-testid="evidence-section" className="space-y-3 rounded-lg border border-surface-700 bg-surface-800/40 p-3">
+          <div className="flex items-center gap-1.5 text-slate-300">
+            <BookIcon width={15} height={15} />
+            <span className="text-xs font-semibold">Evidence &amp; source</span>
+          </div>
+
+          <div>
+            <span className="label">How strong is the claim?</span>
+            <div className="flex gap-1.5">
+              {EVIDENCE_ORDER.map((level) => {
+                const m = EVIDENCE_META[level];
+                const active = draft.evidenceLevel === level;
+                return (
+                  <button
+                    key={level}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => update('evidenceLevel', active ? undefined : level)}
+                    className={`btn flex-1 py-1.5 text-[11px] ${active ? 'bg-surface-600' : 'bg-surface-800 hover:bg-surface-700'}`}
+                    style={active ? { color: m.color } : undefined}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+            {draft.evidenceLevel && (
+              <p className="mt-1 text-[11px] text-slate-500">{EVIDENCE_META[draft.evidenceLevel].description}</p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="source-link" className="label">
+              DOI or link
+            </label>
+            <input
+              id="source-link"
+              type="text"
+              className="input"
+              placeholder="10.1038/s41586-… or https://…"
+              value={draft.source?.doi ?? draft.source?.url ?? ''}
+              onChange={(e) => {
+                const v = e.target.value.trim();
+                // A DOI-looking value goes in `doi`; anything else is a URL.
+                if (/^(https?:\/\/(dx\.)?doi\.org\/|doi:|10\.)/i.test(v)) {
+                  setDraft((d) => ({
+                    ...d,
+                    source: v ? { ...d.source, doi: normalizeDoi(v), url: undefined } : undefined,
+                  }));
+                } else {
+                  setDraft((d) => ({
+                    ...d,
+                    source: v ? { ...d.source, url: v, doi: undefined } : { ...d.source, url: undefined },
+                  }));
+                }
+              }}
+            />
+          </div>
+
+          <input
+            type="text"
+            className="input"
+            placeholder="Title of the work"
+            aria-label="Source title"
+            value={draft.source?.title ?? ''}
+            onChange={(e) => updateSource('title', e.target.value || undefined)}
+          />
+          <div className="grid grid-cols-3 gap-2">
+            <input
+              type="text"
+              className="input col-span-2"
+              placeholder="Authors"
+              aria-label="Source authors"
+              value={draft.source?.authors ?? ''}
+              onChange={(e) => updateSource('authors', e.target.value || undefined)}
+            />
+            <input
+              type="number"
+              className="input"
+              placeholder="Year"
+              aria-label="Source year"
+              value={draft.source?.year ?? ''}
+              onChange={(e) => updateSource('year', e.target.value ? Number(e.target.value) : undefined)}
+            />
+          </div>
+          <input
+            type="text"
+            className="input"
+            placeholder="Venue (journal, conference, repository)"
+            aria-label="Source venue"
+            value={draft.source?.venue ?? ''}
+            onChange={(e) => updateSource('venue', e.target.value || undefined)}
+          />
+
+          {missingSource && (
+            <p data-testid="missing-source" className="flex items-center gap-1.5 text-[11px] text-status-brief">
+              <AlertIcon width={13} height={13} />
+              This is marked {EVIDENCE_META[draft.evidenceLevel!].label.toLowerCase()} but has no DOI or link.
+            </p>
+          )}
+        </div>
+
         <div>
           <div className="flex items-center justify-between">
             <label htmlFor="post-body" className="label">
@@ -271,6 +399,30 @@ export function PostEditorDrawer() {
             <p className="mt-1 text-[11px] text-status-failed">
               Caption exceeds the {meta.name} limit by {charCount - meta.characterLimit} characters.
             </p>
+          )}
+
+          {/* Plain-language check — nudges researchers toward accessible writing. */}
+          {verdict.tone !== 'empty' && (
+            <div
+              data-testid="readability"
+              className={`mt-2 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+                verdict.tone === 'good'
+                  ? 'border-status-published/40 bg-status-published/10 text-status-published'
+                  : 'border-status-brief/40 bg-status-brief/10 text-status-brief'
+              }`}
+            >
+              <span className="font-semibold">Plain-language check · grade {readability.gradeLevel}</span>
+              {' — '}
+              {verdict.message}
+              {readability.complexWords.length > 0 && (
+                <span className="mt-1 block text-slate-400">
+                  Consider simpler words for:{' '}
+                  <span className="text-slate-300">
+                    {readability.complexWords.slice(0, 6).join(', ')}
+                  </span>
+                </span>
+              )}
+            </div>
           )}
         </div>
 
@@ -346,6 +498,27 @@ export function PostEditorDrawer() {
                   <option key={p} value={p} />
                 ))}
               </datalist>
+            </div>
+
+            {/* Accuracy check: show the evidence level + source to verify. */}
+            <div className="rounded-md bg-surface-900/60 px-2.5 py-2 text-[11px]">
+              {draft.evidenceLevel ? (
+                <p>
+                  <span className="font-semibold" style={{ color: EVIDENCE_META[draft.evidenceLevel].color }}>
+                    {EVIDENCE_META[draft.evidenceLevel].label}
+                  </span>
+                  {hasSourceLink(draft.source) || draft.source?.title ? (
+                    <span className="text-slate-400"> · {sourceLabel(draft.source)}</span>
+                  ) : null}
+                </p>
+              ) : (
+                <p className="text-slate-500">No evidence level set.</p>
+              )}
+              {missingSource && (
+                <p className="mt-1 flex items-center gap-1.5 text-status-brief">
+                  <AlertIcon width={12} height={12} /> Verify accuracy — no source is linked.
+                </p>
+              )}
             </div>
 
             {showNote ? (

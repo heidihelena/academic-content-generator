@@ -49,14 +49,14 @@ describe('PipelineBoard', () => {
 
   it('places a seeded post in its stage column', () => {
     render(<App />);
-    // "Monday motivation" is seeded in the Learn stage.
+    // The paper-launch post is seeded in the Learn stage.
     const learn = screen.getByTestId('board-column-learn');
-    expect(within(learn).getByText(/Monday motivation/i)).toBeInTheDocument();
+    expect(within(learn).getByText(/urban tree canopy/i)).toBeInTheDocument();
   });
 
   it('moves a card to a new stage when dropped on a column', () => {
     render(<App />);
-    const post = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
+    const post = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
     expect(post.status).toBe('learn');
 
     const card = screen.getByTestId(`post-card-${post.id}`);

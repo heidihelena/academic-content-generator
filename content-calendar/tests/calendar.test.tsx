@@ -39,7 +39,7 @@ describe('WeeklyCalendar rendering & filtering', () => {
     render(<App initialView="calendar" />);
     expect(screen.getByTestId('week-range')).toHaveTextContent('Jun 15 – 21, 2026');
     // A known seeded caption is visible on the calendar.
-    expect(screen.getByText(/Monday motivation/i)).toBeInTheDocument();
+    expect(screen.getByText(/urban tree canopy/i)).toBeInTheDocument();
   });
 
   it('renders 7 day columns', () => {
@@ -51,20 +51,20 @@ describe('WeeklyCalendar rendering & filtering', () => {
   it('filters posts by platform', () => {
     render(<App initialView="calendar" />);
     // Initially a LinkedIn-only caption is present.
-    expect(screen.getByText(/We analyzed 10,000 B2B posts/i)).toBeInTheDocument();
+    expect(screen.getByText(/in plain language/i)).toBeInTheDocument();
 
     // Filter to Instagram only -> the LinkedIn post disappears.
     fireEvent.click(screen.getByRole('button', { name: 'Instagram', pressed: false }));
-    expect(screen.queryByText(/We analyzed 10,000 B2B posts/i)).not.toBeInTheDocument();
-    expect(screen.getByText(/Monday motivation/i)).toBeInTheDocument();
+    expect(screen.queryByText(/in plain language/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Same city/i)).toBeInTheDocument();
   });
 
   it('filters posts by status', () => {
     render(<App initialView="calendar" />);
     fireEvent.change(screen.getByLabelText('Filter by status'), { target: { value: 'failed' } });
-    // Only the failed LinkedIn experiment should remain.
-    expect(screen.getByText(/Scheduling experiment/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Monday motivation/i)).not.toBeInTheDocument();
+    // Only the failed post should remain.
+    expect(screen.getByText(/free public lecture/i)).toBeInTheDocument();
+    expect(screen.queryByText(/urban tree canopy/i)).not.toBeInTheDocument();
   });
 
   it('shows an empty state when filters match nothing', () => {
@@ -86,7 +86,7 @@ describe('WeeklyCalendar rendering & filtering', () => {
   it('reschedules a post via drag-and-drop', () => {
     render(<App initialView="calendar" />);
     // Grab the published Monday post and move it to Sunday (day-cell-0).
-    const post = useStore.getState().posts.find((p) => p.body.includes('Monday motivation'))!;
+    const post = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
     const card = screen.getByTestId(`post-card-${post.id}`);
     const sundayCell = screen.getByTestId('day-cell-0'); // getDay() === 0 -> Sunday
 

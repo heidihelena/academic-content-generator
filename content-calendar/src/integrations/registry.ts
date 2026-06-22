@@ -13,20 +13,30 @@ import { MockPlatformIntegration } from './mockIntegration';
  * // ------------------------------------------------------------------------
  */
 const integrations: Record<Platform, PlatformIntegration> = {
-  instagram: new MockPlatformIntegration('instagram', {
-    handle: '@vahtian',
-    displayName: 'vahtian',
-    followers: 18420,
+  bluesky: new MockPlatformIntegration('bluesky', {
+    handle: '@heidiandersen.bsky.social',
+    displayName: 'Dr. Heidi Andersen',
+    followers: 3120,
+  }),
+  mastodon: new MockPlatformIntegration('mastodon', {
+    handle: '@heidiandersen@fediscience.org',
+    displayName: 'Dr. Heidi Andersen',
+    followers: 1840,
   }),
   linkedin: new MockPlatformIntegration('linkedin', {
-    handle: 'vahtian',
-    displayName: 'vahtian Inc.',
-    followers: 7650,
+    handle: 'heidi-andersen',
+    displayName: 'Heidi Andersen, PhD',
+    followers: 4860,
+  }),
+  instagram: new MockPlatformIntegration('instagram', {
+    handle: '@heidi.does.science',
+    displayName: 'Heidi does science',
+    followers: 2240,
   }),
   threads: new MockPlatformIntegration('threads', {
-    handle: '@vahtian',
-    displayName: 'vahtian',
-    followers: 4210,
+    handle: '@heidi.does.science',
+    displayName: 'Heidi does science',
+    followers: 980,
     // Demonstrates the error/retry path in the connected-accounts UI.
     failConnect: true,
   }),

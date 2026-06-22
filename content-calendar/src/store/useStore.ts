@@ -217,6 +217,8 @@ export const useStore = create<StoreState>((set, get) => ({
         audience: draft.audience,
         theme: draft.theme,
         hook: draft.hook,
+        source: draft.source,
+        evidenceLevel: draft.evidenceLevel,
         reviewer: draft.reviewer,
         updatedAt: now,
       };
@@ -240,6 +242,8 @@ export const useStore = create<StoreState>((set, get) => ({
         audience: draft.audience,
         theme: draft.theme,
         hook: draft.hook,
+        source: draft.source,
+        evidenceLevel: draft.evidenceLevel,
         reviewer: draft.reviewer,
         createdAt: now,
         updatedAt: now,

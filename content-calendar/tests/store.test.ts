@@ -27,7 +27,7 @@ describe('store: initialization & filtering', () => {
   it('seeds sample posts and accounts on first init', () => {
     const { posts, accounts } = useStore.getState();
     expect(posts.length).toBeGreaterThan(0);
-    expect(accounts).toHaveLength(3);
+    expect(accounts).toHaveLength(5);
   });
 
   it('filteredPosts applies platform filter', () => {

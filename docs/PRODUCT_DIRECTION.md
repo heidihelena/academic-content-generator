@@ -32,6 +32,29 @@ The repo already ships a working slice of Phase 1:
 | Persistence: memory / SQLite / **Neon+pgvector** | ✅ |
 | Real IG/LinkedIn/Threads publish | ✅ (config-gated) |
 | Vault vector search + RAG ideas | ✅ |
+| Editorial pipeline board + side-drawer + review/approve gate | ✅ |
+| **Scholarly networks** (Bluesky, Mastodon) | ✅ |
+| **Evidence layer** — linked source/DOI + claim evidence level | ✅ |
+| **Plain-language check** (reading grade + jargon nudges) | ✅ |
+
+### The academic layer (why a researcher would pick this)
+
+The differentiators in section 8 are now partly real, aimed squarely at the
+academic/sci-comm user the verdict calls out:
+
+- **Post where scholars are.** Bluesky and Mastodon are first-class platforms
+  (with their real character limits), alongside LinkedIn/Instagram/Threads.
+- **Every claim can carry its evidence.** A post links a structured `Source`
+  (title/authors/year/venue/DOI/URL) and an **evidence level**
+  (`opinion` → `preliminary` → `peer_reviewed`). Cards show a source chip + an
+  evidence badge; the review gate surfaces the source so a reviewer can verify
+  accuracy and warns when a peer-reviewed/preliminary claim has no source linked.
+- **Communicate accessibly.** A plain-language check estimates the reading grade
+  of the copy and flags the longest/most complex words — nudging researchers out
+  of jargon when writing for the public.
+
+Still ahead for this user: a one-click **paper → thread** drafter, **ICS export**
+to a research calendar, and altmetric-style reach in Analytics.
 
 So the calendar/planning surface is real. The **gap is the operating system
 around it**: workflow, variants, campaigns, ownership, approval, and a

@@ -6,8 +6,12 @@
  * they are intentionally framework-agnostic and free of React/DOM concerns.
  */
 
-/** Social platforms the product supports. Extend this union to add platforms. */
-export type Platform = 'instagram' | 'linkedin' | 'threads';
+/**
+ * Social platforms the product supports. Extend this union to add platforms.
+ * Includes the scholarly networks (Bluesky, Mastodon) where academic
+ * communities have largely migrated, alongside LinkedIn for professional reach.
+ */
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
 
 /**
  * Lifecycle of a post as it moves through the editorial pipeline:
@@ -60,6 +64,10 @@ export interface Post {
   theme?: string;
   /** Hook: the scroll-stopping opening line. */
   hook?: string;
+  /** The paper / preprint / dataset this post communicates. */
+  source?: Source;
+  /** How well-supported the post's central claim is. */
+  evidenceLevel?: EvidenceLevel;
   /** Currently assigned reviewer (free-text name today; a User ref later). */
   reviewer?: string;
   /** Review history (approvals / change requests), newest last. */
@@ -68,6 +76,33 @@ export interface Post {
   engagement?: PostEngagement;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * How well-supported the claim in a post is. This is the academic spine of the
+ * tool: it pairs with `Source` so a researcher (and their reviewer) can see at a
+ * glance whether a post states an opinion, reports preliminary work, or
+ * communicates peer-reviewed findings.
+ */
+export type EvidenceLevel = 'opinion' | 'preliminary' | 'peer_reviewed';
+
+/**
+ * A structured citation linked to a post — the paper, dataset, or preprint the
+ * post is about. Free-text today; a CrossRef/DOI lookup can populate it later.
+ */
+export interface Source {
+  /** Article / work title. */
+  title?: string;
+  /** Authors, as a display string (e.g. "Andersen H, et al."). */
+  authors?: string;
+  /** Publication year. */
+  year?: number;
+  /** Journal, conference, or repository (e.g. "Nature", "arXiv", "OSF"). */
+  venue?: string;
+  /** Digital Object Identifier, e.g. "10.1038/s41586-024-00001-2". */
+  doi?: string;
+  /** Canonical link (DOI URL, preprint, or landing page). */
+  url?: string;
 }
 
 /** Engagement metrics surfaced in analytics (mock data today, API data later). */
@@ -139,6 +174,8 @@ export interface PostDraft {
   audience?: string;
   theme?: string;
   hook?: string;
+  source?: Source;
+  evidenceLevel?: EvidenceLevel;
   reviewer?: string;
 }
 
