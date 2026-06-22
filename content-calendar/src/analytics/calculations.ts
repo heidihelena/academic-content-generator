@@ -1,5 +1,7 @@
-import type { Platform, Post, PostStatus } from '../types';
+import type { EvidenceLevel, Platform, Post, PostStatus } from '../types';
 import { PLATFORMS } from '../lib/platforms';
+import { EVIDENCE_META, evidenceExpectsSource, hasSourceLink } from '../lib/evidence';
+import { analyzeReadability } from '../lib/readability';
 import { getISOWeek, getWeekDays, isSameDay, weekdayName } from '../lib/dateUtils';
 
 /**
@@ -116,6 +118,83 @@ export function bestPostingDays(posts: Post[]): DayPerformance[] {
     });
   }
   return results;
+}
+
+// --- Research-communication analytics ------------------------------------
+// Metrics tuned for an academic: not vanity counts, but how the work is framed
+// (evidence), whether claims are sourced, how accessible it reads, and the reach
+// that actually matters per network.
+
+export interface EvidenceSlice {
+  /** Evidence level, or 'none' for posts with no level set. */
+  level: EvidenceLevel | 'none';
+  label: string;
+  count: number;
+  color: string;
+}
+
+/** Distribution of posts across evidence levels (incl. "none"). */
+export function evidenceMix(posts: Post[]): EvidenceSlice[] {
+  const levels: (EvidenceLevel | 'none')[] = ['peer_reviewed', 'preliminary', 'opinion', 'none'];
+  return levels.map((level) => ({
+    level,
+    label: level === 'none' ? 'No level set' : EVIDENCE_META[level].label,
+    count: posts.filter((p) => (p.evidenceLevel ?? 'none') === level).length,
+    color: level === 'none' ? '#475569' : EVIDENCE_META[level].color,
+  }));
+}
+
+export interface SourceCoverage {
+  /** Posts making an evidence-based claim (peer-reviewed or preliminary). */
+  claims: number;
+  /** Of those, how many link a DOI/URL. */
+  linked: number;
+  /** Claims with no linked source — the actionable gap. */
+  missing: number;
+  /** linked / claims as a 0–100 percentage (100 when there are no claims). */
+  percentage: number;
+}
+
+/** How many evidence-based claims actually link their source. */
+export function sourceCoverage(posts: Post[]): SourceCoverage {
+  const claimPosts = posts.filter((p) => evidenceExpectsSource(p.evidenceLevel));
+  const linked = claimPosts.filter((p) => hasSourceLink(p.source)).length;
+  const claims = claimPosts.length;
+  return {
+    claims,
+    linked,
+    missing: claims - linked,
+    percentage: claims === 0 ? 100 : Math.round((linked / claims) * 100),
+  };
+}
+
+/**
+ * Average reading grade across posts with enough copy to score (>= 10 words).
+ * Returns 0 when nothing qualifies. Lower = more accessible to a broad audience.
+ */
+export function averageReadingGrade(posts: Post[]): number {
+  const scored = posts
+    .map((p) => analyzeReadability(p.body))
+    .filter((r) => r.wordCount >= 10);
+  if (scored.length === 0) return 0;
+  const total = scored.reduce((sum, r) => sum + r.gradeLevel, 0);
+  return Math.round((total / scored.length) * 10) / 10;
+}
+
+export interface NetworkReach {
+  platform: Platform;
+  /** Summed impressions from posts that carry engagement data. */
+  impressions: number;
+}
+
+/** Reach (impressions) per network — the audience actually reached. */
+export function reachByNetwork(posts: Post[]): NetworkReach[] {
+  return PLATFORMS.map((platform) => ({
+    platform,
+    impressions: posts
+      .filter((p) => p.platform === platform && p.engagement)
+      .reduce((sum, p) => sum + p.engagement!.impressions, 0),
+  }));
 }
 
 /** Total posts scheduled within the week containing `weekAnchor`. */

@@ -1,10 +1,14 @@
 import { useStore } from '../store/useStore';
 import { getPlatformMeta } from '../lib/platforms';
 import {
+  averageReadingGrade,
   bestPostingDays,
+  evidenceMix,
   platformBreakdown,
   postsPerWeek,
+  reachByNetwork,
   scheduledVsPublished,
+  sourceCoverage,
 } from '../analytics/calculations';
 import { BarChart, type BarDatum } from './charts/BarChart';
 import { DonutChart } from './charts/DonutChart';
@@ -62,6 +66,27 @@ export function Analytics() {
     sublabel: `${d.posts}p`,
   }));
 
+  // Research-communication metrics.
+  const evidence = evidenceMix(posts);
+  const coverage = sourceCoverage(posts);
+  const grade = averageReadingGrade(posts);
+  const reach = reachByNetwork(posts);
+
+  const evidenceSlices = evidence.map((e) => ({ label: e.label, value: e.count, color: e.color }));
+  const reachData: BarDatum[] = reach.map((r) => ({
+    label: getPlatformMeta(r.platform).name.slice(0, 3),
+    value: r.impressions,
+    color: getPlatformMeta(r.platform).color,
+  }));
+  const gradeLabel =
+    grade === 0
+      ? 'Not enough copy yet'
+      : grade <= 9
+        ? 'Accessible to a general audience'
+        : grade <= 12
+          ? 'High-school+ — fine for peers'
+          : 'College-level — consider simplifying';
+
   return (
     <section aria-label="Analytics" className="space-y-4">
       <div className="grid gap-4 lg:grid-cols-2">
@@ -87,6 +112,42 @@ export function Analytics() {
         >
           <BarChart data={dayData} ariaLabel="Best posting days bar chart" />
         </ChartCard>
+      </div>
+
+      <div>
+        <h2 className="mb-3 mt-2 text-sm font-semibold text-slate-200">Research communication</h2>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ChartCard title="Evidence mix" subtitle="How your posts are framed by claim strength">
+            <DonutChart data={evidenceSlices} ariaLabel="Evidence mix donut chart" />
+          </ChartCard>
+
+          <div className="grid grid-cols-2 gap-4">
+            <ChartCard title="Source coverage" subtitle="Claims that link a source">
+              <div data-testid="source-coverage">
+                <p className="text-3xl font-semibold text-slate-100">{coverage.percentage}%</p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {coverage.linked} of {coverage.claims} evidence-based posts link a DOI/URL
+                </p>
+                {coverage.missing > 0 && (
+                  <p className="mt-1 text-xs text-status-brief">
+                    {coverage.missing} claim{coverage.missing > 1 ? 's' : ''} missing a source
+                  </p>
+                )}
+              </div>
+            </ChartCard>
+
+            <ChartCard title="Plain-language" subtitle="Avg reading grade">
+              <div data-testid="reading-grade">
+                <p className="text-3xl font-semibold text-slate-100">{grade || '—'}</p>
+                <p className="mt-1 text-xs text-slate-500">{gradeLabel}</p>
+              </div>
+            </ChartCard>
+          </div>
+
+          <ChartCard title="Reach by network" subtitle="Impressions where your audience actually is">
+            <BarChart data={reachData} ariaLabel="Reach by network bar chart" />
+          </ChartCard>
+        </div>
       </div>
     </section>
   );
