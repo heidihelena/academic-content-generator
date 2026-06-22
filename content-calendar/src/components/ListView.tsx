@@ -2,11 +2,20 @@ import { useMemo, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { formatDateTime } from '../lib/dateUtils';
 import { EVIDENCE_META, sourceLabel } from '../lib/evidence';
+import { analyzeReach } from '../lib/reach';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
 import { Filters } from './Filters';
 import { SearchBar } from './calendar/SearchBar';
 import { EmptyState } from './ui/States';
-import { BookIcon, ListIcon } from './icons';
+import { AlertIcon, BookIcon, ListIcon } from './icons';
+
+/** Reach-killer warnings for a still-publishable post (empty once it's out). */
+function reachWarningsFor(post: { platform: Parameters<typeof analyzeReach>[0]['platform']; body: string; status: string; media: unknown[] }) {
+  if (post.status === 'published' || post.status === 'learn' || post.status === 'failed') return [];
+  return analyzeReach({ platform: post.platform, body: post.body, mediaCount: post.media.length }).filter(
+    (f) => f.level === 'warn',
+  );
+}
 
 type SortDir = 'asc' | 'desc';
 
@@ -87,8 +96,21 @@ export function ListView() {
                     <StatusBadge status={post.status} />
                   </td>
                   <td className="max-w-[22rem] px-3 py-2 text-slate-300">
-                    <span className="line-clamp-1">
-                      {post.body || <span className="italic text-slate-500">Empty draft…</span>}
+                    <span className="flex items-center gap-1.5">
+                      {reachWarningsFor(post).length > 0 && (
+                        <span
+                          data-testid={`list-reach-warn-${post.id}`}
+                          className="shrink-0 text-status-brief"
+                          title={`Reach risk:\n${reachWarningsFor(post)
+                            .map((w) => `• ${w.message}`)
+                            .join('\n')}`}
+                        >
+                          <AlertIcon width={12} height={12} />
+                        </span>
+                      )}
+                      <span className="line-clamp-1">
+                        {post.body || <span className="italic text-slate-500">Empty draft…</span>}
+                      </span>
                     </span>
                   </td>
                   <td className="px-3 py-2">
