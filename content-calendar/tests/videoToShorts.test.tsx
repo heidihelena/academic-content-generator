@@ -60,4 +60,14 @@ describe('Video → Shorts plan', () => {
     fireEvent.click(screen.getByRole('button', { name: /Plan shorts/i }));
     expect(await screen.findByText(/Paste a transcript/i)).toBeInTheDocument();
   });
+
+  it('falls back to manual paste when transcript fetch is unavailable (no backend)', async () => {
+    render(<App initialView="ideas" />);
+    fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
+      target: { value: 'https://youtu.be/dQw4w9WgXcQ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Fetch transcript/i }));
+    // With no VITE_API_URL configured in tests, it guides the user to paste.
+    expect(await screen.findByTestId('fetch-error')).toHaveTextContent(/paste/i);
+  });
 });
