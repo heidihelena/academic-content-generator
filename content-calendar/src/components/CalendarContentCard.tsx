@@ -1,8 +1,9 @@
 import type { Post } from '../types';
 import { formatTime } from '../lib/dateUtils';
 import { useStore } from '../store/useStore';
+import { EVIDENCE_META, sourceLabel } from '../lib/evidence';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
-import { ImageIcon, VideoIcon, AlertIcon } from './icons';
+import { ImageIcon, VideoIcon, AlertIcon, TagIcon, UserIcon, BookIcon } from './icons';
 
 interface Props {
   post: Post;
@@ -25,6 +26,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
   const canEdit = useStore((s) => s.permissions.canEdit);
 
   const media = post.media[0];
+  const latestReview = post.reviews?.[post.reviews.length - 1];
 
   return (
     <div
@@ -72,6 +74,66 @@ export function CalendarContentCard({ post, conflicted }: Props) {
       <p className="line-clamp-2 text-xs leading-snug text-slate-300">
         {post.body || <span className="italic text-slate-500">Empty draft…</span>}
       </p>
+      {(post.evidenceLevel || post.source) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {post.evidenceLevel && (
+            <span
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium"
+              style={{
+                color: EVIDENCE_META[post.evidenceLevel].color,
+                backgroundColor: `${EVIDENCE_META[post.evidenceLevel].color}1f`,
+              }}
+              title={EVIDENCE_META[post.evidenceLevel].description}
+            >
+              {EVIDENCE_META[post.evidenceLevel].label}
+            </span>
+          )}
+          {post.source && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 rounded bg-surface-700 px-1.5 py-0.5 text-[10px] text-slate-300"
+              title={`Source: ${sourceLabel(post.source)}`}
+            >
+              <BookIcon width={10} height={10} />
+              <span className="truncate">{sourceLabel(post.source)}</span>
+            </span>
+          )}
+        </div>
+      )}
+      {(post.campaign || post.owner) && (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {post.campaign && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 rounded bg-surface-700 px-1.5 py-0.5 text-[10px] text-slate-300"
+              title={`Campaign: ${post.campaign}`}
+            >
+              <TagIcon width={10} height={10} />
+              <span className="truncate">{post.campaign}</span>
+            </span>
+          )}
+          {post.owner && (
+            <span
+              className="inline-flex max-w-full items-center gap-1 text-[10px] text-slate-400"
+              title={`Owner: ${post.owner}`}
+            >
+              <UserIcon width={10} height={10} />
+              <span className="truncate">{post.owner}</span>
+            </span>
+          )}
+        </div>
+      )}
+      {post.status === 'review' && post.reviewer && (
+        <p className="mt-1.5 text-[10px] text-status-review" title={`Reviewer: ${post.reviewer}`}>
+          ⟳ Awaiting {post.reviewer}
+        </p>
+      )}
+      {post.status === 'draft' && latestReview?.decision === 'changes_requested' && (
+        <p
+          className="mt-1.5 truncate text-[10px] text-status-brief"
+          title={latestReview.note}
+        >
+          ↩ Changes requested
+        </p>
+      )}
       <div className="mt-1.5 flex items-center justify-between">
         <StatusBadge status={post.status} />
         {media && (

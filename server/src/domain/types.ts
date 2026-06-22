@@ -3,8 +3,21 @@
  * end-to-end. This is the single source of truth for the backend.
  */
 
-export type Platform = 'instagram' | 'linkedin' | 'threads';
-export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
+/**
+ * Editorial pipeline stages. `draft` is shown as "Drafting" in the UI; the
+ * scheduler keys on `scheduled` and publishing sets `published`, so those names
+ * are preserved for compatibility.
+ */
+export type PostStatus =
+  | 'brief'
+  | 'draft'
+  | 'review'
+  | 'approved'
+  | 'scheduled'
+  | 'published'
+  | 'learn'
+  | 'failed';
 export type ConnectionStatus = 'connected' | 'disconnected' | 'expired' | 'error';
 
 export interface MediaAttachment {
@@ -14,11 +27,34 @@ export interface MediaAttachment {
   url?: string;
 }
 
+export type ReviewDecision = 'approved' | 'changes_requested';
+
+export interface ReviewEntry {
+  id: string;
+  decision: ReviewDecision;
+  reviewer?: string;
+  note?: string;
+  at: string;
+}
+
 export interface PostEngagement {
   likes: number;
   comments: number;
   shares: number;
   impressions: number;
+}
+
+/** How well-supported a post's central claim is (the academic spine). */
+export type EvidenceLevel = 'opinion' | 'preliminary' | 'peer_reviewed';
+
+/** A structured citation linked to a post (paper / preprint / dataset). */
+export interface Source {
+  title?: string;
+  authors?: string;
+  year?: number;
+  venue?: string;
+  doi?: string;
+  url?: string;
 }
 
 export interface Post {
@@ -28,6 +64,26 @@ export interface Post {
   scheduledAt: string; // ISO 8601
   status: PostStatus;
   media: MediaAttachment[];
+  /** Person responsible for this post (free-text name today; a User ref later). */
+  owner?: string;
+  /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
+  campaign?: string;
+  /** Brief / objective for this post. */
+  brief?: string;
+  /** Target audience. */
+  audience?: string;
+  /** Theme / content pillar. */
+  theme?: string;
+  /** The opening hook. */
+  hook?: string;
+  /** The paper / preprint / dataset this post communicates. */
+  source?: Source;
+  /** How well-supported the post's central claim is. */
+  evidenceLevel?: EvidenceLevel;
+  /** Currently assigned reviewer. */
+  reviewer?: string;
+  /** Review history (approvals / change requests), newest last. */
+  reviews?: ReviewEntry[];
   engagement?: PostEngagement;
   /** Platform-native id + permalink once published. */
   remoteId?: string;

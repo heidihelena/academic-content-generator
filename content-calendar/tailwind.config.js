@@ -28,9 +28,13 @@ export default {
           threads: '#a855f7',
         },
         status: {
+          brief: '#fbbf24',
           draft: '#94a3b8',
+          review: '#c084fc',
+          approved: '#2dd4bf',
           scheduled: '#38bdf8',
           published: '#34d399',
+          learn: '#60a5fa',
           failed: '#f87171',
         },
       },

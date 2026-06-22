@@ -6,6 +6,20 @@ import type { Platform, PlatformMeta } from '../types';
  * names, colors and character limits.
  */
 export const PLATFORM_META: Record<Platform, PlatformMeta> = {
+  bluesky: {
+    id: 'bluesky',
+    name: 'Bluesky',
+    characterLimit: 300,
+    color: '#0a85ff',
+    handlePrefix: '@',
+  },
+  mastodon: {
+    id: 'mastodon',
+    name: 'Mastodon',
+    characterLimit: 500,
+    color: '#6364ff',
+    handlePrefix: '@',
+  },
   instagram: {
     id: 'instagram',
     name: 'Instagram',
@@ -29,8 +43,11 @@ export const PLATFORM_META: Record<Platform, PlatformMeta> = {
   },
 };
 
-/** Ordered list of platforms for rendering filters, tabs, etc. */
-export const PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads'];
+/**
+ * Ordered list of platforms for rendering filters, tabs, etc. Scholarly
+ * networks lead, since they're where the academic audience is.
+ */
+export const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'linkedin', 'instagram', 'threads'];
 
 export function getPlatformMeta(platform: Platform): PlatformMeta {
   return PLATFORM_META[platform];

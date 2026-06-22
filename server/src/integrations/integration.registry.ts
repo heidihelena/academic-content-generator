@@ -20,6 +20,17 @@ export class IntegrationRegistry {
 
   constructor(config: ConfigService) {
     this.integrations = {
+      // Scholarly networks ship mock-only for now (no OAuth client yet).
+      bluesky: new MockIntegration('bluesky', {
+        handle: '@heidiandersen.bsky.social',
+        displayName: 'Dr. Heidi Andersen',
+        followers: 3120,
+      }),
+      mastodon: new MockIntegration('mastodon', {
+        handle: '@heidiandersen@fediscience.org',
+        displayName: 'Dr. Heidi Andersen',
+        followers: 1840,
+      }),
       instagram: this.buildInstagram(config),
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),

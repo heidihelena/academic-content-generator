@@ -6,11 +6,31 @@
  * they are intentionally framework-agnostic and free of React/DOM concerns.
  */
 
-/** Social platforms the product supports. Extend this union to add platforms. */
-export type Platform = 'instagram' | 'linkedin' | 'threads';
+/**
+ * Social platforms the product supports. Extend this union to add platforms.
+ * Includes the scholarly networks (Bluesky, Mastodon) where academic
+ * communities have largely migrated, alongside LinkedIn for professional reach.
+ */
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
 
-/** Lifecycle of a post as it moves from idea to published (or failure). */
-export type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+/**
+ * Lifecycle of a post as it moves through the editorial pipeline:
+ * Brief → Drafting → Review → Approved → Scheduled → Published → Learn
+ * (`failed` is a publish error that surfaces alongside Scheduled).
+ *
+ * The legacy names `draft`/`scheduled`/`published`/`failed` are preserved so the
+ * scheduler, analytics and persisted data keep working; `draft` is shown as
+ * "Drafting" in the UI.
+ */
+export type PostStatus =
+  | 'brief'
+  | 'draft'
+  | 'review'
+  | 'approved'
+  | 'scheduled'
+  | 'published'
+  | 'learn'
+  | 'failed';
 
 /** A media attachment placeholder. Real uploads would carry a CDN URL + size. */
 export interface MediaAttachment {
@@ -32,10 +52,57 @@ export interface Post {
   scheduledAt: string;
   status: PostStatus;
   media: MediaAttachment[];
+  /** Person responsible for this post (free-text name today; a User ref later). */
+  owner?: string;
+  /** Campaign this post belongs to (free-text name today; a Campaign ref later). */
+  campaign?: string;
+  /** Brief: the assignment — objective / why this post exists. */
+  brief?: string;
+  /** Brief: who this is for. */
+  audience?: string;
+  /** Theme / content pillar this post ladders up to. */
+  theme?: string;
+  /** Hook: the scroll-stopping opening line. */
+  hook?: string;
+  /** The paper / preprint / dataset this post communicates. */
+  source?: Source;
+  /** How well-supported the post's central claim is. */
+  evidenceLevel?: EvidenceLevel;
+  /** Currently assigned reviewer (free-text name today; a User ref later). */
+  reviewer?: string;
+  /** Review history (approvals / change requests), newest last. */
+  reviews?: ReviewEntry[];
   /** Mock engagement metrics, populated for published posts. */
   engagement?: PostEngagement;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * How well-supported the claim in a post is. This is the academic spine of the
+ * tool: it pairs with `Source` so a researcher (and their reviewer) can see at a
+ * glance whether a post states an opinion, reports preliminary work, or
+ * communicates peer-reviewed findings.
+ */
+export type EvidenceLevel = 'opinion' | 'preliminary' | 'peer_reviewed';
+
+/**
+ * A structured citation linked to a post — the paper, dataset, or preprint the
+ * post is about. Free-text today; a CrossRef/DOI lookup can populate it later.
+ */
+export interface Source {
+  /** Article / work title. */
+  title?: string;
+  /** Authors, as a display string (e.g. "Andersen H, et al."). */
+  authors?: string;
+  /** Publication year. */
+  year?: number;
+  /** Journal, conference, or repository (e.g. "Nature", "arXiv", "OSF"). */
+  venue?: string;
+  /** Digital Object Identifier, e.g. "10.1038/s41586-024-00001-2". */
+  doi?: string;
+  /** Canonical link (DOI URL, preprint, or landing page). */
+  url?: string;
 }
 
 /** Engagement metrics surfaced in analytics (mock data today, API data later). */
@@ -44,6 +111,21 @@ export interface PostEngagement {
   comments: number;
   shares: number;
   impressions: number;
+}
+
+/** Outcome of a review on a post. */
+export type ReviewDecision = 'approved' | 'changes_requested';
+
+/** A single entry in a post's review history. */
+export interface ReviewEntry {
+  id: string;
+  decision: ReviewDecision;
+  /** Who reviewed (free-text name today; a User ref later). */
+  reviewer?: string;
+  /** Required for "request changes" — what needs fixing. */
+  note?: string;
+  /** ISO datetime the decision was recorded. */
+  at: string;
 }
 
 /** Connection state of a social account in the connected-accounts panel. */
@@ -86,6 +168,15 @@ export interface PostDraft {
   scheduledAt: string;
   status: PostStatus;
   media: MediaAttachment[];
+  owner?: string;
+  campaign?: string;
+  brief?: string;
+  audience?: string;
+  theme?: string;
+  hook?: string;
+  source?: Source;
+  evidenceLevel?: EvidenceLevel;
+  reviewer?: string;
 }
 
 /** Calendar canvas view granularity. */

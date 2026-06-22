@@ -20,10 +20,10 @@ const TONES: Tone[] = ['professional', 'casual', 'witty', 'inspirational', 'educ
 export function GenerateIdeas() {
   const openEditorForNewPost = useStore((s) => s.openEditorForNewPost);
 
-  const [niche, setNiche] = useState('Social media marketing');
-  const [audience, setAudience] = useState('Small business owners');
-  const [tone, setTone] = useState<Tone>('professional');
-  const [platform, setPlatform] = useState<Platform>('instagram');
+  const [niche, setNiche] = useState('My research on urban heat & climate equity');
+  const [audience, setAudience] = useState('General public & policymakers');
+  const [tone, setTone] = useState<Tone>('educational');
+  const [platform, setPlatform] = useState<Platform>('bluesky');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,12 +82,12 @@ export function GenerateIdeas() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label htmlFor="idea-niche" className="label">Niche</label>
-            <input id="idea-niche" className="input" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="e.g. Sustainable fashion" />
+            <label htmlFor="idea-niche" className="label">Research area / topic</label>
+            <input id="idea-niche" className="input" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="e.g. Your field or a specific paper" />
           </div>
           <div>
             <label htmlFor="idea-audience" className="label">Target audience</label>
-            <input id="idea-audience" className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. Eco-conscious millennials" />
+            <input id="idea-audience" className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. General public, students, peers" />
           </div>
           <div>
             <label htmlFor="idea-tone" className="label">Tone</label>

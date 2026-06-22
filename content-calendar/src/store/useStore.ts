@@ -13,6 +13,8 @@ import type { MediaAttachment } from '../types';
 import type { PersistenceAdapter } from '../lib/persistence';
 import { createDataSource, LocalDataSource, type DataSource } from '../lib/dataSource';
 import { reschedulePost as computeReschedule } from '../lib/scheduling';
+import { getPlatformMeta } from '../lib/platforms';
+import { splitIntoThread } from '../lib/thread';
 import { createId } from '../lib/id';
 
 /**
@@ -76,8 +78,28 @@ export interface StoreState {
   openEditorForNewPost: (platform: Platform, scheduledAt: string) => void;
   closeEditor: () => void;
   savePost: (draft: PostDraft) => void;
+  /** Split the draft's copy into a numbered thread of posts (platform-sized). */
+  createThread: (draft: PostDraft) => void;
+  /** Create a thread from already-prepared parts (e.g. the abstract drafter). */
+  createThreadFromParts: (
+    parts: string[],
+    base: {
+      platform: Platform;
+      scheduledAt: string;
+      status?: PostStatus;
+      audience?: string;
+      source?: Post['source'];
+      evidenceLevel?: Post['evidenceLevel'];
+    },
+  ) => void;
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
+  /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
+  setPostStatus: (postId: string, status: PostStatus) => void;
+  /** Approve a post in review → moves it to Approved and logs the decision. */
+  approvePost: (postId: string, reviewer?: string) => void;
+  /** Request changes → moves the post back to Drafting and logs the note. */
+  requestChanges: (postId: string, note: string, reviewer?: string) => void;
 
   connectAccount: (platform: Platform) => Promise<void>;
   disconnectAccount: (platform: Platform) => Promise<void>;
@@ -205,6 +227,15 @@ export const useStore = create<StoreState>((set, get) => ({
         scheduledAt: draft.scheduledAt,
         status: draft.status,
         media: draft.media,
+        owner: draft.owner,
+        campaign: draft.campaign,
+        brief: draft.brief,
+        audience: draft.audience,
+        theme: draft.theme,
+        hook: draft.hook,
+        source: draft.source,
+        evidenceLevel: draft.evidenceLevel,
+        reviewer: draft.reviewer,
         updatedAt: now,
       };
       set({
@@ -221,11 +252,81 @@ export const useStore = create<StoreState>((set, get) => ({
         scheduledAt: draft.scheduledAt,
         status: draft.status,
         media: draft.media,
+        owner: draft.owner,
+        campaign: draft.campaign,
+        brief: draft.brief,
+        audience: draft.audience,
+        theme: draft.theme,
+        hook: draft.hook,
+        source: draft.source,
+        evidenceLevel: draft.evidenceLevel,
+        reviewer: draft.reviewer,
         createdAt: now,
         updatedAt: now,
       };
       set({ posts: [...get().posts, post], isEditorOpen: false, editingPostId: null });
       void dataSource.createPost(post).catch((err) => console.error('createPost failed', err));
+    }
+  },
+
+  createThread: (draft) => {
+    const limit = getPlatformMeta(draft.platform).characterLimit;
+    const parts = splitIntoThread(draft.body, limit);
+    if (parts.length <= 1) {
+      // Nothing to split — fall back to a normal save.
+      get().savePost(draft);
+      return;
+    }
+    const now = new Date().toISOString();
+    const start = new Date(draft.scheduledAt).getTime();
+    const created: Post[] = parts.map((body, i) => ({
+      // Parts go out two minutes apart so they thread in order.
+      id: createId('post'),
+      platform: draft.platform,
+      body,
+      scheduledAt: new Date(start + i * 2 * 60_000).toISOString(),
+      status: draft.status,
+      // Media + structured source ride on the first post only.
+      media: i === 0 ? draft.media : [],
+      owner: draft.owner,
+      campaign: draft.campaign,
+      brief: draft.brief,
+      audience: draft.audience,
+      theme: draft.theme,
+      hook: i === 0 ? draft.hook : undefined,
+      source: i === 0 ? draft.source : undefined,
+      evidenceLevel: draft.evidenceLevel,
+      reviewer: draft.reviewer,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    set({ posts: [...get().posts, ...created], isEditorOpen: false, editingPostId: null });
+    for (const post of created) {
+      void dataSource.createPost(post).catch((err) => console.error('createThread failed', err));
+    }
+  },
+
+  createThreadFromParts: (parts, base) => {
+    if (parts.length === 0) return;
+    const now = new Date().toISOString();
+    const start = new Date(base.scheduledAt).getTime();
+    const created: Post[] = parts.map((body, i) => ({
+      id: createId('post'),
+      platform: base.platform,
+      body,
+      scheduledAt: new Date(start + i * 2 * 60_000).toISOString(),
+      status: base.status ?? 'draft',
+      media: [],
+      audience: base.audience,
+      // The structured source rides on the first post only.
+      source: i === 0 ? base.source : undefined,
+      evidenceLevel: base.evidenceLevel,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    set({ posts: [...get().posts, ...created] });
+    for (const post of created) {
+      void dataSource.createPost(post).catch((err) => console.error('createThreadFromParts failed', err));
     }
   },
 
@@ -236,6 +337,48 @@ export const useStore = create<StoreState>((set, get) => ({
       editingPostId: null,
     });
     void dataSource.deletePost(postId).catch((err) => console.error('deletePost failed', err));
+  },
+
+  setPostStatus: (postId, status) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post || post.status === status) return;
+    const updatedAt = new Date().toISOString();
+    set({
+      posts: get().posts.map((p) => (p.id === postId ? { ...p, status, updatedAt } : p)),
+    });
+    void dataSource
+      .updatePost(postId, { status, updatedAt })
+      .catch((err) => console.error('setPostStatus failed', err));
+  },
+
+  approvePost: (postId, reviewer) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const at = new Date().toISOString();
+    const review = { id: createId('review'), decision: 'approved' as const, reviewer, at };
+    const patch = {
+      status: 'approved' as const,
+      reviewer,
+      reviews: [...(post.reviews ?? []), review],
+      updatedAt: at,
+    };
+    set({ posts: get().posts.map((p) => (p.id === postId ? { ...p, ...patch } : p)) });
+    void dataSource.updatePost(postId, patch).catch((err) => console.error('approvePost failed', err));
+  },
+
+  requestChanges: (postId, note, reviewer) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const at = new Date().toISOString();
+    const review = { id: createId('review'), decision: 'changes_requested' as const, reviewer, note, at };
+    const patch = {
+      status: 'draft' as const,
+      reviewer,
+      reviews: [...(post.reviews ?? []), review],
+      updatedAt: at,
+    };
+    set({ posts: get().posts.map((p) => (p.id === postId ? { ...p, ...patch } : p)) });
+    void dataSource.updatePost(postId, patch).catch((err) => console.error('requestChanges failed', err));
   },
 
   reschedulePost: (postId, targetDay) => {

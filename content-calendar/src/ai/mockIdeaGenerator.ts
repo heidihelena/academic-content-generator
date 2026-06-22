@@ -63,6 +63,8 @@ const TONE_PREFIX: Record<Tone, string> = {
 /** Picks a recommended format that suits the platform. */
 function formatForPlatform(platform: IdeaRequest['platform'], index: number): ContentFormat {
   const byPlatform: Record<IdeaRequest['platform'], ContentFormat[]> = {
+    bluesky: ['text post', 'poll', 'single image', 'text post', 'video'],
+    mastodon: ['text post', 'poll', 'single image', 'text post', 'carousel'],
     instagram: ['carousel', 'reel', 'single image', 'story', 'carousel'],
     linkedin: ['text post', 'carousel', 'poll', 'single image', 'text post'],
     threads: ['text post', 'poll', 'single image', 'text post', 'video'],

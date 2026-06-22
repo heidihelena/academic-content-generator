@@ -11,6 +11,8 @@ const TONE_PREFIX: Record<Tone, string> = {
 };
 
 const FORMATS: Record<IdeaRequest['platform'], ContentFormat[]> = {
+  bluesky: ['text post', 'poll', 'single image', 'text post', 'video'],
+  mastodon: ['text post', 'poll', 'single image', 'text post', 'carousel'],
   instagram: ['carousel', 'reel', 'single image', 'story', 'carousel'],
   linkedin: ['text post', 'carousel', 'poll', 'single image', 'text post'],
   threads: ['text post', 'poll', 'single image', 'text post', 'video'],

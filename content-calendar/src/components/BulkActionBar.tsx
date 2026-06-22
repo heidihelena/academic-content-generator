@@ -1,8 +1,9 @@
 import type { PostStatus } from '../types';
 import { useStore } from '../store/useStore';
+import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { TrashIcon, CloseIcon } from './icons';
 
-const STATUSES: PostStatus[] = ['draft', 'scheduled', 'published', 'failed'];
+const STATUSES: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
 /**
  * Floating action bar shown when one or more posts are selected
@@ -45,7 +46,7 @@ export function BulkActionBar() {
           </option>
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s[0].toUpperCase() + s.slice(1)}
+              {STAGE_META[s].label}
             </option>
           ))}
         </select>

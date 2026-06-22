@@ -28,7 +28,7 @@ describe('ViewSwitcher + DateNavigator', () => {
   beforeEach(resetStore);
 
   it('switches between week, month and day views', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     // Default week view.
     expect(screen.getByTestId('week-range')).toHaveTextContent('Jun 15 – 21, 2026');
 
@@ -49,11 +49,11 @@ describe('SearchBar', () => {
   beforeEach(resetStore);
 
   it('filters posts by caption text', () => {
-    render(<App />);
-    expect(screen.getByText(/Monday motivation/i)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Search posts'), { target: { value: 'analyzed' } });
-    expect(screen.getByText(/We analyzed 10,000 B2B posts/i)).toBeInTheDocument();
-    expect(screen.queryByText(/Monday motivation/i)).not.toBeInTheDocument();
+    render(<App initialView="calendar" />);
+    expect(screen.getByText(/urban tree canopy/i)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Search posts'), { target: { value: 'plain language' } });
+    expect(screen.getByText(/in plain language/i)).toBeInTheDocument();
+    expect(screen.queryByText(/urban tree canopy/i)).not.toBeInTheDocument();
   });
 });
 
@@ -61,7 +61,7 @@ describe('Bulk selection', () => {
   beforeEach(resetStore);
 
   it('selects posts and bulk-deletes them', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     const before = useStore.getState().posts.length;
     const checkboxes = screen.getAllByLabelText('Select post');
 
@@ -79,7 +79,7 @@ describe('Bulk selection', () => {
   });
 
   it('bulk-sets status on selected posts', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     const checkboxes = screen.getAllByLabelText('Select post');
     fireEvent.click(checkboxes[0]);
     const bar = screen.getByRole('toolbar', { name: 'Bulk actions' });
@@ -112,7 +112,7 @@ describe('ConflictWarningModal', () => {
   }
 
   it('surfaces a conflict badge and lists conflicts', () => {
-    render(<App />);
+    render(<App initialView="calendar" />);
     // Replace seeded data (App.initialize runs on mount) with two conflicting posts.
     act(() => {
       useStore.setState({

@@ -3,10 +3,11 @@ import { postsThisWeek, scheduledVsPublished } from '../analytics/calculations';
 import type { View } from './Sidebar';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
-  calendar: { title: 'Content Calendar', subtitle: 'Plan and schedule your week across every channel' },
-  ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted post ideas tailored to your audience' },
-  analytics: { title: 'Analytics', subtitle: 'Understand what is working across your channels' },
-  accounts: { title: 'Connected Accounts', subtitle: 'Manage your social platform connections' },
+  board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
+  calendar: { title: 'Content Calendar', subtitle: 'Plan your research communication across every network' },
+  ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
+  analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
+  accounts: { title: 'Connected Accounts', subtitle: 'Manage your scholarly and social network connections' },
 };
 
 interface HeaderProps {

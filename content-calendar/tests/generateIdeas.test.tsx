@@ -35,7 +35,7 @@ describe('GenerateIdeas UI', () => {
   it('renders the input form', () => {
     render(<App />);
     gotoIdeas();
-    expect(screen.getByLabelText('Niche')).toBeInTheDocument();
+    expect(screen.getByLabelText('Research area / topic')).toBeInTheDocument();
     expect(screen.getByLabelText('Target audience')).toBeInTheDocument();
     expect(screen.getByLabelText('Tone')).toBeInTheDocument();
   });
@@ -44,7 +44,7 @@ describe('GenerateIdeas UI', () => {
     render(<App />);
     gotoIdeas();
 
-    fireEvent.change(screen.getByLabelText('Niche'), { target: { value: 'Coffee roasting' } });
+    fireEvent.change(screen.getByLabelText('Research area / topic'), { target: { value: 'Coffee roasting' } });
     fireEvent.change(screen.getByLabelText('Target audience'), { target: { value: 'Home baristas' } });
     fireEvent.click(screen.getByRole('button', { name: /Generate 5 ideas/i }));
 
@@ -59,7 +59,7 @@ describe('GenerateIdeas UI', () => {
     render(<App />);
     gotoIdeas();
 
-    fireEvent.change(screen.getByLabelText('Niche'), { target: { value: '' } });
+    fireEvent.change(screen.getByLabelText('Research area / topic'), { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: /Generate 5 ideas/i }));
 
 
@@ -70,7 +70,7 @@ describe('GenerateIdeas UI', () => {
     render(<App />);
     gotoIdeas();
 
-    fireEvent.change(screen.getByLabelText('Niche'), { target: { value: 'Yoga studios' } });
+    fireEvent.change(screen.getByLabelText('Research area / topic'), { target: { value: 'Yoga studios' } });
     fireEvent.change(screen.getByLabelText('Target audience'), { target: { value: 'Busy professionals' } });
     fireEvent.click(screen.getByRole('button', { name: /Generate 5 ideas/i }));
 

@@ -1,6 +1,8 @@
 import type { IdeaRequest } from './ideas.types';
 
 const PLATFORM_LIMITS: Record<string, number> = {
+  bluesky: 300,
+  mastodon: 500,
   instagram: 2200,
   linkedin: 3000,
   threads: 500,

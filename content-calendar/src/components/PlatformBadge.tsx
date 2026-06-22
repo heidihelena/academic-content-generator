@@ -26,9 +26,13 @@ export function PlatformBadge({ platform, showLabel = false, size = 16 }: Platfo
 }
 
 const STATUS_STYLES: Record<PostStatus, { label: string; className: string }> = {
-  draft: { label: 'Draft', className: 'bg-status-draft/15 text-status-draft' },
+  brief: { label: 'Brief', className: 'bg-status-brief/15 text-status-brief' },
+  draft: { label: 'Drafting', className: 'bg-status-draft/15 text-status-draft' },
+  review: { label: 'Review', className: 'bg-status-review/15 text-status-review' },
+  approved: { label: 'Approved', className: 'bg-status-approved/15 text-status-approved' },
   scheduled: { label: 'Scheduled', className: 'bg-status-scheduled/15 text-status-scheduled' },
   published: { label: 'Published', className: 'bg-status-published/15 text-status-published' },
+  learn: { label: 'Learn', className: 'bg-status-learn/15 text-status-learn' },
   failed: { label: 'Failed', className: 'bg-status-failed/15 text-status-failed' },
 };
 
