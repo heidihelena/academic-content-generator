@@ -17,6 +17,15 @@ import { ApiClient } from './api';
  *
  * Switching backends is a config change, not a UI change.
  */
+/** Credentials a user enters in-app for the token/app-password platforms. */
+export interface PlatformCredentials {
+  service?: string;
+  identifier?: string;
+  appPassword?: string;
+  instance?: string;
+  accessToken?: string;
+}
+
 export interface DataSource {
   /** Synchronous hydrate for offline/local mode. Absent on remote sources. */
   loadSync?(): { posts: Post[]; accounts: ConnectedAccount[] };
@@ -27,6 +36,8 @@ export interface DataSource {
   updatePost(id: string, patch: Partial<Post>): Promise<Post>;
   deletePost(id: string): Promise<void>;
   connectAccount(platform: Platform): Promise<ConnectedAccount>;
+  /** Verify user-supplied credentials and connect (Bluesky / Mastodon). */
+  verifyAccount(platform: Platform, creds: PlatformCredentials): Promise<ConnectedAccount>;
   disconnectAccount(platform: Platform): Promise<ConnectedAccount>;
   /** Upload a media file and return an attachment with a usable URL. */
   uploadMedia(file: File): Promise<MediaAttachment>;
@@ -97,6 +108,12 @@ export class LocalDataSource implements DataSource {
     this.save();
     return account;
   }
+  async verifyAccount(platform: Platform): Promise<ConnectedAccount> {
+    // Offline/mock: the mock integration ignores credentials and "succeeds",
+    // so the verify-and-connect flow is exercisable without a backend. Real
+    // credential checking happens in API mode against /accounts/:platform/verify.
+    return this.connectAccount(platform);
+  }
   async disconnectAccount(platform: Platform): Promise<ConnectedAccount> {
     const token = this.tokens.get(platform);
     if (token) await getIntegration(platform).disconnect(token);
@@ -150,6 +167,9 @@ export class ApiDataSource implements DataSource {
     // Mock backend connects directly. For real OAuth, redirect the browser to
     // `${VITE_API_URL}/accounts/oauth/${platform}/authorize` instead.
     return this.api.post<ConnectedAccount>(`/accounts/${platform}/connect`);
+  }
+  verifyAccount(platform: Platform, creds: PlatformCredentials): Promise<ConnectedAccount> {
+    return this.api.post<ConnectedAccount>(`/accounts/${platform}/verify`, creds);
   }
   disconnectAccount(platform: Platform): Promise<ConnectedAccount> {
     return this.api.post<ConnectedAccount>(`/accounts/${platform}/disconnect`);

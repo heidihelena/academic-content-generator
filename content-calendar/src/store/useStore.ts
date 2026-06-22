@@ -11,7 +11,7 @@ import type {
 } from '../types';
 import type { MediaAttachment } from '../types';
 import type { PersistenceAdapter } from '../lib/persistence';
-import { createDataSource, LocalDataSource, type DataSource } from '../lib/dataSource';
+import { createDataSource, LocalDataSource, type DataSource, type PlatformCredentials } from '../lib/dataSource';
 import { reschedulePost as computeReschedule } from '../lib/scheduling';
 import { getPlatformMeta } from '../lib/platforms';
 import { splitIntoThread } from '../lib/thread';
@@ -107,6 +107,8 @@ export interface StoreState {
   requestChanges: (postId: string, note: string, reviewer?: string) => void;
 
   connectAccount: (platform: Platform) => Promise<void>;
+  /** Verify entered credentials and connect; resolves true on success. */
+  verifyAccount: (platform: Platform, creds: PlatformCredentials) => Promise<boolean>;
   disconnectAccount: (platform: Platform) => Promise<void>;
 
   uploadMedia: (file: File) => Promise<MediaAttachment>;
@@ -459,6 +461,29 @@ export const useStore = create<StoreState>((set, get) => ({
         accountBusy: { ...s.accountBusy, [platform]: false },
         accountError: { ...s.accountError, [platform]: message },
       }));
+    }
+  },
+
+  verifyAccount: async (platform, creds) => {
+    set((s) => ({
+      accountBusy: { ...s.accountBusy, [platform]: true },
+      accountError: { ...s.accountError, [platform]: undefined },
+    }));
+    try {
+      const account = await dataSource.verifyAccount(platform, creds);
+      set((s) => ({
+        accounts: get().accounts.map((a) => (a.platform === platform ? account : a)),
+        accountBusy: { ...s.accountBusy, [platform]: false },
+        accountError: { ...s.accountError, [platform]: account.statusDetail },
+      }));
+      return account.status === 'connected';
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Could not connect.';
+      set((s) => ({
+        accountBusy: { ...s.accountBusy, [platform]: false },
+        accountError: { ...s.accountError, [platform]: message },
+      }));
+      return false;
     }
   },
 
