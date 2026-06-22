@@ -30,6 +30,8 @@ export interface AppConfig {
     threads: PlatformCredentials;
     /** Bluesky uses an app password (AT Protocol), not OAuth client creds. */
     bluesky: { service: string; identifier?: string; appPassword?: string };
+    /** Mastodon uses a per-instance access token, not OAuth client creds. */
+    mastodon: { instance?: string; accessToken?: string };
   };
   vault: {
     path: string;
@@ -82,6 +84,10 @@ export default (): AppConfig => ({
       service: process.env.BLUESKY_SERVICE ?? 'https://bsky.social',
       identifier: process.env.BLUESKY_IDENTIFIER,
       appPassword: process.env.BLUESKY_APP_PASSWORD,
+    },
+    mastodon: {
+      instance: process.env.MASTODON_INSTANCE,
+      accessToken: process.env.MASTODON_ACCESS_TOKEN,
     },
   },
   vault: {

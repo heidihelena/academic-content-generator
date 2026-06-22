@@ -3,7 +3,9 @@ import type {
   ConnectParams,
   OAuthResult,
   PlatformIntegration,
+  PublishOptions,
   PublishResult,
+  ReplyRef,
 } from './integration.types';
 import { apiFetch } from './http';
 
@@ -55,14 +57,34 @@ export function detectFacets(text: string): Facet[] {
   return facets;
 }
 
-/** Build the `app.bsky.feed.post` record body. Omits facets when there are none. */
-export function buildFeedPostRecord(text: string, createdAt = new Date().toISOString()) {
+/** A Bluesky reply ref: strong refs to the thread root + immediate parent. */
+export type BskyReply = { root: { uri: string; cid: string }; parent: { uri: string; cid: string } };
+
+/**
+ * Build the `app.bsky.feed.post` record body. Omits facets when there are none,
+ * and includes a `reply` ref when chaining a thread.
+ */
+export function buildFeedPostRecord(
+  text: string,
+  createdAt = new Date().toISOString(),
+  reply?: BskyReply,
+) {
   const facets = detectFacets(text);
   return {
     $type: 'app.bsky.feed.post' as const,
     text,
     createdAt,
     ...(facets.length > 0 ? { facets } : {}),
+    ...(reply ? { reply } : {}),
+  };
+}
+
+/** Convert a generic ReplyRef into a Bluesky reply, only if both CIDs exist. */
+export function toBskyReply(reply: ReplyRef | undefined): BskyReply | undefined {
+  if (!reply?.root.cid || !reply.parent.cid) return undefined;
+  return {
+    root: { uri: reply.root.uri, cid: reply.root.cid },
+    parent: { uri: reply.parent.uri, cid: reply.parent.cid },
   };
 }
 
@@ -150,7 +172,7 @@ export class BlueskyIntegration implements PlatformIntegration {
     // Bluesky settings to fully invalidate. No server endpoint needed here.
   }
 
-  async publish(post: Post, token: AccessToken): Promise<PublishResult> {
+  async publish(post: Post, token: AccessToken, opts?: PublishOptions): Promise<PublishResult> {
     const did = token.accountId;
     if (!did) throw new Error('Missing Bluesky DID on token');
     // Bluesky caps posts at 300 graphemes; the composer should already split.
@@ -158,7 +180,7 @@ export class BlueskyIntegration implements PlatformIntegration {
       throw new Error('Bluesky posts are limited to 300 characters — split into a thread first');
     }
 
-    const record = buildFeedPostRecord(post.body);
+    const record = buildFeedPostRecord(post.body, new Date().toISOString(), toBskyReply(opts?.reply));
     const create = async (accessJwt: string) =>
       apiFetch<{ uri: string; cid: string }>('bluesky', this.url('com.atproto.repo.createRecord'), {
         method: 'POST',
@@ -183,6 +205,6 @@ export class BlueskyIntegration implements PlatformIntegration {
       }
     }
 
-    return { remoteId: result.uri, permalink: blueskyPermalink(did, result.uri) };
+    return { remoteId: result.uri, remoteCid: result.cid, permalink: blueskyPermalink(did, result.uri) };
   }
 }

@@ -74,6 +74,9 @@ export interface Post {
   reviews?: ReviewEntry[];
   /** Mock engagement metrics, populated for published posts. */
   engagement?: PostEngagement;
+  /** Posts in one thread share a threadId; threadIndex is the 0-based order. */
+  threadId?: string;
+  threadIndex?: number;
   createdAt: string;
   updatedAt: string;
 }

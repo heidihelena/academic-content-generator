@@ -8,6 +8,25 @@ export interface OAuthResult {
 export interface PublishResult {
   remoteId: string;
   permalink: string;
+  /** Content hash (Bluesky CID), if the platform returns one. */
+  remoteCid?: string;
+}
+
+/** Reference to an already-published post, used to chain a thread reply. */
+export interface PostRef {
+  uri: string;
+  /** Bluesky requires the CID; Mastodon only needs the id (uri). */
+  cid?: string;
+}
+
+/** Thread context passed to publish so a part replies to the right post. */
+export interface ReplyRef {
+  root: PostRef;
+  parent: PostRef;
+}
+
+export interface PublishOptions {
+  reply?: ReplyRef;
 }
 
 /** Parameters for completing the OAuth handshake. */
@@ -60,5 +79,5 @@ export interface PlatformIntegration {
    * // platform-native id + permalink. Refresh the token first if near expiry.
    * // ----------------------------------------------------------------------
    */
-  publish(post: Post, token: AccessToken): Promise<PublishResult>;
+  publish(post: Post, token: AccessToken, opts?: PublishOptions): Promise<PublishResult>;
 }

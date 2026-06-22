@@ -2,6 +2,7 @@ import {
   blueskyPermalink,
   buildFeedPostRecord,
   detectFacets,
+  toBskyReply,
   BlueskyIntegration,
 } from './bluesky.integration';
 
@@ -45,6 +46,32 @@ describe('buildFeedPostRecord', () => {
   it('includes facets when the text has a link', () => {
     const rec = buildFeedPostRecord('See https://doi.org/10.1/x');
     expect((rec as { facets?: unknown[] }).facets).toHaveLength(1);
+  });
+});
+
+describe('thread reply chaining', () => {
+  const ref = {
+    root: { uri: 'at://did/app.bsky.feed.post/root', cid: 'cidroot' },
+    parent: { uri: 'at://did/app.bsky.feed.post/parent', cid: 'cidparent' },
+  };
+
+  it('toBskyReply passes through strong refs when both CIDs are present', () => {
+    expect(toBskyReply(ref)).toEqual(ref);
+  });
+
+  it('toBskyReply returns undefined when a CID is missing', () => {
+    expect(toBskyReply({ root: { uri: 'a' }, parent: { uri: 'b' } })).toBeUndefined();
+    expect(toBskyReply(undefined)).toBeUndefined();
+  });
+
+  it('buildFeedPostRecord includes the reply ref when chaining', () => {
+    const rec = buildFeedPostRecord('part 2', '2026-06-22T09:00:00.000Z', ref);
+    expect((rec as { reply?: unknown }).reply).toEqual(ref);
+  });
+
+  it('buildFeedPostRecord omits reply for the first post', () => {
+    const rec = buildFeedPostRecord('part 1');
+    expect('reply' in rec).toBe(false);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   type TokenStore,
 } from '../persistence/repository.interfaces';
 import { IntegrationRegistry } from '../integrations/integration.registry';
+import type { ReplyRef } from '../integrations/integration.types';
 import type { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 
 @Injectable()
@@ -49,6 +50,8 @@ export class PostsService {
       evidenceLevel: dto.evidenceLevel,
       reviewer: dto.reviewer,
       reviews: dto.reviews,
+      threadId: dto.threadId,
+      threadIndex: dto.threadIndex,
       createdAt: now,
       updatedAt: now,
     };
@@ -83,12 +86,16 @@ export class PostsService {
       return this.markFailed(post, `No connected ${post.platform} account`);
     }
     try {
-      const result = await this.integrations.get(post.platform).publish(post, token);
+      const reply = await this.resolveReply(post);
+      const result = await this.integrations
+        .get(post.platform)
+        .publish(post, token, reply ? { reply } : undefined);
       return this.posts.upsert({
         ...post,
         status: 'published',
         remoteId: result.remoteId,
         permalink: result.permalink,
+        remoteCid: result.remoteCid,
         failureReason: undefined,
         updatedAt: new Date().toISOString(),
       });
@@ -97,6 +104,25 @@ export class PostsService {
       this.logger.error(`Publish failed for ${id}: ${reason}`);
       return this.markFailed(post, reason);
     }
+  }
+
+  /**
+   * For a thread part (threadIndex > 0), resolve refs to the thread root and the
+   * immediate parent so the integration can chain the reply. Returns undefined
+   * when this isn't a thread part or the predecessors aren't published yet —
+   * in which case the part posts standalone rather than failing.
+   */
+  private async resolveReply(post: Post): Promise<ReplyRef | undefined> {
+    const index = post.threadIndex ?? 0;
+    if (!post.threadId || index === 0) return undefined;
+    const siblings = (await this.posts.list()).filter((p) => p.threadId === post.threadId);
+    const root = siblings.find((p) => (p.threadIndex ?? 0) === 0);
+    const parent = siblings.find((p) => (p.threadIndex ?? 0) === index - 1);
+    if (!root?.remoteId || !parent?.remoteId) return undefined;
+    return {
+      root: { uri: root.remoteId, cid: root.remoteCid },
+      parent: { uri: parent.remoteId, cid: parent.remoteCid },
+    };
   }
 
   private markFailed(post: Post, reason: string): Promise<Post> {

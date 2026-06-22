@@ -7,6 +7,7 @@ import { InstagramIntegration } from './instagram.integration';
 import { ThreadsIntegration } from './threads.integration';
 import { LinkedInIntegration } from './linkedin.integration';
 import { BlueskyIntegration } from './bluesky.integration';
+import { MastodonIntegration } from './mastodon.integration';
 
 /**
  * Maps each platform to its integration. Per platform, a real client is used
@@ -22,12 +23,7 @@ export class IntegrationRegistry {
   constructor(config: ConfigService) {
     this.integrations = {
       bluesky: this.buildBluesky(config),
-      // Mastodon ships mock-only for now (per-instance OAuth not yet wired).
-      mastodon: new MockIntegration('mastodon', {
-        handle: '@heidiandersen@fediscience.org',
-        displayName: 'Dr. Heidi Andersen',
-        followers: 1840,
-      }),
+      mastodon: this.buildMastodon(config),
       instagram: this.buildInstagram(config),
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),
@@ -81,6 +77,20 @@ export class IntegrationRegistry {
       handle: '@heidiandersen.bsky.social',
       displayName: 'Dr. Heidi Andersen',
       followers: 3120,
+    });
+  }
+
+  private buildMastodon(config: ConfigService): PlatformIntegration {
+    const instance = config.get<string>('integrations.mastodon.instance');
+    const accessToken = config.get<string>('integrations.mastodon.accessToken');
+    if (instance && accessToken) {
+      this.logger.log('Mastodon: using real instance API integration');
+      return new MastodonIntegration(instance, accessToken);
+    }
+    return new MockIntegration('mastodon', {
+      handle: '@heidiandersen@fediscience.org',
+      displayName: 'Dr. Heidi Andersen',
+      followers: 1840,
     });
   }
 }

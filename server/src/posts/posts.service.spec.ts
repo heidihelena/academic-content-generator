@@ -76,6 +76,49 @@ describe('PostsService', () => {
     expect(published.failureReason).toBe('rate limited');
   });
 
+  it('chains thread replies: a later part replies to the published parent', async () => {
+    const calls: Array<{ body: string; opts: any }> = [];
+    let n = 0;
+    const posts = new MemoryPostsRepository();
+    const tokens = new MemoryTokenStore();
+    const registry = {
+      get: () => ({
+        publish: async (p: { body: string }, _t: unknown, opts: unknown) => {
+          n += 1;
+          calls.push({ body: p.body, opts });
+          return { remoteId: `uri${n}`, remoteCid: `cid${n}`, permalink: `https://x/${n}` };
+        },
+      }),
+    } as unknown as IntegrationRegistry;
+    const service = new PostsService(posts, tokens, registry);
+    await tokens.set({ platform: 'bluesky', accessToken: 't', expiresAt: Date.now() + 1e6, scopes: [] });
+
+    const p0 = await service.create({
+      platform: 'bluesky',
+      body: 'part 1',
+      scheduledAt: '2030-01-01T00:00:00.000Z',
+      threadId: 'th1',
+      threadIndex: 0,
+    });
+    const p1 = await service.create({
+      platform: 'bluesky',
+      body: 'part 2',
+      scheduledAt: '2030-01-01T00:02:00.000Z',
+      threadId: 'th1',
+      threadIndex: 1,
+    });
+
+    await service.publish(p0.id);
+    await service.publish(p1.id);
+
+    // The root post publishes with no reply context…
+    expect(calls[0].opts).toBeUndefined();
+    // …and the second part replies to the now-published first part.
+    expect(calls[1].opts.reply.parent.uri).toBe('uri1');
+    expect(calls[1].opts.reply.parent.cid).toBe('cid1');
+    expect(calls[1].opts.reply.root.uri).toBe('uri1');
+  });
+
   it('deletes a post', async () => {
     const { service } = makeService();
     const created = await service.create({ platform: 'threads', body: 'a', scheduledAt: '2030-01-01T00:00:00.000Z' });

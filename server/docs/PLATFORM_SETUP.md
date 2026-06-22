@@ -7,6 +7,7 @@ restart.
 
 ```
 BLUESKY_IDENTIFIER=…    BLUESKY_APP_PASSWORD=…     BLUESKY_SERVICE=https://bsky.social
+MASTODON_INSTANCE=…     MASTODON_ACCESS_TOKEN=…
 INSTAGRAM_CLIENT_ID=…   INSTAGRAM_CLIENT_SECRET=…
 LINKEDIN_CLIENT_ID=…    LINKEDIN_CLIENT_SECRET=…   LINKEDIN_VERSION=202401
 THREADS_CLIENT_ID=…     THREADS_CLIENT_SECRET=…
@@ -46,6 +47,18 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
   `com.atproto.repo.createRecord` of an `app.bsky.feed.post`. Links in the copy
   are made clickable via richtext **facets** (UTF-8 byte offsets). Posts are
   capped at 300 characters — the in-app thread composer splits longer copy first.
+
+---
+
+## Mastodon (instance REST API)
+
+- **Account:** any account on any instance.
+- **Auth:** a per-account **access token** — Preferences → Development → New
+  application (scopes `read` + `write`) → copy the access token. No App Review.
+- **Env:** `MASTODON_INSTANCE` (e.g. `https://fediscience.org`) +
+  `MASTODON_ACCESS_TOKEN`.
+- **Publishing:** `POST /api/v1/statuses` with an `Idempotency-Key` (the post id,
+  so scheduler retries never double-post). Threads chain via `in_reply_to_id`.
 
 ---
 
