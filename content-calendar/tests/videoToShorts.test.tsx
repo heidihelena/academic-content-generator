@@ -75,6 +75,8 @@ describe('Video → Shorts plan', () => {
     const recipe = screen.getByTestId('clip-recipe');
     expect(recipe).toHaveTextContent(/ffmpeg .*crop=1080:1920/);
     expect(recipe).toHaveTextContent(/yt-dlp/); // URL provided ⇒ download step included
+  });
+
   it('falls back to manual paste when transcript fetch is unavailable (no backend)', async () => {
     render(<App initialView="ideas" />);
     fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
