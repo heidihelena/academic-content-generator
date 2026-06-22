@@ -6,6 +6,7 @@ import { MockIntegration } from './mock.integration';
 import { InstagramIntegration } from './instagram.integration';
 import { ThreadsIntegration } from './threads.integration';
 import { LinkedInIntegration } from './linkedin.integration';
+import { BlueskyIntegration } from './bluesky.integration';
 
 /**
  * Maps each platform to its integration. Per platform, a real client is used
@@ -20,12 +21,8 @@ export class IntegrationRegistry {
 
   constructor(config: ConfigService) {
     this.integrations = {
-      // Scholarly networks ship mock-only for now (no OAuth client yet).
-      bluesky: new MockIntegration('bluesky', {
-        handle: '@heidiandersen.bsky.social',
-        displayName: 'Dr. Heidi Andersen',
-        followers: 3120,
-      }),
+      bluesky: this.buildBluesky(config),
+      // Mastodon ships mock-only for now (per-instance OAuth not yet wired).
       mastodon: new MockIntegration('mastodon', {
         handle: '@heidiandersen@fediscience.org',
         displayName: 'Dr. Heidi Andersen',
@@ -70,5 +67,20 @@ export class IntegrationRegistry {
       return new LinkedInIntegration(id, secret, version);
     }
     return new MockIntegration('linkedin', { handle: 'vahtian', displayName: 'vahtian Inc.', followers: 7650 });
+  }
+
+  private buildBluesky(config: ConfigService): PlatformIntegration {
+    const service = config.get<string>('integrations.bluesky.service') ?? 'https://bsky.social';
+    const identifier = config.get<string>('integrations.bluesky.identifier');
+    const appPassword = config.get<string>('integrations.bluesky.appPassword');
+    if (identifier && appPassword) {
+      this.logger.log('Bluesky: using real AT Protocol integration');
+      return new BlueskyIntegration(service, identifier, appPassword);
+    }
+    return new MockIntegration('bluesky', {
+      handle: '@heidiandersen.bsky.social',
+      displayName: 'Dr. Heidi Andersen',
+      followers: 3120,
+    });
   }
 }
