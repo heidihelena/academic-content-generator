@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { THREAD_AUDIENCES, type ThreadAudience } from '../ai/threadTypes';
 import type { ShortsPlanResult } from '../ai/shortsTypes';
 import { planShortsFromVideo } from '../ai/shortsService';
+import { buildClipRecipe } from '../lib/clipRecipe';
 import { fetchTranscript } from '../lib/transcript';
 import { getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
@@ -10,6 +11,43 @@ import { Spinner } from './ui/Spinner';
 import { ErrorState } from './ui/States';
 
 const COUNTS = [3, 4, 5, 6];
+
+/** Collapsible copy-paste recipe (yt-dlp + ffmpeg) to render one vertical clip. */
+function ClipRecipeBlock(props: { startSeconds: number; endSeconds: number; index: number; videoUrl?: string }) {
+  const [open, setOpen] = useState(false);
+  const recipe = buildClipRecipe(props);
+  const commands = [recipe.download, recipe.render].filter(Boolean).join('\n');
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        className="text-[11px] text-brand-400 hover:underline"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {open ? '▾' : '▸'} Render recipe ({recipe.durationSeconds}s vertical clip)
+      </button>
+      {open && (
+        <div data-testid="clip-recipe" className="mt-1 space-y-1.5">
+          {!props.videoUrl && (
+            <p className="text-[10px] text-slate-500">Add the video URL above to include the download step.</p>
+          )}
+          <pre className="overflow-x-auto rounded bg-surface-950 p-2 text-[10px] leading-relaxed text-slate-300">
+            {commands}
+          </pre>
+          <button
+            type="button"
+            className="btn-ghost py-1 text-[11px]"
+            onClick={() => navigator.clipboard?.writeText(commands)}
+          >
+            Copy commands
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * "Video → Shorts plan" — paste a long-form transcript (ideally with the
@@ -212,6 +250,14 @@ export function VideoToShorts() {
                 <p className="mt-1.5 text-xs italic text-slate-300">“{s.hook}”</p>
                 <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-slate-400">{s.caption}</p>
                 <span className="mt-1 block text-[10px] text-slate-500">{s.caption.length}/{limit}</span>
+                {s.startSeconds !== undefined && s.endSeconds !== undefined && (
+                  <ClipRecipeBlock
+                    startSeconds={s.startSeconds}
+                    endSeconds={s.endSeconds}
+                    index={i + 1}
+                    videoUrl={videoUrl || undefined}
+                  />
+                )}
               </li>
             ))}
           </ol>

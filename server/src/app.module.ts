@@ -11,6 +11,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
 import { MediaModule } from './media/media.module';
+import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { ShortsModule } from './shorts/shorts.module';
     VaultModule,
     AiModule,
     MediaModule,
+    RenderModule,
     ShortsModule,
   ],
 })
