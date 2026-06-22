@@ -97,6 +97,12 @@ export const CheckIcon = (p: IconProps) => (
   </svg>
 );
 
+export const ListIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
+  </svg>
+);
+
 export const BoardIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <rect x="3" y="3" width="18" height="18" rx="2" />
