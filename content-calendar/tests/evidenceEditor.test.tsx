@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import App from '../src/App';
 import { useStore, __setPersistence } from '../src/store/useStore';
 import { MemoryPersistence } from '../src/lib/persistence';
@@ -58,5 +58,32 @@ describe('Evidence & source in the editor', () => {
       target: { value: 'We found that more trees keep a street cool. This helps people on hot days.' },
     });
     expect(screen.getByTestId('readability')).toHaveTextContent(/Plain-language check/i);
+  });
+
+  it('offers a thread composer and splits over-limit copy into multiple posts', () => {
+    render(<App initialView="calendar" />);
+    fireEvent.click(screen.getByRole('button', { name: /New post/i }));
+
+    // Switch to Bluesky (300 char limit) and write past it.
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Bluesky/i }));
+    const long =
+      'Heatwaves do not hit a city evenly. Wealthier blocks have more street trees. ' +
+      'Trees cool the air on hot days, so the coolest streets are often the richest. ' +
+      'Lower-income blocks ran up to two degrees hotter across our twelve-city study. ' +
+      'Tree-planting policy needs an equity lens, not just a total-canopy target for the city.';
+    fireEvent.change(screen.getByLabelText('Script / Copy'), { target: { value: long } });
+
+    const composer = screen.getByTestId('thread-composer');
+    expect(composer).toHaveTextContent(/part thread/i);
+
+    const before = useStore.getState().posts.length;
+    fireEvent.click(within(composer).getByRole('button', { name: /Create .* thread/i }));
+
+    const after = useStore.getState().posts;
+    expect(after.length).toBeGreaterThan(before + 1); // multiple posts created
+    const threadPosts = after.filter((p) => p.platform === 'bluesky' && /\(\d+\/\d+\)$/.test(p.body));
+    expect(threadPosts.length).toBeGreaterThan(1);
+    for (const p of threadPosts) expect(p.body.length).toBeLessThanOrEqual(300);
   });
 });

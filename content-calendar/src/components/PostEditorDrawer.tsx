@@ -12,6 +12,7 @@ import {
   sourceLabel,
 } from '../lib/evidence';
 import { analyzeReadability, readabilityVerdict } from '../lib/readability';
+import { splitIntoThread } from '../lib/thread';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 import { Drawer } from './ui/Drawer';
@@ -38,6 +39,7 @@ export function PostEditorDrawer() {
   const uploadMedia = useStore((s) => s.uploadMedia);
   const approvePost = useStore((s) => s.approvePost);
   const requestChanges = useStore((s) => s.requestChanges);
+  const createThread = useStore((s) => s.createThread);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -132,6 +134,11 @@ export function PostEditorDrawer() {
   // Plain-language check on the live copy.
   const readability = useMemo(() => analyzeReadability(draft.body), [draft.body]);
   const verdict = readabilityVerdict(readability);
+  // How the copy would break into a platform-sized thread.
+  const threadParts = useMemo(
+    () => splitIntoThread(draft.body, meta.characterLimit),
+    [draft.body, meta.characterLimit],
+  );
   // A peer-reviewed / preliminary claim should link its source.
   const missingSource = evidenceExpectsSource(draft.evidenceLevel) && !hasSourceLink(draft.source);
 
@@ -425,6 +432,40 @@ export function PostEditorDrawer() {
             </div>
           )}
         </div>
+
+        {/* Thread composer — when the copy is too long for one post, split it. */}
+        {threadParts.length > 1 && (
+          <div
+            data-testid="thread-composer"
+            className="space-y-2 rounded-lg border border-brand-500/40 bg-brand-500/5 p-3"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-200">
+                Too long for {meta.name} — post as a {threadParts.length}-part thread
+              </span>
+              <button
+                type="button"
+                className="btn-primary py-1.5 text-xs"
+                onClick={() => createThread(draft)}
+              >
+                Create {threadParts.length}-part thread
+              </button>
+            </div>
+            <ol className="space-y-1.5">
+              {threadParts.map((part, i) => (
+                <li
+                  key={i}
+                  className="rounded-md bg-surface-900/60 px-2.5 py-1.5 text-[11px] text-slate-300"
+                >
+                  <span className="whitespace-pre-wrap">{part}</span>
+                  <span className="mt-0.5 block text-[10px] text-slate-500">
+                    {part.length}/{meta.characterLimit}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>

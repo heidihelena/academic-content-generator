@@ -13,6 +13,8 @@ import type { MediaAttachment } from '../types';
 import type { PersistenceAdapter } from '../lib/persistence';
 import { createDataSource, LocalDataSource, type DataSource } from '../lib/dataSource';
 import { reschedulePost as computeReschedule } from '../lib/scheduling';
+import { getPlatformMeta } from '../lib/platforms';
+import { splitIntoThread } from '../lib/thread';
 import { createId } from '../lib/id';
 
 /**
@@ -76,6 +78,8 @@ export interface StoreState {
   openEditorForNewPost: (platform: Platform, scheduledAt: string) => void;
   closeEditor: () => void;
   savePost: (draft: PostDraft) => void;
+  /** Split the draft's copy into a numbered thread of posts (platform-sized). */
+  createThread: (draft: PostDraft) => void;
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
@@ -250,6 +254,43 @@ export const useStore = create<StoreState>((set, get) => ({
       };
       set({ posts: [...get().posts, post], isEditorOpen: false, editingPostId: null });
       void dataSource.createPost(post).catch((err) => console.error('createPost failed', err));
+    }
+  },
+
+  createThread: (draft) => {
+    const limit = getPlatformMeta(draft.platform).characterLimit;
+    const parts = splitIntoThread(draft.body, limit);
+    if (parts.length <= 1) {
+      // Nothing to split — fall back to a normal save.
+      get().savePost(draft);
+      return;
+    }
+    const now = new Date().toISOString();
+    const start = new Date(draft.scheduledAt).getTime();
+    const created: Post[] = parts.map((body, i) => ({
+      // Parts go out two minutes apart so they thread in order.
+      id: createId('post'),
+      platform: draft.platform,
+      body,
+      scheduledAt: new Date(start + i * 2 * 60_000).toISOString(),
+      status: draft.status,
+      // Media + structured source ride on the first post only.
+      media: i === 0 ? draft.media : [],
+      owner: draft.owner,
+      campaign: draft.campaign,
+      brief: draft.brief,
+      audience: draft.audience,
+      theme: draft.theme,
+      hook: i === 0 ? draft.hook : undefined,
+      source: i === 0 ? draft.source : undefined,
+      evidenceLevel: draft.evidenceLevel,
+      reviewer: draft.reviewer,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    set({ posts: [...get().posts, ...created], isEditorOpen: false, editingPostId: null });
+    for (const post of created) {
+      void dataSource.createPost(post).catch((err) => console.error('createThread failed', err));
     }
   },
 
