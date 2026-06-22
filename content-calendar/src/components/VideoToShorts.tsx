@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { THREAD_AUDIENCES, type ThreadAudience } from '../ai/threadTypes';
 import type { ShortsPlanResult } from '../ai/shortsTypes';
 import { planShortsFromVideo } from '../ai/shortsService';
+import { fetchTranscript } from '../lib/transcript';
 import { getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { VideoIcon, PlusIcon } from './icons';
@@ -28,6 +29,28 @@ export function VideoToShorts() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ShortsPlanResult | null>(null);
   const [added, setAdded] = useState(false);
+
+  // Transcript fetch (verify-or-redo): pull captions from the URL, confirm we
+  // got them, and only then proceed — otherwise the user pastes manually.
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchOk, setFetchOk] = useState<number | null>(null);
+
+  const onFetch = async () => {
+    if (!videoUrl.trim()) return;
+    setFetching(true);
+    setFetchError(null);
+    setFetchOk(null);
+    try {
+      const res = await fetchTranscript(videoUrl.trim());
+      setTranscript(res.transcript);
+      setFetchOk(res.cueCount); // verified: N captions
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : 'Could not fetch transcript.');
+    } finally {
+      setFetching(false);
+    }
+  };
 
   const submit = async () => {
     setLoading(true);
@@ -73,13 +96,38 @@ export function VideoToShorts() {
 
       <div>
         <label htmlFor="video-url" className="label">YouTube URL (optional)</label>
-        <input
-          id="video-url"
-          className="input"
-          placeholder="https://www.youtube.com/watch?v=…"
-          value={videoUrl}
-          onChange={(e) => setVideoUrl(e.target.value)}
-        />
+        <div className="flex gap-2">
+          <input
+            id="video-url"
+            className="input"
+            placeholder="https://www.youtube.com/watch?v=…"
+            value={videoUrl}
+            onChange={(e) => {
+              setVideoUrl(e.target.value);
+              setFetchOk(null);
+              setFetchError(null);
+            }}
+          />
+          <button
+            type="button"
+            className="btn-secondary shrink-0 py-1.5 text-xs"
+            disabled={!videoUrl.trim() || fetching}
+            onClick={onFetch}
+          >
+            {fetching ? <Spinner size={14} label="Fetching" /> : <VideoIcon width={14} height={14} />}
+            {fetching ? 'Fetching…' : 'Fetch transcript'}
+          </button>
+        </div>
+        {fetchOk !== null && (
+          <p data-testid="fetch-ok" className="mt-1 text-[11px] text-status-published">
+            ✓ Verified — fetched {fetchOk} captions. Review below, then plan your shorts.
+          </p>
+        )}
+        {fetchError && (
+          <p data-testid="fetch-error" className="mt-1 text-[11px] text-status-brief">
+            {fetchError}
+          </p>
+        )}
       </div>
 
       <div>
