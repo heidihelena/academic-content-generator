@@ -60,4 +60,20 @@ describe('Video → Shorts plan', () => {
     fireEvent.click(screen.getByRole('button', { name: /Plan shorts/i }));
     expect(await screen.findByText(/Paste a transcript/i)).toBeInTheDocument();
   });
+
+  it('reveals an ffmpeg render recipe for a timestamped clip', async () => {
+    render(<App initialView="ideas" />);
+    fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
+      target: { value: 'https://youtu.be/abc' },
+    });
+    fireEvent.change(screen.getByLabelText(/Transcript/i), { target: { value: TRANSCRIPT } });
+    fireEvent.click(screen.getByRole('button', { name: /Plan shorts/i }));
+
+    await screen.findByTestId('shorts-plan');
+    fireEvent.click(screen.getAllByRole('button', { name: /Render recipe/i })[0]);
+
+    const recipe = screen.getByTestId('clip-recipe');
+    expect(recipe).toHaveTextContent(/ffmpeg .*crop=1080:1920/);
+    expect(recipe).toHaveTextContent(/yt-dlp/); // URL provided ⇒ download step included
+  });
 });

@@ -11,6 +11,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
 import { MediaModule } from './media/media.module';
+import { RenderModule } from './render/render.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MediaModule } from './media/media.module';
     VaultModule,
     AiModule,
     MediaModule,
+    RenderModule,
   ],
 })
 export class AppModule {}
