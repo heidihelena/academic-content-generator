@@ -3,6 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { VaultModule } from '../vault/vault.module';
 import { IdeasService } from './ideas.service';
 import { IdeasController } from './ideas.controller';
+import { DraftsController } from './drafts.controller';
+import { DraftsService } from './drafts.service';
 import { IDEA_GENERATOR, type IdeaGenerator } from './ideas.types';
 import { MockIdeaGenerator } from './generators/mock.generator';
 import { LlmIdeaGenerator } from './generators/llm.generator';
@@ -11,6 +13,7 @@ import { LlmIdeaGenerator } from './generators/llm.generator';
   imports: [ConfigModule, VaultModule],
   providers: [
     IdeasService,
+    DraftsService,
     {
       provide: IDEA_GENERATOR,
       inject: [ConfigService],
@@ -24,6 +27,6 @@ import { LlmIdeaGenerator } from './generators/llm.generator';
       },
     },
   ],
-  controllers: [IdeasController],
+  controllers: [IdeasController, DraftsController],
 })
 export class AiModule {}
