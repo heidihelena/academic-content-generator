@@ -30,7 +30,7 @@ export function BarChart({ data, height = 160, ariaLabel }: BarChartProps) {
               className="w-full rounded-t-md transition-all"
               style={{
                 height: `${Math.max(2, pct)}%`,
-                backgroundColor: d.color ?? '#6366f1',
+                backgroundColor: d.color ?? '#46a085',
                 minHeight: d.value > 0 ? 4 : 2,
                 opacity: d.value > 0 ? 1 : 0.3,
               }}

@@ -24,19 +24,19 @@ export const EVIDENCE_META: Record<EvidenceLevel, EvidenceMeta> = {
     level: 'opinion',
     label: 'Opinion / commentary',
     description: 'A personal take or interpretation — not a research finding.',
-    color: '#94a3b8',
+    color: '#828b86',
   },
   preliminary: {
     level: 'preliminary',
     label: 'Preliminary',
     description: 'Preprint or early results — not yet peer-reviewed.',
-    color: '#fbbf24',
+    color: '#e0a34b',
   },
   peer_reviewed: {
     level: 'peer_reviewed',
     label: 'Peer-reviewed',
     description: 'Published, peer-reviewed work. Link the source.',
-    color: '#34d399',
+    color: '#46a085',
   },
 };
 

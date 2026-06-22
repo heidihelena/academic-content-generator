@@ -25,7 +25,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
           ✦
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-slate-100">Scholar Studio</p>
+          <p className="text-sm font-semibold text-slate-100">ForskAI</p>
           <p className="text-[11px] text-slate-500">Share your research</p>
         </div>
       </div>
@@ -40,7 +40,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
               aria-current={active ? 'page' : undefined}
               onClick={() => onChange(item.id)}
               className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none md:justify-start ${
-                active ? 'bg-surface-700 text-white' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+                active ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
               }`}
             >
               <Icon width={18} height={18} />

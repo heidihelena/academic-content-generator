@@ -53,8 +53,8 @@ export function Analytics() {
   }));
 
   const svpData: BarDatum[] = [
-    { label: 'Scheduled', value: svp.scheduled, color: '#38bdf8' },
-    { label: 'Published', value: svp.published, color: '#34d399' },
+    { label: 'Scheduled', value: svp.scheduled, color: '#5fb89b' },
+    { label: 'Published', value: svp.published, color: '#46a085' },
   ];
 
   // Highlight the best day by average engagement.
@@ -62,7 +62,7 @@ export function Analytics() {
   const dayData: BarDatum[] = days.map((d) => ({
     label: d.dayName.slice(0, 3),
     value: d.avgEngagement,
-    color: bestDay && d.dayIndex === bestDay.dayIndex ? '#34d399' : '#6366f1',
+    color: bestDay && d.dayIndex === bestDay.dayIndex ? '#5fb89b' : '#46a085',
     sublabel: `${d.posts}p`,
   }));
 

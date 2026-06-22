@@ -20,14 +20,14 @@ export interface StageMeta {
 
 /** Stage accent colors (hex) for board dots and chips. Mirrors tailwind config. */
 export const STAGE_COLOR: Record<PostStatus, string> = {
-  brief: '#fbbf24',
-  draft: '#94a3b8',
-  review: '#c084fc',
-  approved: '#2dd4bf',
-  scheduled: '#38bdf8',
-  published: '#34d399',
-  learn: '#60a5fa',
-  failed: '#f87171',
+  brief: '#e0a34b',
+  draft: '#828b86',
+  review: '#5fb89b',
+  approved: '#46a085',
+  scheduled: '#5fb89b',
+  published: '#46a085',
+  learn: '#828b86',
+  failed: '#b75a64',
 };
 
 /** Ordered pipeline stages (left → right on the board). */
