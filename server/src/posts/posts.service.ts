@@ -45,6 +45,8 @@ export class PostsService {
       audience: dto.audience,
       theme: dto.theme,
       hook: dto.hook,
+      reviewer: dto.reviewer,
+      reviews: dto.reviews,
       createdAt: now,
       updatedAt: now,
     };

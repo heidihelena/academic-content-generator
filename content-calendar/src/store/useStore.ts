@@ -80,6 +80,10 @@ export interface StoreState {
   reschedulePost: (postId: string, targetDay: Date) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
   setPostStatus: (postId: string, status: PostStatus) => void;
+  /** Approve a post in review → moves it to Approved and logs the decision. */
+  approvePost: (postId: string, reviewer?: string) => void;
+  /** Request changes → moves the post back to Drafting and logs the note. */
+  requestChanges: (postId: string, note: string, reviewer?: string) => void;
 
   connectAccount: (platform: Platform) => Promise<void>;
   disconnectAccount: (platform: Platform) => Promise<void>;
@@ -213,6 +217,7 @@ export const useStore = create<StoreState>((set, get) => ({
         audience: draft.audience,
         theme: draft.theme,
         hook: draft.hook,
+        reviewer: draft.reviewer,
         updatedAt: now,
       };
       set({
@@ -235,6 +240,7 @@ export const useStore = create<StoreState>((set, get) => ({
         audience: draft.audience,
         theme: draft.theme,
         hook: draft.hook,
+        reviewer: draft.reviewer,
         createdAt: now,
         updatedAt: now,
       };
@@ -262,6 +268,36 @@ export const useStore = create<StoreState>((set, get) => ({
     void dataSource
       .updatePost(postId, { status, updatedAt })
       .catch((err) => console.error('setPostStatus failed', err));
+  },
+
+  approvePost: (postId, reviewer) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const at = new Date().toISOString();
+    const review = { id: createId('review'), decision: 'approved' as const, reviewer, at };
+    const patch = {
+      status: 'approved' as const,
+      reviewer,
+      reviews: [...(post.reviews ?? []), review],
+      updatedAt: at,
+    };
+    set({ posts: get().posts.map((p) => (p.id === postId ? { ...p, ...patch } : p)) });
+    void dataSource.updatePost(postId, patch).catch((err) => console.error('approvePost failed', err));
+  },
+
+  requestChanges: (postId, note, reviewer) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const at = new Date().toISOString();
+    const review = { id: createId('review'), decision: 'changes_requested' as const, reviewer, note, at };
+    const patch = {
+      status: 'draft' as const,
+      reviewer,
+      reviews: [...(post.reviews ?? []), review],
+      updatedAt: at,
+    };
+    set({ posts: get().posts.map((p) => (p.id === postId ? { ...p, ...patch } : p)) });
+    void dataSource.updatePost(postId, patch).catch((err) => console.error('requestChanges failed', err));
   },
 
   reschedulePost: (postId, targetDay) => {

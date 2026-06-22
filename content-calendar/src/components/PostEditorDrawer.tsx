@@ -8,7 +8,7 @@ import { createId } from '../lib/id';
 import { Drawer } from './ui/Drawer';
 import { Spinner } from './ui/Spinner';
 import { PostPreview } from './PostPreview';
-import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon } from './icons';
+import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon } from './icons';
 
 const STAGE_OPTIONS: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
@@ -27,10 +27,14 @@ export function PostEditorDrawer() {
   const deletePost = useStore((s) => s.deletePost);
   const closeEditor = useStore((s) => s.closeEditor);
   const uploadMedia = useStore((s) => s.uploadMedia);
+  const approvePost = useStore((s) => s.approvePost);
+  const requestChanges = useStore((s) => s.requestChanges);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [changeNote, setChangeNote] = useState('');
+  const [showNote, setShowNote] = useState(false);
 
   const existing = posts.find((p) => p.id === editingPostId);
 
@@ -54,6 +58,7 @@ export function PostEditorDrawer() {
         audience: existing.audience,
         theme: existing.theme,
         hook: existing.hook,
+        reviewer: existing.reviewer,
       };
     }
     return {
@@ -69,7 +74,33 @@ export function PostEditorDrawer() {
   if (editingPostId !== seededFor) {
     setSeededFor(editingPostId);
     setDraft(seed());
+    setChangeNote('');
+    setShowNote(false);
   }
+
+  // People to suggest as reviewers: owners/reviewers already used elsewhere.
+  const people = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of posts) {
+      if (p.owner) set.add(p.owner);
+      if (p.reviewer) set.add(p.reviewer);
+    }
+    return [...set].sort();
+  }, [posts]);
+
+  const latestReview = existing?.reviews?.[existing.reviews.length - 1];
+
+  const onApprove = () => {
+    if (!existing) return;
+    approvePost(existing.id, draft.reviewer);
+    closeEditor();
+  };
+
+  const onRequestChanges = () => {
+    if (!existing || !changeNote.trim()) return;
+    requestChanges(existing.id, changeNote.trim(), draft.reviewer);
+    closeEditor();
+  };
 
   const meta = getPlatformMeta(draft.platform);
   const charCount = draft.body.length;
@@ -279,6 +310,82 @@ export function PostEditorDrawer() {
           <span className="font-medium text-slate-300">{STAGE_META[draft.status].label}:</span>{' '}
           {STAGE_META[draft.status].hint}
         </p>
+
+        {/* Changes were requested and the card bounced back to Drafting. */}
+        {latestReview?.decision === 'changes_requested' && draft.status === 'draft' && (
+          <div
+            data-testid="changes-requested-note"
+            className="rounded-lg border border-status-brief/40 bg-status-brief/10 px-3 py-2 text-[11px] leading-relaxed text-status-brief"
+          >
+            <span className="font-semibold">Changes requested</span>
+            {latestReview.reviewer ? ` by ${latestReview.reviewer}` : ''}: {latestReview.note}
+          </div>
+        )}
+
+        {/* Review gate — only while the post is in Review. */}
+        {existing && draft.status === 'review' && (
+          <div
+            data-testid="review-panel"
+            className="space-y-3 rounded-lg border border-status-review/40 bg-status-review/5 p-3"
+          >
+            <div>
+              <label htmlFor="post-reviewer" className="label">
+                Reviewer
+              </label>
+              <input
+                id="post-reviewer"
+                type="text"
+                list="reviewer-suggestions"
+                className="input"
+                placeholder="Assign a reviewer…"
+                value={draft.reviewer ?? ''}
+                onChange={(e) => update('reviewer', e.target.value || undefined)}
+              />
+              <datalist id="reviewer-suggestions">
+                {people.map((p) => (
+                  <option key={p} value={p} />
+                ))}
+              </datalist>
+            </div>
+
+            {showNote ? (
+              <div className="space-y-2">
+                <label htmlFor="change-note" className="label">
+                  What needs to change?
+                </label>
+                <textarea
+                  id="change-note"
+                  rows={3}
+                  className="input resize-none"
+                  placeholder="Describe the changes needed…"
+                  value={changeNote}
+                  onChange={(e) => setChangeNote(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <button
+                    className="btn-primary py-1.5 text-xs"
+                    disabled={!changeNote.trim()}
+                    onClick={onRequestChanges}
+                  >
+                    Send back to Drafting
+                  </button>
+                  <button className="btn-ghost py-1.5 text-xs" onClick={() => setShowNote(false)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button className="btn-primary py-1.5 text-xs" onClick={onApprove}>
+                  <CheckIcon width={14} height={14} /> Approve
+                </button>
+                <button className="btn-secondary py-1.5 text-xs" onClick={() => setShowNote(true)}>
+                  Request changes
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <div>

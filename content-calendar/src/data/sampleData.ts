@@ -1,4 +1,4 @@
-import type { ConnectedAccount, Post, Platform, PostStatus } from '../types';
+import type { ConnectedAccount, Post, Platform, PostStatus, ReviewDecision } from '../types';
 import { startOfWeek, DAY_MS } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 
@@ -23,6 +23,8 @@ interface Seed {
   audience?: string;
   theme?: string;
   hook?: string;
+  reviewer?: string;
+  reviews?: Array<{ decision: ReviewDecision; reviewer?: string; note?: string }>;
   media?: { type: 'image' | 'video'; label: string };
   engagement?: { likes: number; comments: number; shares: number; impressions: number };
 }
@@ -60,6 +62,7 @@ const SEEDS: Seed[] = [
     minute: 15,
     status: 'review',
     owner: 'Sam',
+    reviewer: 'Heidi',
     body: 'Hot take: your engagement rate matters more than your follower count. Reply with your niche and I\'ll tell you a realistic benchmark.',
   },
   {
@@ -120,9 +123,13 @@ const SEEDS: Seed[] = [
     minute: 30,
     status: 'draft',
     owner: 'Sam',
+    reviewer: 'Heidi',
     theme: 'Engagement bait',
     hook: 'What\'s a "best practice" you\'ve stopped following — and your results got better?',
     body: 'Friday question: what\'s a social media "best practice" you\'ve stopped following — and your results got better?',
+    reviews: [
+      { decision: 'changes_requested', reviewer: 'Heidi', note: 'Lead with the benefit and cut the preamble.' },
+    ],
   },
   {
     platform: 'instagram',
@@ -177,6 +184,8 @@ export function createSamplePosts(now: Date = new Date()): Post[] {
       audience: seed.audience,
       theme: seed.theme,
       hook: seed.hook,
+      reviewer: seed.reviewer,
+      reviews: seed.reviews?.map((r) => ({ id: createId('review'), at: nowIso, ...r })),
       media: seed.media
         ? [{ id: createId('media'), type: seed.media.type, label: seed.media.label }]
         : [],

@@ -79,3 +79,50 @@ describe('PipelineBoard', () => {
     expect((screen.getByLabelText('Stage') as HTMLSelectElement).value).toBe('brief');
   });
 });
+
+describe('Review/Approve gate', () => {
+  beforeEach(resetStore);
+
+  function openReviewPost() {
+    render(<App />);
+    const post = useStore.getState().posts.find((p) => p.status === 'review')!;
+    fireEvent.click(screen.getByTestId(`post-card-${post.id}`));
+    return post;
+  }
+
+  it('shows the review panel only for posts in Review', () => {
+    render(<App />);
+    // A drafting post has no review panel.
+    const draftPost = useStore.getState().posts.find((p) => p.status === 'draft')!;
+    fireEvent.click(screen.getByTestId(`post-card-${draftPost.id}`));
+    expect(screen.queryByTestId('review-panel')).not.toBeInTheDocument();
+  });
+
+  it('approves a post → moves it to Approved and logs the decision', () => {
+    const post = openReviewPost();
+    expect(screen.getByTestId('review-panel')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Approve/i }));
+
+    const updated = useStore.getState().posts.find((p) => p.id === post.id)!;
+    expect(updated.status).toBe('approved');
+    const lastReview = updated.reviews?.[updated.reviews.length - 1];
+    expect(lastReview?.decision).toBe('approved');
+    // Editor closes after the decision.
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('requests changes → sends the post back to Drafting with a note', () => {
+    const post = openReviewPost();
+    fireEvent.click(screen.getByRole('button', { name: /Request changes/i }));
+    fireEvent.change(screen.getByLabelText(/What needs to change/i), {
+      target: { value: 'Sharpen the CTA' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Send back to Drafting/i }));
+
+    const updated = useStore.getState().posts.find((p) => p.id === post.id)!;
+    expect(updated.status).toBe('draft');
+    const last = updated.reviews?.[updated.reviews.length - 1];
+    expect(last?.decision).toBe('changes_requested');
+    expect(last?.note).toBe('Sharpen the CTA');
+  });
+});

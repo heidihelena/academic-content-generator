@@ -1,4 +1,4 @@
-import type { MediaAttachment, Platform, PostStatus } from '../../domain/types';
+import type { MediaAttachment, Platform, PostStatus, ReviewEntry } from '../../domain/types';
 
 /** Request body for creating a post. */
 export interface CreatePostDto {
@@ -15,6 +15,8 @@ export interface CreatePostDto {
   audience?: string;
   theme?: string;
   hook?: string;
+  reviewer?: string;
+  reviews?: ReviewEntry[];
 }
 
 /** Request body for updating a post (all fields optional). */

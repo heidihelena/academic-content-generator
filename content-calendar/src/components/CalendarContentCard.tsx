@@ -25,6 +25,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
   const canEdit = useStore((s) => s.permissions.canEdit);
 
   const media = post.media[0];
+  const latestReview = post.reviews?.[post.reviews.length - 1];
 
   return (
     <div
@@ -93,6 +94,19 @@ export function CalendarContentCard({ post, conflicted }: Props) {
             </span>
           )}
         </div>
+      )}
+      {post.status === 'review' && post.reviewer && (
+        <p className="mt-1.5 text-[10px] text-status-review" title={`Reviewer: ${post.reviewer}`}>
+          ⟳ Awaiting {post.reviewer}
+        </p>
+      )}
+      {post.status === 'draft' && latestReview?.decision === 'changes_requested' && (
+        <p
+          className="mt-1.5 truncate text-[10px] text-status-brief"
+          title={latestReview.note}
+        >
+          ↩ Changes requested
+        </p>
       )}
       <div className="mt-1.5 flex items-center justify-between">
         <StatusBadge status={post.status} />

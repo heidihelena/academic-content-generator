@@ -60,6 +60,10 @@ export interface Post {
   theme?: string;
   /** Hook: the scroll-stopping opening line. */
   hook?: string;
+  /** Currently assigned reviewer (free-text name today; a User ref later). */
+  reviewer?: string;
+  /** Review history (approvals / change requests), newest last. */
+  reviews?: ReviewEntry[];
   /** Mock engagement metrics, populated for published posts. */
   engagement?: PostEngagement;
   createdAt: string;
@@ -72,6 +76,21 @@ export interface PostEngagement {
   comments: number;
   shares: number;
   impressions: number;
+}
+
+/** Outcome of a review on a post. */
+export type ReviewDecision = 'approved' | 'changes_requested';
+
+/** A single entry in a post's review history. */
+export interface ReviewEntry {
+  id: string;
+  decision: ReviewDecision;
+  /** Who reviewed (free-text name today; a User ref later). */
+  reviewer?: string;
+  /** Required for "request changes" — what needs fixing. */
+  note?: string;
+  /** ISO datetime the decision was recorded. */
+  at: string;
 }
 
 /** Connection state of a social account in the connected-accounts panel. */
@@ -120,6 +139,7 @@ export interface PostDraft {
   audience?: string;
   theme?: string;
   hook?: string;
+  reviewer?: string;
 }
 
 /** Calendar canvas view granularity. */

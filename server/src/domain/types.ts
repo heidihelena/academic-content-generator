@@ -27,6 +27,16 @@ export interface MediaAttachment {
   url?: string;
 }
 
+export type ReviewDecision = 'approved' | 'changes_requested';
+
+export interface ReviewEntry {
+  id: string;
+  decision: ReviewDecision;
+  reviewer?: string;
+  note?: string;
+  at: string;
+}
+
 export interface PostEngagement {
   likes: number;
   comments: number;
@@ -53,6 +63,10 @@ export interface Post {
   theme?: string;
   /** The opening hook. */
   hook?: string;
+  /** Currently assigned reviewer. */
+  reviewer?: string;
+  /** Review history (approvals / change requests), newest last. */
+  reviews?: ReviewEntry[];
   engagement?: PostEngagement;
   /** Platform-native id + permalink once published. */
   remoteId?: string;
