@@ -12,6 +12,7 @@ import {
   sourceLabel,
 } from '../lib/evidence';
 import { analyzeReadability, readabilityVerdict } from '../lib/readability';
+import { analyzeReach, reachVerdict } from '../lib/reach';
 import { splitIntoThread } from '../lib/thread';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
@@ -134,6 +135,12 @@ export function PostEditorDrawer() {
   // Plain-language check on the live copy.
   const readability = useMemo(() => analyzeReadability(draft.body), [draft.body]);
   const verdict = readabilityVerdict(readability);
+  // Reach preflight: flag things the platform algorithms quietly demote.
+  const reachFindings = useMemo(
+    () => analyzeReach({ platform: draft.platform, body: draft.body, mediaCount: draft.media.length }),
+    [draft.platform, draft.body, draft.media.length],
+  );
+  const reach = reachVerdict(reachFindings);
   // How the copy would break into a platform-sized thread.
   const threadParts = useMemo(
     () => splitIntoThread(draft.body, meta.characterLimit),
@@ -432,6 +439,30 @@ export function PostEditorDrawer() {
             </div>
           )}
         </div>
+
+        {/* Reach preflight — flag what the platform algorithms quietly demote. */}
+        {draft.body.trim().length > 0 && (
+          <div
+            data-testid="reach-check"
+            className={`rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+              reach.tone === 'good'
+                ? 'border-status-published/40 bg-status-published/10 text-status-published'
+                : 'border-status-brief/40 bg-status-brief/10 text-status-brief'
+            }`}
+          >
+            <span className="font-semibold">Reach check</span> — {reach.message}
+            {reachFindings.length > 0 && (
+              <ul className="mt-1.5 space-y-1">
+                {reachFindings.map((f) => (
+                  <li key={f.code} className="flex gap-1.5 text-slate-300">
+                    <span aria-hidden>{f.level === 'warn' ? '⚠' : '·'}</span>
+                    <span>{f.message}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {/* Thread composer — when the copy is too long for one post, split it. */}
         {threadParts.length > 1 && (
