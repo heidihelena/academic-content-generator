@@ -7,6 +7,7 @@ import { PipelineBoard } from './components/board/PipelineBoard';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
+import { AbstractToThread } from './components/AbstractToThread';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
 
@@ -52,7 +53,8 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
                 </div>
               )}
               {view === 'ideas' && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-3xl space-y-6">
+                  <AbstractToThread />
                   <GenerateIdeas />
                 </div>
               )}

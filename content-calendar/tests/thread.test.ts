@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitIntoThread, threadLength } from '../src/lib/thread';
+import { splitIntoThread, threadLength, packToLimit, numberThread } from '../src/lib/thread';
 
 describe('splitIntoThread', () => {
   it('returns a single un-numbered part when the text fits', () => {
@@ -32,5 +32,19 @@ describe('splitIntoThread', () => {
   it('threadLength reports the number of parts', () => {
     expect(threadLength('Short.', 300)).toBe(1);
     expect(threadLength('a. '.repeat(200), 100)).toBeGreaterThan(1);
+  });
+});
+
+describe('packToLimit / numberThread', () => {
+  it('packs to a width without adding numbering', () => {
+    const parts = packToLimit('One sentence. Two sentence. Three sentence. Four sentence.', 25);
+    expect(parts.length).toBeGreaterThan(1);
+    for (const p of parts) expect(p.length).toBeLessThanOrEqual(25);
+    for (const p of parts) expect(p).not.toMatch(/\(\d+\/\d+\)$/);
+  });
+
+  it('numbers multi-part threads but leaves a single part alone', () => {
+    expect(numberThread(['only one'])).toEqual(['only one']);
+    expect(numberThread(['a', 'b'])).toEqual(['a (1/2)', 'b (2/2)']);
   });
 });

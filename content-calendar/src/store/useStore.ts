@@ -80,6 +80,18 @@ export interface StoreState {
   savePost: (draft: PostDraft) => void;
   /** Split the draft's copy into a numbered thread of posts (platform-sized). */
   createThread: (draft: PostDraft) => void;
+  /** Create a thread from already-prepared parts (e.g. the abstract drafter). */
+  createThreadFromParts: (
+    parts: string[],
+    base: {
+      platform: Platform;
+      scheduledAt: string;
+      status?: PostStatus;
+      audience?: string;
+      source?: Post['source'];
+      evidenceLevel?: Post['evidenceLevel'];
+    },
+  ) => void;
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
@@ -291,6 +303,30 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ posts: [...get().posts, ...created], isEditorOpen: false, editingPostId: null });
     for (const post of created) {
       void dataSource.createPost(post).catch((err) => console.error('createThread failed', err));
+    }
+  },
+
+  createThreadFromParts: (parts, base) => {
+    if (parts.length === 0) return;
+    const now = new Date().toISOString();
+    const start = new Date(base.scheduledAt).getTime();
+    const created: Post[] = parts.map((body, i) => ({
+      id: createId('post'),
+      platform: base.platform,
+      body,
+      scheduledAt: new Date(start + i * 2 * 60_000).toISOString(),
+      status: base.status ?? 'draft',
+      media: [],
+      audience: base.audience,
+      // The structured source rides on the first post only.
+      source: i === 0 ? base.source : undefined,
+      evidenceLevel: base.evidenceLevel,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    set({ posts: [...get().posts, ...created] });
+    for (const post of created) {
+      void dataSource.createPost(post).catch((err) => console.error('createThreadFromParts failed', err));
     }
   },
 
