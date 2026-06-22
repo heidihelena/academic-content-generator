@@ -179,10 +179,17 @@ export const MastodonGlyph = (p: IconProps) => (
   </svg>
 );
 
+export const YouTubeGlyph = (p: IconProps) => (
+  <svg {...base(p)} fill="currentColor" stroke="none">
+    <path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C19.3 5 12 5 12 5s-7.3 0-8.8.5A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C4.7 19 12 19 12 19s7.3 0 8.8-.5a2.5 2.5 0 0 0 1.8-1.8C23 15.2 23 12 23 12zM9.8 15V9l5.2 3-5.2 3z" />
+  </svg>
+);
+
 export const PLATFORM_GLYPHS: Record<Platform, (p: IconProps) => JSX.Element> = {
   bluesky: BlueskyGlyph,
   mastodon: MastodonGlyph,
   instagram: InstagramGlyph,
   linkedin: LinkedInGlyph,
   threads: ThreadsGlyph,
+  youtube: YouTubeGlyph,
 };

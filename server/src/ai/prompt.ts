@@ -6,6 +6,7 @@ const PLATFORM_LIMITS: Record<string, number> = {
   instagram: 2200,
   linkedin: 3000,
   threads: 500,
+  youtube: 5000,
 };
 
 /** System prompt: role + strict JSON output contract. */

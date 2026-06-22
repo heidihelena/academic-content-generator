@@ -290,6 +290,14 @@ export function createSampleAccounts(): ConnectedAccount[] {
       lastSyncedAt: now,
     },
     {
+      platform: 'youtube',
+      status: 'connected',
+      handle: '@heidi-does-science',
+      displayName: 'Heidi does science',
+      followers: 5400,
+      lastSyncedAt: now,
+    },
+    {
       platform: 'threads',
       status: 'disconnected',
     },

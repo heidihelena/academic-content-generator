@@ -41,13 +41,21 @@ export const PLATFORM_META: Record<Platform, PlatformMeta> = {
     color: '#a855f7',
     handlePrefix: '@',
   },
+  youtube: {
+    id: 'youtube',
+    name: 'YouTube',
+    // Shorts caption/description limit (the post body maps to the description).
+    characterLimit: 5000,
+    color: '#ff0033',
+    handlePrefix: '@',
+  },
 };
 
 /**
  * Ordered list of platforms for rendering filters, tabs, etc. Scholarly
  * networks lead, since they're where the academic audience is.
  */
-export const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'linkedin', 'instagram', 'threads'];
+export const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'linkedin', 'instagram', 'threads', 'youtube'];
 
 export function getPlatformMeta(platform: Platform): PlatformMeta {
   return PLATFORM_META[platform];

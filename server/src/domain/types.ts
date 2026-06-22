@@ -3,7 +3,7 @@
  * end-to-end. This is the single source of truth for the backend.
  */
 
-export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads' | 'youtube';
 /**
  * Editorial pipeline stages. `draft` is shown as "Drafting" in the UI; the
  * scheduler keys on `scheduled` and publishing sets `published`, so those names
