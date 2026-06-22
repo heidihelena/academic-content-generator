@@ -26,6 +26,9 @@ export interface CreatePostDto {
   evidenceLevel?: EvidenceLevel;
   reviewer?: string;
   reviews?: ReviewEntry[];
+  /** Thread grouping: posts in one thread share threadId; threadIndex is 0-based. */
+  threadId?: string;
+  threadIndex?: number;
 }
 
 /** Request body for updating a post (all fields optional). */

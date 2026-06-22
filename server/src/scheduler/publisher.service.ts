@@ -32,7 +32,12 @@ export class PublisherService {
       const due = await this.posts.findDue(new Date().toISOString());
       if (due.length === 0) return;
       this.logger.log(`Publishing ${due.length} due post(s)`);
-      for (const post of due) {
+      // Publish oldest first so earlier thread parts are live (with their remote
+      // refs) before later parts try to reply to them.
+      const ordered = [...due].sort(
+        (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+      );
+      for (const post of ordered) {
         await this.postsService.publish(post.id);
       }
     } catch (err) {

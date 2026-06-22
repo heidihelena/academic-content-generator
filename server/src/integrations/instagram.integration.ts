@@ -3,6 +3,7 @@ import type {
   ConnectParams,
   OAuthResult,
   PlatformIntegration,
+  PublishOptions,
   PublishResult,
 } from './integration.types';
 import { FORM_HEADERS, apiFetch, formBody } from './http';
@@ -98,7 +99,7 @@ export class InstagramIntegration implements PlatformIntegration {
     // by the caller) is sufficient. Users can also revoke access in their settings.
   }
 
-  async publish(post: Post, token: AccessToken): Promise<PublishResult> {
+  async publish(post: Post, token: AccessToken, _opts?: PublishOptions): Promise<PublishResult> {
     const igUserId = token.accountId;
     if (!igUserId) throw new Error('Missing Instagram user id on token');
     const imageUrl = post.media.find((m) => m.type === 'image')?.url;

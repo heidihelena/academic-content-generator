@@ -85,9 +85,14 @@ export interface Post {
   /** Review history (approvals / change requests), newest last. */
   reviews?: ReviewEntry[];
   engagement?: PostEngagement;
+  /** Posts that belong to one thread share a threadId; threadIndex is 0-based. */
+  threadId?: string;
+  threadIndex?: number;
   /** Platform-native id + permalink once published. */
   remoteId?: string;
   permalink?: string;
+  /** Platform content hash (Bluesky CID) needed to chain thread replies. */
+  remoteCid?: string;
   /** Set when status === 'failed'. */
   failureReason?: string;
   createdAt: string;

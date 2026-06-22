@@ -1,15 +1,21 @@
 # Connecting real social platforms
 
-The server uses **real** Instagram, LinkedIn, and Threads clients when their
-OAuth credentials are configured, and falls back to the **mock** per platform
+The server uses **real** Bluesky, Instagram, LinkedIn, and Threads clients when
+their credentials are configured, and falls back to the **mock** per platform
 otherwise. You can go live one platform at a time — just add its env vars and
 restart.
 
 ```
+BLUESKY_IDENTIFIER=…    BLUESKY_APP_PASSWORD=…     BLUESKY_SERVICE=https://bsky.social
+MASTODON_INSTANCE=…     MASTODON_ACCESS_TOKEN=…
 INSTAGRAM_CLIENT_ID=…   INSTAGRAM_CLIENT_SECRET=…
 LINKEDIN_CLIENT_ID=…    LINKEDIN_CLIENT_SECRET=…   LINKEDIN_VERSION=202401
 THREADS_CLIENT_ID=…     THREADS_CLIENT_SECRET=…
 ```
+
+> **Bluesky is the easiest to go live with** — no App Review. Create an **app
+> password** (Settings → App Passwords), set `BLUESKY_IDENTIFIER` (your handle or
+> email) + `BLUESKY_APP_PASSWORD`, and you can post immediately.
 
 **Redirect/callback URL** (register this exact value in each provider's app):
 
@@ -26,6 +32,33 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
 > verification**, which gates the publishing permissions and can take days to
 > weeks. Plan for it. A privacy policy, a screencast of the OAuth + publish flow,
 > and business verification are typically required.
+
+---
+
+## Bluesky (AT Protocol)
+
+- **Account:** any Bluesky account.
+- **Auth:** an **app password** — no OAuth app, no review. Bluesky → Settings →
+  Privacy and Security → App Passwords → *Add App Password*.
+- **Env:** `BLUESKY_IDENTIFIER` (handle like `you.bsky.social` or your email),
+  `BLUESKY_APP_PASSWORD`, optionally `BLUESKY_SERVICE` (defaults to
+  `https://bsky.social`; set this for a self-hosted PDS).
+- **Publishing:** `com.atproto.server.createSession` for a session, then
+  `com.atproto.repo.createRecord` of an `app.bsky.feed.post`. Links in the copy
+  are made clickable via richtext **facets** (UTF-8 byte offsets). Posts are
+  capped at 300 characters — the in-app thread composer splits longer copy first.
+
+---
+
+## Mastodon (instance REST API)
+
+- **Account:** any account on any instance.
+- **Auth:** a per-account **access token** — Preferences → Development → New
+  application (scopes `read` + `write`) → copy the access token. No App Review.
+- **Env:** `MASTODON_INSTANCE` (e.g. `https://fediscience.org`) +
+  `MASTODON_ACCESS_TOKEN`.
+- **Publishing:** `POST /api/v1/statuses` with an `Idempotency-Key` (the post id,
+  so scheduler retries never double-post). Threads chain via `in_reply_to_id`.
 
 ---
 

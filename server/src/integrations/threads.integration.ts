@@ -3,6 +3,7 @@ import type {
   ConnectParams,
   OAuthResult,
   PlatformIntegration,
+  PublishOptions,
   PublishResult,
 } from './integration.types';
 import { FORM_HEADERS, apiFetch, formBody } from './http';
@@ -93,7 +94,7 @@ export class ThreadsIntegration implements PlatformIntegration {
     // No revocation endpoint; dropping the stored token is sufficient.
   }
 
-  async publish(post: Post, token: AccessToken): Promise<PublishResult> {
+  async publish(post: Post, token: AccessToken, _opts?: PublishOptions): Promise<PublishResult> {
     const userId = token.accountId;
     if (!userId) throw new Error('Missing Threads user id on token');
     const imageUrl = post.media.find((m) => m.type === 'image')?.url;

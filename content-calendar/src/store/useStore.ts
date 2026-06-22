@@ -279,6 +279,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
     const now = new Date().toISOString();
     const start = new Date(draft.scheduledAt).getTime();
+    const threadId = createId('thread');
     const created: Post[] = parts.map((body, i) => ({
       // Parts go out two minutes apart so they thread in order.
       id: createId('post'),
@@ -297,6 +298,8 @@ export const useStore = create<StoreState>((set, get) => ({
       source: i === 0 ? draft.source : undefined,
       evidenceLevel: draft.evidenceLevel,
       reviewer: draft.reviewer,
+      threadId,
+      threadIndex: i,
       createdAt: now,
       updatedAt: now,
     }));
@@ -310,6 +313,7 @@ export const useStore = create<StoreState>((set, get) => ({
     if (parts.length === 0) return;
     const now = new Date().toISOString();
     const start = new Date(base.scheduledAt).getTime();
+    const threadId = createId('thread');
     const created: Post[] = parts.map((body, i) => ({
       id: createId('post'),
       platform: base.platform,
@@ -321,6 +325,8 @@ export const useStore = create<StoreState>((set, get) => ({
       // The structured source rides on the first post only.
       source: i === 0 ? base.source : undefined,
       evidenceLevel: base.evidenceLevel,
+      threadId,
+      threadIndex: i,
       createdAt: now,
       updatedAt: now,
     }));

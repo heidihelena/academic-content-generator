@@ -3,6 +3,7 @@ import type {
   ConnectParams,
   OAuthResult,
   PlatformIntegration,
+  PublishOptions,
   PublishResult,
 } from './integration.types';
 import { FORM_HEADERS, apiFetch, formBody } from './http';
@@ -85,7 +86,7 @@ export class LinkedInIntegration implements PlatformIntegration {
     // LinkedIn access tokens expire on their own; no revoke endpoint is used here.
   }
 
-  async publish(post: Post, token: AccessToken): Promise<PublishResult> {
+  async publish(post: Post, token: AccessToken, _opts?: PublishOptions): Promise<PublishResult> {
     const author = token.accountId;
     if (!author) throw new Error('Missing LinkedIn member URN on token');
 

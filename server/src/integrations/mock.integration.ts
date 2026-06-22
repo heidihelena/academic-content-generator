@@ -4,6 +4,7 @@ import type {
   ConnectParams,
   OAuthResult,
   PlatformIntegration,
+  PublishOptions,
   PublishResult,
 } from './integration.types';
 
@@ -57,7 +58,7 @@ export class MockIntegration implements PlatformIntegration {
     /* no-op for the mock */
   }
 
-  async publish(_post: Post, _token: AccessToken): Promise<PublishResult> {
+  async publish(_post: Post, _token: AccessToken, _opts?: PublishOptions): Promise<PublishResult> {
     return {
       remoteId: `remote_${randomUUID()}`,
       permalink: `https://${this.platform}.example/p/${randomUUID()}`,
