@@ -1,8 +1,8 @@
 /**
  * Theme switching for the "ink & paper" palette.
  *
- *   dark  → ink paper: dark green-black page, warm paper text (the default)
- *   light → paper & ink: warm off-white paper page, dark ink text
+ *   light → paper & ink: warm paper page, dark ink text (the default)
+ *   dark  → ink: dark green-black page, warm paper-colored text
  *
  * The actual colors live as CSS variables in index.css, keyed off the `dark`
  * class on <html>; this module only flips that class and remembers the choice.

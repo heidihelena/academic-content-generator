@@ -12,14 +12,14 @@
    */
   :root {
     color-scheme: light;
-    /* surface = backgrounds: warm off-white paper, cards lift toward white */
-    --surface-950: 236 231 219; /* page */
-    --surface-900: 243 239 230;
-    --surface-850: 250 247 240; /* cards */
+    /* surface = backgrounds: clean warm paper, cards lift toward white */
+    --surface-950: 244 241 234; /* page (paper) */
+    --surface-900: 249 247 241;
+    --surface-850: 253 252 248; /* cards */
     --surface-800: 255 255 255; /* inputs */
-    --surface-700: 216 210 196; /* borders */
-    --surface-600: 197 190 172; /* hover / strong border */
-    --surface-500: 176 168 147; /* muted divider */
+    --surface-700: 223 218 205; /* borders */
+    --surface-600: 205 198 182; /* hover / strong border */
+    --surface-500: 184 176 158; /* muted divider */
     /* slate = text: dark ink (100 = darkest heading → 950 = lightest) */
     --slate-50: 10 15 13;
     --slate-100: 20 32 27; /* primary headings */
