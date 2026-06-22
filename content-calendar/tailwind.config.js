@@ -10,30 +10,32 @@ export default {
         // paper-dim #C9CBC3, slate #828B86, aurora #46A085 / soft #5FB89B,
         // amber #E0A34B (risk), red #B75A64 (fail).
         // `surface` = the ink ramp (low = page, high = borders/controls); class
-        // names are unchanged so components don't need editing.
+        // names are unchanged so components don't need editing. Values are CSS
+        // variables (see index.css) so one set of tokens drives both themes:
+        //   dark  → ink (dark green-black)   light → paper (warm off-white)
         surface: {
-          950: '#0b1210', // page (ink)
-          900: '#101814',
-          850: '#17211d', // cards (ink-raised)
-          800: '#1d2823', // inputs
-          700: '#28332e', // borders
-          600: '#38443e', // hover / strong border
-          500: '#4d5a53', // muted divider
+          950: 'rgb(var(--surface-950) / <alpha-value>)', // page
+          900: 'rgb(var(--surface-900) / <alpha-value>)',
+          850: 'rgb(var(--surface-850) / <alpha-value>)', // cards
+          800: 'rgb(var(--surface-800) / <alpha-value>)', // inputs
+          700: 'rgb(var(--surface-700) / <alpha-value>)', // borders
+          600: 'rgb(var(--surface-600) / <alpha-value>)', // hover / strong border
+          500: 'rgb(var(--surface-500) / <alpha-value>)', // muted divider
         },
-        // `slate` = the text ramp (low number = lightest, i.e. paper). The app
-        // only uses slate for text, matching the original dark-theme semantics.
+        // `slate` = the text ramp (low number = lightest text in dark mode; the
+        // light theme inverts these to dark ink). The app only uses slate for text.
         slate: {
-          50: '#ffffff',
-          100: '#f4f1ea', // paper — primary headings
-          200: '#e4e1d8', // body text
-          300: '#c9cbc3', // paper-dim — strong secondary
-          400: '#9aa39c',
-          500: '#828b86', // slate — muted / labels / placeholders
-          600: '#6a736d', // faint
-          700: '#566059',
-          800: '#3a443e',
-          900: '#28332e',
-          950: '#17211d',
+          50: 'rgb(var(--slate-50) / <alpha-value>)',
+          100: 'rgb(var(--slate-100) / <alpha-value>)', // primary headings
+          200: 'rgb(var(--slate-200) / <alpha-value>)', // body text
+          300: 'rgb(var(--slate-300) / <alpha-value>)', // strong secondary
+          400: 'rgb(var(--slate-400) / <alpha-value>)',
+          500: 'rgb(var(--slate-500) / <alpha-value>)', // muted / labels / placeholders
+          600: 'rgb(var(--slate-600) / <alpha-value>)', // faint
+          700: 'rgb(var(--slate-700) / <alpha-value>)',
+          800: 'rgb(var(--slate-800) / <alpha-value>)',
+          900: 'rgb(var(--slate-900) / <alpha-value>)',
+          950: 'rgb(var(--slate-950) / <alpha-value>)',
         },
         brand: {
           DEFAULT: '#46a085',

@@ -1,6 +1,9 @@
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { postsThisWeek, scheduledVsPublished } from '../analytics/calculations';
 import type { View } from './Sidebar';
+import { getTheme, toggleTheme, type Theme } from '../lib/theme';
+import { MoonIcon, SunIcon } from './icons';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
   board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
@@ -30,11 +33,31 @@ export function Header({ view }: HeaderProps) {
         <h1 className="text-lg font-semibold text-slate-100">{meta.title}</h1>
         <p className="text-xs text-slate-500">{meta.subtitle}</p>
       </div>
-      <div className="hidden items-center gap-4 sm:flex">
-        <Stat label="This week" value={thisWeek} />
-        <Stat label="Scheduled" value={scheduled} />
+      <div className="flex items-center gap-4">
+        <div className="hidden items-center gap-4 sm:flex">
+          <Stat label="This week" value={thisWeek} />
+          <Stat label="Scheduled" value={scheduled} />
+        </div>
+        <ThemeToggle />
       </div>
     </header>
+  );
+}
+
+/** Switch between the ink (dark) and paper (light) palettes. */
+function ThemeToggle() {
+  const [theme, setLocalTheme] = useState<Theme>(() => getTheme());
+  const isDark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      onClick={() => setLocalTheme(toggleTheme())}
+      className="btn-ghost px-2"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      {isDark ? <SunIcon /> : <MoonIcon />}
+    </button>
   );
 }
 

@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="vahtian.com social media content calendar — plan, schedule and analyze posts across Instagram, LinkedIn and Threads." />
     <title>vahtian · Content Calendar</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong
+      // palette. Defaults to dark (ink) when nothing is stored. See src/lib/theme.ts.
+      (function () {
+        try {
+          var t = localStorage.getItem('forskai-theme');
+          document.documentElement.classList.toggle('dark', t !== 'light');
+        } catch (e) {
+          /* storage blocked — keep the default `dark` class from <html> */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
