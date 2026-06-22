@@ -5,56 +5,57 @@ export default {
   theme: {
     extend: {
       colors: {
-        // "Ink & paper" light theme (brand: forskAI).
-        // Brand tokens: ink #0B1210, paper #F4F1EA, aurora green #46A085 / #5FB89B.
-        // `surface` is the paper ramp (low = page, high = borders/controls); it
-        // keeps the existing class names so components don't have to change.
+        // forskAI "ink & paper" — a dark, green-black theme.
+        // Tokens: ink #0B1210 (bg), ink-raised #17211D, paper #F4F1EA (text),
+        // paper-dim #C9CBC3, slate #828B86, aurora #46A085 / soft #5FB89B,
+        // amber #E0A34B (risk), red #B75A64 (fail).
+        // `surface` = the ink ramp (low = page, high = borders/controls); class
+        // names are unchanged so components don't need editing.
         surface: {
-          950: '#f4f1ea', // page (paper)
-          900: '#fbf9f4', // cards (lifted, near-white)
-          850: '#f1ece1',
-          800: '#ffffff', // inputs (crisp white)
-          700: '#e3dccd', // borders / secondary buttons
-          600: '#d4cbb7', // hover / stronger border
-          500: '#b8ad96', // muted divider
+          950: '#0b1210', // page (ink)
+          900: '#101814',
+          850: '#17211d', // cards (ink-raised)
+          800: '#1d2823', // inputs
+          700: '#28332e', // borders
+          600: '#38443e', // hover / strong border
+          500: '#4d5a53', // muted divider
         },
-        // `slate` overridden to an INK ramp (low number = darkest ink). The app
-        // only uses slate for text, so existing text-slate-* classes now render
-        // as dark ink on paper without touching components.
+        // `slate` = the text ramp (low number = lightest, i.e. paper). The app
+        // only uses slate for text, matching the original dark-theme semantics.
         slate: {
-          50: '#3a443e',
-          100: '#0b1210', // ink — strongest headings
-          200: '#16211c', // primary body text
-          300: '#222e28', // strong text
-          400: '#46524c', // muted
-          500: '#69736c', // more muted / placeholders
-          600: '#929b94', // faint
-          700: '#243029',
-          800: '#161f1b',
-          900: '#0e1611',
-          950: '#0b1210',
+          50: '#ffffff',
+          100: '#f4f1ea', // paper — primary headings
+          200: '#e4e1d8', // body text
+          300: '#c9cbc3', // paper-dim — strong secondary
+          400: '#9aa39c',
+          500: '#828b86', // slate — muted / labels / placeholders
+          600: '#6a736d', // faint
+          700: '#566059',
+          800: '#3a443e',
+          900: '#28332e',
+          950: '#17211d',
         },
         brand: {
           DEFAULT: '#46a085',
-          400: '#5fb89b', // soft aurora — rings, links, hover
-          500: '#46a085', // aurora green
+          400: '#5fb89b', // aurora-soft — links, rings, the "ai" dot
+          500: '#46a085', // aurora
           600: '#3c8a72', // deep aurora — primary buttons
         },
         platform: {
           instagram: '#e1306c',
           linkedin: '#0a66c2',
-          threads: '#7c3aed',
+          threads: '#a855f7',
         },
-        // Status hues darkened so they read on a paper background.
+        // Pipeline/status hues, kept within the brand (aurora / amber / red / slate).
         status: {
-          brief: '#b45309',
-          draft: '#6b7280',
-          review: '#7c3aed',
-          approved: '#0f766e',
-          scheduled: '#0369a1',
-          published: '#15803d',
-          learn: '#1d4ed8',
-          failed: '#b91c1c',
+          brief: '#e0a34b', // amber — needs work
+          draft: '#828b86', // slate — neutral WIP
+          review: '#5fb89b', // aurora-soft — in review
+          approved: '#46a085', // aurora — cleared
+          scheduled: '#5fb89b', // aurora-soft — queued
+          published: '#46a085', // aurora — live (PASS)
+          learn: '#828b86', // slate
+          failed: '#b75a64', // red (FAIL)
         },
       },
       fontFamily: {
