@@ -12,6 +12,7 @@ import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
+import { ShortsModule } from './shorts/shorts.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { RenderModule } from './render/render.module';
     AiModule,
     MediaModule,
     RenderModule,
+    ShortsModule,
   ],
 })
 export class AppModule {}
