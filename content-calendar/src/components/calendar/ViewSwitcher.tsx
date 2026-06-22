@@ -17,7 +17,7 @@ export function ViewSwitcher() {
             aria-pressed={active}
             onClick={() => setView(v)}
             className={`rounded-md px-3 py-1 text-xs font-medium capitalize transition-colors ${
-              active ? 'bg-surface-700 text-white' : 'text-slate-400 hover:text-slate-200'
+              active ? 'bg-brand-500 text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             {v}

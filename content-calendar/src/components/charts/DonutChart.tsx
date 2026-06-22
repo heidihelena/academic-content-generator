@@ -28,7 +28,7 @@ export function DonutChart({ data, size = 160, ariaLabel }: DonutChartProps) {
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="#1f2330"
+          stroke="#e3dccd"
           strokeWidth={14}
         />
         {total > 0 &&
