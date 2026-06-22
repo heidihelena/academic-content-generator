@@ -27,6 +27,13 @@ export class IntegrationRegistry {
       instagram: this.buildInstagram(config),
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),
+      // YouTube ships mock-only: Shorts are planned in-app and exported/uploaded
+      // manually (the Data API upload flow needs OAuth + quota review).
+      youtube: new MockIntegration('youtube', {
+        handle: '@heidi-does-science',
+        displayName: 'Heidi does science',
+        followers: 5400,
+      }),
     };
   }
 

@@ -1,0 +1,180 @@
+import { useState } from 'react';
+import { THREAD_AUDIENCES, type ThreadAudience } from '../ai/threadTypes';
+import type { ShortsPlanResult } from '../ai/shortsTypes';
+import { planShortsFromVideo } from '../ai/shortsService';
+import { getPlatformMeta } from '../lib/platforms';
+import { useStore } from '../store/useStore';
+import { VideoIcon, PlusIcon } from './icons';
+import { Spinner } from './ui/Spinner';
+import { ErrorState } from './ui/States';
+
+const COUNTS = [3, 4, 5, 6];
+
+/**
+ * "Video → Shorts plan" — paste a long-form transcript (ideally with the
+ * timestamps YouTube provides) and get a plan of short clips: each with a
+ * suggested cut range, title, hook and caption. "Add to Drafting" drops them on
+ * the board as YouTube posts (deep-linked to each moment when a URL is given).
+ */
+export function VideoToShorts() {
+  const createShortDrafts = useStore((s) => s.createShortDrafts);
+
+  const [videoUrl, setVideoUrl] = useState('');
+  const [transcript, setTranscript] = useState('');
+  const [count, setCount] = useState(4);
+  const [audience, setAudience] = useState<ThreadAudience>('general public');
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ShortsPlanResult | null>(null);
+  const [added, setAdded] = useState(false);
+
+  const submit = async () => {
+    setLoading(true);
+    setError(null);
+    setAdded(false);
+    try {
+      const res = await planShortsFromVideo({
+        transcript,
+        videoUrl: videoUrl || undefined,
+        count,
+        audience,
+      });
+      setResult(res);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to plan shorts.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addToCalendar = () => {
+    if (!result) return;
+    createShortDrafts(
+      result.shorts.map((s) => ({ hook: s.hook, caption: s.caption, startSeconds: s.startSeconds })),
+      { platform: 'youtube', audience, videoUrl: videoUrl || undefined },
+    );
+    setAdded(true);
+  };
+
+  const limit = getPlatformMeta('youtube').characterLimit;
+
+  return (
+    <section aria-label="Video to shorts" className="card space-y-4 p-4">
+      <header className="flex items-center gap-2">
+        <VideoIcon width={18} height={18} className="text-brand-400" />
+        <div>
+          <h2 className="text-sm font-semibold text-slate-200">Video → Shorts plan</h2>
+          <p className="text-xs text-slate-500">
+            Paste a long-form transcript and get a plan of short clips with cut points.
+          </p>
+        </div>
+      </header>
+
+      <div>
+        <label htmlFor="video-url" className="label">YouTube URL (optional)</label>
+        <input
+          id="video-url"
+          className="input"
+          placeholder="https://www.youtube.com/watch?v=…"
+          value={videoUrl}
+          onChange={(e) => setVideoUrl(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="transcript" className="label">
+          Transcript <span className="font-normal text-slate-500">— paste with timestamps for real cut points</span>
+        </label>
+        <textarea
+          id="transcript"
+          rows={7}
+          className="input resize-none font-mono text-[11px]"
+          placeholder={'0:00 Welcome back…\n0:42 The key finding is…\n2:15 Here\'s why it matters…'}
+          value={transcript}
+          onChange={(e) => setTranscript(e.target.value)}
+        />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor="shorts-count" className="label">How many shorts</label>
+          <select
+            id="shorts-count"
+            className="input"
+            value={count}
+            onChange={(e) => setCount(Number(e.target.value))}
+          >
+            {COUNTS.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="shorts-audience" className="label">Audience</label>
+          <select
+            id="shorts-audience"
+            className="input"
+            value={audience}
+            onChange={(e) => setAudience(e.target.value as ThreadAudience)}
+          >
+            {THREAD_AUDIENCES.map((a) => (
+              <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <button className="btn-primary w-full sm:w-auto" onClick={submit} disabled={loading}>
+        {loading ? <Spinner size={16} label="Planning" /> : <VideoIcon width={16} height={16} />}
+        {loading ? 'Planning…' : 'Plan shorts'}
+      </button>
+
+      {error && <ErrorState message={error} onRetry={submit} />}
+
+      {result && !error && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500">
+              {result.shorts.length} clip{result.shorts.length > 1 ? 's' : ''} · via {result.source}
+            </p>
+            <button className="btn-secondary py-1.5 text-xs" onClick={addToCalendar}>
+              <PlusIcon width={14} height={14} /> Add to Drafting
+            </button>
+          </div>
+
+          <ol data-testid="shorts-plan" className="space-y-2">
+            {result.shorts.map((s, i) => (
+              <li key={s.id} className="rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-xs font-medium text-slate-200">
+                    <span className="flex h-5 w-5 items-center justify-center rounded bg-brand-600/20 text-[11px] text-brand-400">
+                      {i + 1}
+                    </span>
+                    {s.title}
+                  </span>
+                  {s.timeRange ? (
+                    <span className="shrink-0 rounded bg-surface-700 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
+                      {s.timeRange}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-[10px] text-slate-500">no timestamps</span>
+                  )}
+                </div>
+                <p className="mt-1.5 text-xs italic text-slate-300">“{s.hook}”</p>
+                <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-slate-400">{s.caption}</p>
+                <span className="mt-1 block text-[10px] text-slate-500">{s.caption.length}/{limit}</span>
+              </li>
+            ))}
+          </ol>
+
+          {added && (
+            <p data-testid="shorts-added" className="text-xs text-status-published">
+              ✓ Added {result.shorts.length} YouTube short{result.shorts.length > 1 ? 's' : ''} to your Drafting column.
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

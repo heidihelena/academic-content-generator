@@ -92,6 +92,11 @@ export interface StoreState {
       evidenceLevel?: Post['evidenceLevel'];
     },
   ) => void;
+  /** Add planned video shorts to the board as independent draft posts. */
+  createShortDrafts: (
+    shorts: Array<{ hook: string; caption: string; startSeconds?: number }>,
+    base: { platform: Platform; audience?: string; videoUrl?: string },
+  ) => void;
   deletePost: (postId: string) => void;
   reschedulePost: (postId: string, targetDay: Date) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
@@ -333,6 +338,38 @@ export const useStore = create<StoreState>((set, get) => ({
     set({ posts: [...get().posts, ...created] });
     for (const post of created) {
       void dataSource.createPost(post).catch((err) => console.error('createThreadFromParts failed', err));
+    }
+  },
+
+  createShortDrafts: (shorts, base) => {
+    if (shorts.length === 0) return;
+    const now = new Date().toISOString();
+    const day0 = new Date();
+    day0.setDate(day0.getDate() + 1);
+    day0.setHours(9, 0, 0, 0);
+    const created: Post[] = shorts.map((s, i) => {
+      // Deep-link to the clip's moment when we have a video URL + start time.
+      const link =
+        base.videoUrl && s.startSeconds !== undefined
+          ? `\n\n▶ ${base.videoUrl}${base.videoUrl.includes('?') ? '&' : '?'}t=${Math.round(s.startSeconds)}s`
+          : '';
+      // Shorts go to consecutive days at 09:00 so they don't collide on the calendar.
+      const when = new Date(day0.getTime() + i * 24 * 60 * 60_000);
+      return {
+        id: createId('post'),
+        platform: base.platform,
+        body: `${s.hook}\n\n${s.caption}${link}`.trim(),
+        scheduledAt: when.toISOString(),
+        status: 'draft',
+        media: [],
+        audience: base.audience,
+        createdAt: now,
+        updatedAt: now,
+      };
+    });
+    set({ posts: [...get().posts, ...created] });
+    for (const post of created) {
+      void dataSource.createPost(post).catch((err) => console.error('createShortDrafts failed', err));
     }
   },
 

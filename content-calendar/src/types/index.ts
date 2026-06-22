@@ -11,7 +11,7 @@
  * Includes the scholarly networks (Bluesky, Mastodon) where academic
  * communities have largely migrated, alongside LinkedIn for professional reach.
  */
-export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads';
+export type Platform = 'bluesky' | 'mastodon' | 'linkedin' | 'instagram' | 'threads' | 'youtube';
 
 /**
  * Lifecycle of a post as it moves through the editorial pipeline:
