@@ -1,0 +1,53 @@
+{
+  "name": "forskai-desktop",
+  "version": "1.0.0",
+  "description": "Desktop wrapper for the forskAI content calendar — runs the whole app locally in a native window, opened from an icon.",
+  "private": true,
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "start": "electron .",
+    "dev": "npm run build && electron .",
+    "dist": "npm run build && electron-builder"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "electron": "^31.7.7",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.6.2"
+  },
+  "build": {
+    "appId": "com.forskai.contentcalendar",
+    "productName": "forskAI",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "dist/**"
+    ],
+    "extraResources": [
+      { "from": "../server/dist", "to": "server" },
+      { "from": "../server/node_modules", "to": "server/node_modules" },
+      { "from": "../content-calendar/dist", "to": "frontend" }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "category": "Office",
+      "target": [
+        "AppImage"
+      ]
+    }
+  }
+}

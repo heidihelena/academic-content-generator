@@ -26,6 +26,13 @@ import {
   PgTokenStore,
   PgVectorStore,
 } from './pg/pg.repositories';
+import { FileStoreService } from './file/file.service';
+import {
+  FileAccountsRepository,
+  FilePostsRepository,
+  FileTokenStore,
+  FileVectorStore,
+} from './file/file.repositories';
 
 /**
  * Wires the repository interfaces to a concrete driver chosen by
@@ -45,6 +52,14 @@ export class PersistenceModule {
         { provide: ACCOUNTS_REPOSITORY, useClass: SqliteAccountsRepository },
         { provide: TOKEN_STORE, useClass: SqliteTokenStore },
         { provide: VECTOR_STORE, useClass: SqliteVectorStore },
+      ];
+    } else if (driver === 'file') {
+      providers = [
+        FileStoreService,
+        { provide: POSTS_REPOSITORY, useClass: FilePostsRepository },
+        { provide: ACCOUNTS_REPOSITORY, useClass: FileAccountsRepository },
+        { provide: TOKEN_STORE, useClass: FileTokenStore },
+        { provide: VECTOR_STORE, useClass: FileVectorStore },
       ];
     } else if (driver === 'neon') {
       providers = [
