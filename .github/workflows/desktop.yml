@@ -61,3 +61,32 @@ jobs:
             desktop/release/*.exe
             desktop/release/*.AppImage
           if-no-files-found: ignore
+
+  # Collect all three installers and publish them on a single, simple download
+  # page (a GitHub Release) — direct download links, no .zip, no Actions maze.
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all installers
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+
+      - name: Publish download page
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          files=(installers/*/*.dmg installers/*/*.exe installers/*/*.AppImage)
+          echo "Attaching: ${files[*]}"
+          # Refresh the preview release so it always holds the latest installers.
+          gh release delete desktop-preview --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
+          gh release create desktop-preview \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "forskAI desktop (preview)" \
+            --notes $'Download the installer for your computer:\n\n- **Mac** -> the `.dmg` file\n- **Windows** -> the `.exe` file\n- **Linux** -> the `.AppImage` file\n\nFirst open: the app is not yet code-signed, so your system will warn you.\nMac: right-click the app -> Open -> Open. Windows: More info -> Run anyway.' \
+            "${files[@]}"
