@@ -3,13 +3,18 @@
   "version": "1.0.0",
   "description": "Desktop wrapper for the forskAI content calendar — runs the whole app locally in a native window, opened from an icon.",
   "private": true,
+  "author": "forskAI",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heidihelena/heidihelena.git"
+  },
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "start": "electron .",
     "dev": "npm run build && electron .",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder --publish never"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
@@ -20,6 +25,7 @@
   "build": {
     "appId": "com.forskai.contentcalendar",
     "productName": "forskAI",
+    "publish": null,
     "directories": {
       "output": "release",
       "buildResources": "assets"
