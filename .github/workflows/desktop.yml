@@ -9,6 +9,8 @@ on:
   push:
     tags:
       - 'v*'
+    branches:
+      - 'claude/social-content-calendar-yntmj7'
 
 # The frontend is built with the API URL the desktop app serves on (must match
 # PORT in desktop/src/main.ts).
