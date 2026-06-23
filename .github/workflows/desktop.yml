@@ -1,0 +1,63 @@
+name: Build desktop app
+
+# Produces the downloadable, double-clickable installers (macOS .dmg,
+# Windows .exe, Linux .AppImage). Run it from the Actions tab ("Run workflow"),
+# or it runs automatically when a tag like v1.0.0 is pushed. The built apps are
+# attached as downloadable artifacts on the run.
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - 'claude/social-content-calendar-yntmj7'
+
+# The frontend is built with the API URL the desktop app serves on (must match
+# PORT in desktop/src/main.ts).
+env:
+  VITE_API_URL: http://127.0.0.1:47615/api
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Build backend
+        working-directory: server
+        run: |
+          npm ci
+          npm run build
+          npm prune --omit=dev --omit=optional
+
+      - name: Build frontend
+        working-directory: content-calendar
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build & package desktop app
+        working-directory: desktop
+        run: |
+          npm ci
+          npm run dist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: forskai-${{ matrix.os }}
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.exe
+            desktop/release/*.AppImage
+          if-no-files-found: ignore

@@ -3,8 +3,57 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Two "ink & paper" palettes driven by CSS variables. Tailwind's surface/slate
+   * tokens read these (as space-separated RGB channels), so flipping the `dark`
+   * class on <html> reskins the whole app — no per-component changes.
+   *
+   * :root = light (paper & ink).  .dark = ink (dark green-black, the default).
+   */
   :root {
+    color-scheme: light;
+    /* surface = backgrounds: clean warm paper, cards lift toward white */
+    --surface-950: 244 241 234; /* page (paper) */
+    --surface-900: 249 247 241;
+    --surface-850: 253 252 248; /* cards */
+    --surface-800: 255 255 255; /* inputs */
+    --surface-700: 223 218 205; /* borders */
+    --surface-600: 205 198 182; /* hover / strong border */
+    --surface-500: 184 176 158; /* muted divider */
+    /* slate = text: dark ink (100 = darkest heading → 950 = lightest) */
+    --slate-50: 10 15 13;
+    --slate-100: 20 32 27; /* primary headings */
+    --slate-200: 35 46 41; /* body text */
+    --slate-300: 58 70 63; /* strong secondary */
+    --slate-400: 86 97 90;
+    --slate-500: 110 120 114; /* muted / labels / placeholders */
+    --slate-600: 136 144 137; /* faint */
+    --slate-700: 166 172 164;
+    --slate-800: 195 199 191;
+    --slate-900: 220 223 217;
+    --slate-950: 236 238 233;
+  }
+
+  .dark {
     color-scheme: dark;
+    --surface-950: 11 18 16; /* page (ink) */
+    --surface-900: 16 24 20;
+    --surface-850: 23 33 29; /* cards (ink-raised) */
+    --surface-800: 29 40 35; /* inputs */
+    --surface-700: 40 51 46; /* borders */
+    --surface-600: 56 68 62; /* hover / strong border */
+    --surface-500: 77 90 83; /* muted divider */
+    --slate-50: 255 255 255;
+    --slate-100: 244 241 234; /* paper — primary headings */
+    --slate-200: 228 225 216; /* body text */
+    --slate-300: 201 203 195; /* paper-dim — strong secondary */
+    --slate-400: 154 163 156;
+    --slate-500: 130 139 134; /* slate — muted / labels / placeholders */
+    --slate-600: 106 115 109; /* faint */
+    --slate-700: 86 96 89;
+    --slate-800: 58 68 62;
+    --slate-900: 40 51 46;
+    --slate-950: 23 33 29;
   }
 
   html,
