@@ -82,11 +82,15 @@ jobs:
           shopt -s nullglob
           files=(installers/*/*.dmg installers/*/*.exe installers/*/*.AppImage)
           echo "Attaching: ${files[*]}"
-          # Refresh the preview release so it always holds the latest installers.
-          gh release delete desktop-preview --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
-          gh release create desktop-preview \
-            --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
-            --title "forskAI desktop (preview)" \
-            --notes $'Download the installer for your computer:\n\n- **Mac** -> the `.dmg` file\n- **Windows** -> the `.exe` file\n- **Linux** -> the `.AppImage` file\n\nFirst open: the app is not yet code-signed, so your system will warn you.\nMac: right-click the app -> Open -> Open. Windows: More info -> Run anyway.' \
-            "${files[@]}"
+          notes=$'Download the installer for your computer:\n\n- **Mac** -> the `.dmg` file\n- **Windows** -> the `.exe` file\n- **Linux** -> the `.AppImage` file\n\nFirst open on Mac: right-click the app -> Open -> Open.'
+          # Idempotent: create the release if it doesn't exist yet, otherwise just
+          # overwrite its installer assets. Avoids deleting/recreating the tag.
+          if gh release view desktop-preview --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload desktop-preview "${files[@]}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create desktop-preview "${files[@]}" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "forskAI desktop (preview)" \
+              --notes "$notes"
+          fi
