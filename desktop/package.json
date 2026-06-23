@@ -26,6 +26,7 @@
     "appId": "com.forskai.contentcalendar",
     "productName": "forskAI",
     "publish": null,
+    "afterPack": "scripts/afterpack.js",
     "directories": {
       "output": "release",
       "buildResources": "assets"
