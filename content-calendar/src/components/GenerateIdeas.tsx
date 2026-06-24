@@ -42,7 +42,7 @@ export function GenerateIdeas() {
     }
   };
 
-  const useIdea = (topic: string, hook: string) => {
+  const applyIdea = (topic: string, hook: string) => {
     const at = new Date();
     at.setHours(9, 0, 0, 0);
     at.setDate(at.getDate() + 1);
@@ -149,7 +149,7 @@ export function GenerateIdeas() {
                 </div>
                 <button
                   className="btn-secondary shrink-0 py-1.5 text-xs"
-                  onClick={() => useIdea(idea.topic, idea.hook)}
+                  onClick={() => applyIdea(idea.topic, idea.hook)}
                 >
                   <PlusIcon width={14} height={14} /> Use
                 </button>
