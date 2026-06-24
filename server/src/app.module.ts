@@ -18,6 +18,7 @@ import { CampaignsModule } from './campaigns/campaigns.module';
 import { CarouselModule } from './carousel/carousel.module';
 import { ContentPlanModule } from './content-plan/content-plan.module';
 import { OutputsModule } from './outputs/outputs.module';
+import { ReuseModule } from './reuse/reuse.module';
 import { VaultExportModule } from './vault-export/vault-export.module';
 import { TalkPackageModule } from './talk-package/talk-package.module';
 import { MediaModule } from './media/media.module';
@@ -45,6 +46,7 @@ import { ShortsModule } from './shorts/shorts.module';
     CampaignsModule,
     ContentPlanModule,
     OutputsModule,
+    ReuseModule,
     VaultExportModule,
     CarouselModule,
     TalkPackageModule,

@@ -4,6 +4,7 @@ import { CampaignsService } from '../campaigns/campaigns.service';
 import { ContentPlanService } from '../content-plan/content-plan.service';
 import { Audience, ContentChannel, ContentOutput } from '../domain/academic';
 import { OutputsService } from '../outputs/outputs.service';
+import { ReuseService } from '../reuse/reuse.service';
 import { SafetyService } from '../safety/safety.service';
 import { TALK_COMPOSER, TalkComposer } from './talk-composer.types';
 import { TalkPackageRequest, TalkPackageResult } from './talk-package.types';
@@ -29,6 +30,7 @@ export class TalkPackageService {
     private readonly campaigns: CampaignsService,
     private readonly safety: SafetyService,
     private readonly outputs: OutputsService,
+    private readonly reuse: ReuseService,
     @Inject(TALK_COMPOSER) private readonly composer: TalkComposer,
   ) {}
 
@@ -54,10 +56,13 @@ export class TalkPackageService {
       now,
     );
 
+    // What's already been made from this source — so the talk doesn't repeat it.
+    const priorContext = await this.reuse.priorContext(req.sourceId);
+
     // Compose the talk and every short (Claude-backed when configured, local
     // scaffold otherwise) concurrently, then review each piece.
     const [talkBody, shortBodies] = await Promise.all([
-      this.composer.composeTalk(plan, { durationMin, audience }),
+      this.composer.composeTalk(plan, { durationMin, audience, priorContext }),
       Promise.all(
         plan.points.map((point, i) =>
           this.composer.composeShort(plan, point, i, { url, audience }),
