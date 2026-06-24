@@ -3,6 +3,7 @@ import { randomUUID } from 'crypto';
 import { CampaignsService } from '../campaigns/campaigns.service';
 import { ContentPlanService } from '../content-plan/content-plan.service';
 import { Audience, ContentChannel, ContentOutput } from '../domain/academic';
+import { OutputsService } from '../outputs/outputs.service';
 import { SafetyService } from '../safety/safety.service';
 import { TALK_COMPOSER, TalkComposer } from './talk-composer.types';
 import { TalkPackageRequest, TalkPackageResult } from './talk-package.types';
@@ -27,6 +28,7 @@ export class TalkPackageService {
     private readonly plans: ContentPlanService,
     private readonly campaigns: CampaignsService,
     private readonly safety: SafetyService,
+    private readonly outputs: OutputsService,
     @Inject(TALK_COMPOSER) private readonly composer: TalkComposer,
   ) {}
 
@@ -77,6 +79,9 @@ export class TalkPackageService {
       now,
       audience,
     );
+
+    // Persist the package so the campaign is a usable series in the planner.
+    await this.outputs.saveMany([talk, ...shorts]);
 
     return {
       campaign,
