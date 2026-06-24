@@ -1,9 +1,26 @@
-# vahtian · Content Calendar
+# ForskAI Content Hub
 
-A production-quality social media **content calendar** for managing Instagram,
-LinkedIn, and Threads from one workspace — a dark-mode React dashboard backed by
-a NestJS API with social integrations, a vector-searchable content vault, and an
-AI idea generator.
+An academic content operating system for researchers, clinicians and science communicators.
+
+ForskAI turns papers, notes, lectures and research ideas into reviewed, audience-specific content for LinkedIn, Threads, Instagram, newsletters and teaching materials.
+
+It combines:
+- a searchable academic source vault
+- AI-assisted idea generation
+- reusable voice profiles
+- claim and citation review
+- medical communication safety checks
+- campaign planning
+- a content calendar
+- optional social platform integrations
+
+The default mode is local-first and mock-based. Real platform credentials, LLM providers and vector databases can be enabled by configuration.
+
+> **Why this repo exists.** ForskAI serves three goals at once: (1) building an
+> individual expert brand, (2) research-group communication, and (3) safe
+> popularization of patient- and public-facing science. See
+> [`docs/PRODUCT_DIRECTION.md`](docs/PRODUCT_DIRECTION.md) for the roadmap and
+> [Version 1 — private academic writing hub](#version-1--private-academic-writing-hub) below.
 
 ## Repository layout
 
@@ -67,3 +84,22 @@ is required to run:
 
 Details in [`server/README.md`](server/README.md) and
 [`server/docs/PLATFORM_SETUP.md`](server/docs/PLATFORM_SETUP.md).
+
+## Version 1 — private academic writing hub
+
+The first milestone is a **private, local-first writing hub** — no automatic
+publishing, no OAuth setup, no production system yet. The complete workflow:
+
+1. **Import** markdown / Obsidian notes into the source vault
+2. **Search** the vault
+3. **Pick a source**
+4. **Generate 5 content ideas** from it
+5. **Choose an audience** (peers · students · patients · general public)
+6. **Generate a draft**
+7. **Run a claim / safety review** (citation-needed + medical overclaiming)
+8. **Save to the calendar**
+9. **Export** as markdown or copy-paste into social
+
+Tracked across the GitHub issues tagged `version-1`. Publishing, OAuth, and
+real-platform delivery come later — the default mode stays local-first and
+mock-based.
