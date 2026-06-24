@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { ContentItemWithVariants, ContentVariant } from '../content/contentTypes';
-import { exportBlockers } from '../content/contentTypes';
+import type { ContentItem, ContentItemWithVariants, ContentVariant } from '../content/contentTypes';
+import { VARIANT_CHANNELS, VARIANT_FORMATS, exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
 import { VariantDrawer } from './VariantDrawer';
-import { SparkleIcon, CheckIcon, AlertIcon } from './icons';
+import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
 
 /**
@@ -37,6 +37,15 @@ export function ContentItems() {
           : item,
       ),
     );
+
+  const addVariant = (next: ContentVariant) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === next.contentItemId ? { ...item, variants: [...item.variants, next] } : item,
+      ),
+    );
+    setOpenId(next.id); // open the new variant for editing
+  };
 
   const open = items.flatMap((i) => i.variants.map((v) => ({ item: i, variant: v }))).find((p) => p.variant.id === openId);
 
@@ -88,6 +97,7 @@ export function ContentItems() {
               );
             })}
           </ul>
+          <AddVariant item={item} onAdded={addVariant} />
         </section>
       ))}
 
@@ -107,5 +117,78 @@ export function ContentItems() {
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="rounded-full bg-surface-800 px-2 py-0.5 text-[11px] font-medium text-slate-400">{children}</span>
+  );
+}
+
+/** Add a new channel/format variant to an item — optionally seeded from an existing one. */
+function AddVariant({
+  item,
+  onAdded,
+}: {
+  item: ContentItem & { variants: ContentVariant[] };
+  onAdded: (v: ContentVariant) => void;
+}) {
+  const [openForm, setOpenForm] = useState(false);
+  const [channel, setChannel] = useState('linkedin');
+  const [format, setFormat] = useState('post');
+  const [copyFrom, setCopyFrom] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const add = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const src = item.variants.find((v) => v.id === copyFrom);
+      onAdded(
+        await contentClient.addVariant(item.id, {
+          channel,
+          format,
+          body: src?.body ?? '',
+          hook: src?.hook,
+          hashtags: src?.hashtags,
+        }),
+      );
+      setOpenForm(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to add variant.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (!openForm) {
+    return (
+      <button className="btn-secondary py-1 text-xs" onClick={() => setOpenForm(true)}>
+        <PlusIcon width={13} height={13} /> Add variant
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-surface-600 p-2">
+      <label className="text-[11px] text-slate-400">
+        Channel
+        <select className="input mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
+          {VARIANT_CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </label>
+      <label className="text-[11px] text-slate-400">
+        Format
+        <select className="input mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
+          {VARIANT_FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
+        </select>
+      </label>
+      <label className="text-[11px] text-slate-400">
+        Copy text from
+        <select className="input mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
+          <option value="">(blank)</option>
+          {item.variants.map((v) => <option key={v.id} value={v.id}>{v.channel} · {v.format}</option>)}
+        </select>
+      </label>
+      <button className="btn-primary py-1 text-xs" disabled={busy} onClick={add}>Add</button>
+      <button className="btn-secondary py-1 text-xs" onClick={() => setOpenForm(false)}>Cancel</button>
+      {error && <span className="text-xs text-status-overdue">{error}</span>}
+    </div>
   );
 }

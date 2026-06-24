@@ -3,6 +3,7 @@ import type {
   ContentClient,
   ContentItemWithVariants,
   ContentVariant,
+  NewVariantInput,
   SafetyFinding,
 } from './contentTypes';
 
@@ -138,6 +139,23 @@ export class LocalContentClient implements ContentClient {
     throw new Error('Variant not found.');
   }
 
+  async addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant> {
+    const item = this.items.find((i) => i.id === itemId);
+    if (!item) throw new Error('Item not found.');
+    const variant: ContentVariant = {
+      id: `cv_local_${Math.random().toString(36).slice(2, 8)}`,
+      contentItemId: itemId,
+      channel: input.channel,
+      format: input.format,
+      body: input.body,
+      hook: input.hook,
+      hashtags: input.hashtags ?? [],
+      status: 'draft',
+    };
+    item.variants.push(variant);
+    return { ...variant };
+  }
+
   async updateVariant(
     id: string,
     patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
@@ -199,6 +217,9 @@ export class ApiContentClient implements ContentClient {
     );
   }
 
+  addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-items/${itemId}/variants`, input);
+  }
   updateVariant(
     id: string,
     patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
@@ -236,6 +257,7 @@ export function setContentClient(client: ContentClient): void {
 
 export const contentClient = {
   listItems: () => active.listItems(),
+  addVariant: (itemId: string, input: NewVariantInput) => active.addVariant(itemId, input),
   updateVariant: (id: string, patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>) =>
     active.updateVariant(id, patch),
   runSafetyReview: (id: string) => active.runSafetyReview(id),

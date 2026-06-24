@@ -46,6 +46,21 @@ describe('Content view + editor drawer', () => {
     await waitFor(() => expect(within(drawer).getByText('exported')).toBeInTheDocument());
   });
 
+  it('adds a new channel variant and opens it in the drawer', async () => {
+    render(<App initialView="content" />);
+    const sleep = await screen.findByRole('region', { name: /Slow-wave sleep/i });
+    expect(within(sleep).getAllByTestId('variant-row')).toHaveLength(1);
+
+    fireEvent.click(within(sleep).getByRole('button', { name: /Add variant/i }));
+    fireEvent.change(within(sleep).getByLabelText(/Channel/i), { target: { value: 'bluesky' } });
+    fireEvent.change(within(sleep).getByLabelText(/Format/i), { target: { value: 'thread' } });
+    fireEvent.click(within(sleep).getByRole('button', { name: /^Add$/ }));
+
+    // New variant appears and its drawer opens.
+    await waitFor(() => expect(within(sleep).getAllByTestId('variant-row')).toHaveLength(2));
+    expect(await screen.findByRole('dialog', { name: /bluesky · thread/i })).toBeInTheDocument();
+  });
+
   it('runs the safety review and blocks export with reasons for an overclaim', async () => {
     render(<App initialView="content" />);
     const trees = await screen.findByRole('region', { name: /Street trees/i });
