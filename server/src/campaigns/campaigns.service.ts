@@ -5,7 +5,7 @@ import {
   Audience,
   Campaign,
   CampaignStatusRollup,
-  ContentOutput,
+  ContentStatus,
   rollupByStatus,
 } from '../domain/academic';
 import { CAMPAIGNS_REPOSITORY, CampaignsRepository } from './campaigns.repository';
@@ -86,8 +86,8 @@ export class CampaignsService {
   }
 
   /** Status rollup for a campaign's content items (supplied by the caller). */
-  rollup(outputs: readonly Pick<ContentOutput, 'status'>[]): CampaignStatusRollup {
-    return rollupByStatus(outputs);
+  rollup(items: readonly { status: ContentStatus }[]): CampaignStatusRollup {
+    return rollupByStatus(items);
   }
 
   private validateAudience(audience?: Audience): void {

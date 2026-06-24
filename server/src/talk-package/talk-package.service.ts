@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import { CampaignsService } from '../campaigns/campaigns.service';
+import { ContentService } from '../content/content.service';
 import { ContentPlanService } from '../content-plan/content-plan.service';
-import { Audience, ContentChannel, ContentOutput } from '../domain/academic';
-import { OutputsService } from '../outputs/outputs.service';
+import { Audience, ContentVariant } from '../domain/academic';
+import { isPatientFacing } from '../safety/patient-safe';
 import { ReuseService } from '../reuse/reuse.service';
 import { SafetyService } from '../safety/safety.service';
 import { TALK_COMPOSER, TalkComposer } from './talk-composer.types';
@@ -17,11 +17,12 @@ function clamp(n: number, lo: number, hi: number): number {
 }
 
 /**
- * Generates a talk package from a source: a long-form talk (the anchor) plus
- * one short per genuine point, persisted as a {@link Campaign} so the set shows
- * up in the planner as a real series. Composition flows through the shared
- * {@link ContentPlan}, so the shorts say nothing the talk didn't; every piece
- * carries its own safety review, with an aggregate over the whole package.
+ * Generates a talk package from a source: a {@link ContentItem} (the idea) with
+ * a long-form talk variant (the anchor) plus one short variant per genuine
+ * point, under a persisted {@link Campaign} so the set shows up in the planner
+ * as a real series. Composition flows through the shared {@link ContentPlan},
+ * so the shorts say nothing the talk didn't; every variant carries its own
+ * safety review, with an aggregate over the whole package.
  */
 @Injectable()
 export class TalkPackageService {
@@ -29,7 +30,7 @@ export class TalkPackageService {
     private readonly plans: ContentPlanService,
     private readonly campaigns: CampaignsService,
     private readonly safety: SafetyService,
-    private readonly outputs: OutputsService,
+    private readonly content: ContentService,
     private readonly reuse: ReuseService,
     @Inject(TALK_COMPOSER) private readonly composer: TalkComposer,
   ) {}
@@ -60,24 +61,56 @@ export class TalkPackageService {
     const priorContext = await this.reuse.priorContext(req.sourceId);
 
     // Compose the talk and every short (Claude-backed when configured, local
-    // scaffold otherwise) concurrently, then review each piece.
+    // scaffold otherwise) concurrently.
     const [talkBody, shortBodies] = await Promise.all([
       this.composer.composeTalk(plan, { durationMin, audience, priorContext }),
       Promise.all(
-        plan.points.map((point, i) =>
-          this.composer.composeShort(plan, point, i, { url, audience }),
-        ),
+        plan.points.map((point, i) => this.composer.composeShort(plan, point, i, { url, audience })),
       ),
     ]);
 
-    const talk = this.output(plan.sourceId, campaign.id, 'talk', audience, talkBody, now);
-    talk.reviewState = this.safety.review(talk.body, now, audience);
+    const item = await this.content.createItem(
+      {
+        title: plan.hook,
+        sourceIds: [plan.sourceId],
+        campaignId: campaign.id,
+        audience,
+        pillar: 'research-finding',
+        evidenceLevel: 'unknown',
+        claimRisk: isPatientFacing(audience) ? 'moderate' : 'low',
+        status: 'reviewed',
+      },
+      now,
+    );
 
-    const shorts = shortBodies.map((body) => {
-      const out = this.output(plan.sourceId, campaign.id, 'shorts', audience, body, now);
-      out.reviewState = this.safety.review(out.body, now, audience);
-      return out;
-    });
+    const talk = await this.content.addVariant(
+      item.id,
+      {
+        channel: 'talk',
+        format: 'talk-script',
+        body: talkBody,
+        status: 'reviewed',
+        safetyReview: this.safety.review(talkBody, now, audience),
+      },
+      now,
+    );
+
+    const shorts: ContentVariant[] = [];
+    for (const body of shortBodies) {
+      shorts.push(
+        await this.content.addVariant(
+          item.id,
+          {
+            channel: 'shorts',
+            format: 'short-script',
+            body,
+            status: 'reviewed',
+            safetyReview: this.safety.review(body, now, audience),
+          },
+          now,
+        ),
+      );
+    }
 
     const review = this.safety.review(
       [talk.body, ...shorts.map((s) => s.body)].join('\n'),
@@ -85,38 +118,6 @@ export class TalkPackageService {
       audience,
     );
 
-    // Persist the package so the campaign is a usable series in the planner.
-    await this.outputs.saveMany([talk, ...shorts]);
-
-    return {
-      campaign,
-      plan,
-      talk,
-      shorts,
-      review,
-      estimatedMinutes: estimateMinutes(talk.body),
-    };
-  }
-
-  private output(
-    sourceId: string,
-    campaignId: string,
-    channel: ContentChannel,
-    audience: Audience,
-    body: string,
-    now: Date,
-  ): ContentOutput {
-    const iso = now.toISOString();
-    return {
-      id: `out_${randomUUID()}`,
-      sourceId,
-      campaignId,
-      channel,
-      audience,
-      body,
-      status: 'draft',
-      createdAt: iso,
-      updatedAt: iso,
-    };
+    return { campaign, item, plan, talk, shorts, review, estimatedMinutes: estimateMinutes(talk.body) };
   }
 }

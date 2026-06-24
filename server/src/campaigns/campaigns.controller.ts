@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ContentOutput } from '../domain/academic';
+import { ContentStatus } from '../domain/academic';
 import {
   CampaignsService,
   CreateCampaignInput,
@@ -42,7 +42,7 @@ export class CampaignsController {
 
   /** POST /api/campaigns/rollup — summarise supplied content items by status. */
   @Post('rollup')
-  rollup(@Body() body: { outputs?: Pick<ContentOutput, 'status'>[] }) {
+  rollup(@Body() body: { outputs?: { status: ContentStatus }[] }) {
     return this.campaigns.rollup(body?.outputs ?? []);
   }
 }

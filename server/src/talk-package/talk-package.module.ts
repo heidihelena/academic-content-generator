@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CampaignsModule } from '../campaigns/campaigns.module';
+import { ContentModule } from '../content/content.module';
 import { ContentPlanModule } from '../content-plan/content-plan.module';
-import { OutputsModule } from '../outputs/outputs.module';
 import { ReuseModule } from '../reuse/reuse.module';
 import { SafetyModule } from '../safety/safety.module';
 import { LlmTalkComposer } from './llm.talk-composer';
@@ -13,7 +13,7 @@ import { TalkPackageService } from './talk-package.service';
 
 /** Talk-package generator (source → long-form talk + derived shorts as a campaign). */
 @Module({
-  imports: [ContentPlanModule, CampaignsModule, OutputsModule, ReuseModule, SafetyModule, ConfigModule],
+  imports: [ContentPlanModule, CampaignsModule, ContentModule, ReuseModule, SafetyModule, ConfigModule],
   providers: [
     TalkPackageService,
     {

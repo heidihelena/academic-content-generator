@@ -35,8 +35,8 @@ local implementation on any error**, so endpoints never fail.
 
 `Source Inbox → Idea Lab → Draft Studio → Safety review → (save to calendar)`
 
-- `src/domain/academic.ts` — the schema contract (SourceMaterial, ContentOutput,
-  Claim, SafetyFinding, Campaign) as `const` arrays + derived unions.
+- `src/domain/academic.ts` — the schema contract (SourceMaterial, ContentItem +
+  ContentVariant, Claim, SafetyFinding, Campaign) as `const` arrays + derived unions.
 - `src/sources/` — hybrid Source Inbox: manual sources + live Obsidian vault notes.
 - `src/idea-lab/` — 5 ideas from a source (composes the idea generator).
 - `src/safety/` — citation-needed + medical-overclaiming reviewers, patient-safe

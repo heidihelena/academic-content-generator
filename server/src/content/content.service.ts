@@ -67,10 +67,11 @@ export class ContentService {
   ) {}
 
   // --- items -------------------------------------------------------------
-  listItems(filter: { campaignId?: string } = {}): Promise<ContentItem[]> {
-    return filter.campaignId
-      ? this.items.list().then((all) => all.filter((i) => i.campaignId === filter.campaignId))
-      : this.items.list();
+  async listItems(filter: { campaignId?: string; sourceId?: string } = {}): Promise<ContentItem[]> {
+    let all = await this.items.list();
+    if (filter.campaignId) all = all.filter((i) => i.campaignId === filter.campaignId);
+    if (filter.sourceId) all = all.filter((i) => i.sourceIds.includes(filter.sourceId as string));
+    return all;
   }
 
   async getItem(id: string): Promise<ContentItem> {

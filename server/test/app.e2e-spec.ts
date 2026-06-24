@@ -128,29 +128,30 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(ideas.body.ideas).toHaveLength(5);
     const idea = ideas.body.ideas[0];
 
-    // Draft Studio → composes + reviews + persists (status 'reviewed')
+    // Draft Studio → composes + reviews + persists a ContentItem + variant
     const draft = await request(http)
       .post('/api/draft-studio')
       .send({ sourceId, channel: 'linkedin', audience: 'peers', idea: { angle: idea.angle, hook: idea.hook } })
       .expect(201);
-    const outputId = draft.body.id;
-    expect(draft.body.status).toBe('reviewed');
-    expect(draft.body.reviewState.cleared).toBe(true);
+    const variantId = draft.body.variant.id;
+    expect(draft.body.item.sourceIds).toContain(sourceId);
+    expect(draft.body.variant.status).toBe('reviewed');
+    expect(draft.body.variant.safetyReview.cleared).toBe(true);
 
-    // It is persisted and listable
-    const stored = await request(http).get(`/api/outputs/${outputId}`).expect(200);
-    expect(stored.body.sourceId).toBe(sourceId);
+    // The variant is persisted and listable
+    const stored = await request(http).get(`/api/content-variants/${variantId}`).expect(200);
+    expect(stored.body.contentItemId).toBe(draft.body.item.id);
 
     // Schedule → status 'scheduled' with a date
     const scheduled = await request(http)
-      .post(`/api/outputs/${outputId}/schedule`)
-      .send({ scheduledFor: '2030-02-01T09:00:00.000Z' })
+      .post(`/api/content-variants/${variantId}/schedule`)
+      .send({ scheduledAt: '2030-02-01T09:00:00.000Z' })
       .expect(201);
     expect(scheduled.body.status).toBe('scheduled');
-    expect(scheduled.body.scheduledFor).toBe('2030-02-01T09:00:00.000Z');
+    expect(scheduled.body.scheduledAt).toBe('2030-02-01T09:00:00.000Z');
 
     // Publish/export → gated by the (cleared) safety review
-    const exported = await request(http).post(`/api/outputs/${outputId}/publish`).expect(201);
+    const exported = await request(http).post(`/api/content-variants/${variantId}/publish`).expect(201);
     expect(exported.body.status).toBe('exported');
   });
 
@@ -163,9 +164,9 @@ describe('Content Calendar API (e2e, memory driver)', () => {
       .post('/api/draft-studio')
       .send({ sourceId: source.body.id, channel: 'linkedin', audience: 'public' })
       .expect(201);
-    expect(draft.body.reviewState.cleared).toBe(false);
+    expect(draft.body.variant.safetyReview.cleared).toBe(false);
     // Export is refused while blocking findings remain.
-    await request(http).post(`/api/outputs/${draft.body.id}/publish`).expect(400);
+    await request(http).post(`/api/content-variants/${draft.body.variant.id}/publish`).expect(400);
   });
 
   it('generates 5 AI ideas and validates input', async () => {

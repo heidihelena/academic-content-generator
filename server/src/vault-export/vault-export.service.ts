@@ -2,9 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { ContentOutput } from '../domain/academic';
 import { ContentService } from '../content/content.service';
-import { OutputsService } from '../outputs/outputs.service';
 import { SourcesService } from '../sources/sources.service';
 import {
   itemNoteBasename,
@@ -12,16 +10,15 @@ import {
   renderVariantNote,
   variantNoteBasename,
 } from './content-note';
-import { renderOutputNote, slugify } from './output-note';
 
 const EXPORT_ROOT = 'ForskAI';
 
 /**
- * Exports stored outputs to the Obsidian vault as markdown notes — a one-way
- * projection of the outputs store (which remains the system of record). Notes
- * are grouped by campaign and backlink to their source note, so a generated
- * series lives where the research lives and feeds future campaigns through
- * Obsidian's own links.
+ * Exports content to the Obsidian vault as a linked map-of-content — a one-way
+ * projection of the ContentItem/Variant store (which remains the system of
+ * record). A ContentItem becomes a hub note backlinking up to its sources and
+ * down to each variant; a campaign export writes every item in the series plus
+ * an index, so generated content lives where the research lives.
  */
 @Injectable()
 export class VaultExportService {
@@ -29,7 +26,6 @@ export class VaultExportService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly outputs: OutputsService,
     private readonly sources: SourcesService,
     private readonly content: ContentService,
   ) {}
@@ -39,11 +35,11 @@ export class VaultExportService {
   }
 
   /**
-   * Export a ContentItem as a linked map-of-content: a hub note backlinking up
-   * to its sources and down to each variant, plus a child note per variant.
-   * Returns the paths written (relative to the vault).
+   * Export a ContentItem as a hub note (backlinking up to sources and down to
+   * variants) plus a child note per variant. Returns the relative paths;
+   * `hub` is the hub note's path.
    */
-  async exportContentItem(itemId: string): Promise<{ paths: string[] }> {
+  async exportContentItem(itemId: string): Promise<{ paths: string[]; hub: string }> {
     const item = await this.content.getItem(itemId); // 404 if missing
     const variants = await this.content.listVariants(itemId);
     const dir = join(EXPORT_ROOT, item.campaignId ?? '_unsorted');
@@ -65,56 +61,36 @@ export class VaultExportService {
       if (title) sourceTitles[id] = title;
     }
 
-    const itemRel = join(dir, `${itemBase}.md`);
-    await this.write(itemRel, renderItemNote(item, { sourceTitles, variantBasenames }));
-    paths.push(itemRel);
-    return { paths };
-  }
-
-  /** Export a single output; returns the path written (relative to the vault). */
-  async exportOutput(id: string): Promise<{ path: string }> {
-    const output = await this.outputs.get(id); // 404 if missing
-    return { path: await this.writeNote(output) };
+    const hub = join(dir, `${itemBase}.md`);
+    await this.write(hub, renderItemNote(item, { sourceTitles, variantBasenames }));
+    paths.push(hub);
+    return { paths, hub };
   }
 
   /**
-   * Export a whole campaign's outputs plus an index note linking them.
-   * Returns the paths written (relative to the vault).
+   * Export a whole campaign: every ContentItem in it (hub + variants) plus an
+   * index note linking the item hubs. Returns the paths written.
    */
   async exportCampaign(campaignId: string): Promise<{ paths: string[] }> {
-    const outputs = await this.outputs.list({ campaignId });
-    const notes: Array<{ output: ContentOutput; rel: string }> = [];
-    for (const output of outputs) notes.push({ output, rel: await this.writeNote(output) });
-    const paths = notes.map((n) => n.rel);
-    if (notes.length) paths.push(await this.writeIndex(campaignId, notes));
+    const items = await this.content.listItems({ campaignId });
+    const paths: string[] = [];
+    const hubs: string[] = [];
+    for (const item of items) {
+      const { paths: itemPaths, hub } = await this.exportContentItem(item.id);
+      paths.push(...itemPaths);
+      hubs.push(hub);
+    }
+    if (hubs.length) paths.push(await this.writeIndex(campaignId, hubs));
     return { paths };
   }
 
-  private async writeNote(output: ContentOutput): Promise<string> {
-    const sourceTitle = await this.sourceTitle(output.sourceId);
-    const dir = output.campaignId ? join(EXPORT_ROOT, output.campaignId) : join(EXPORT_ROOT, '_unsorted');
-    const rel = join(dir, `${this.basename(output, sourceTitle)}.md`);
-    await this.write(rel, renderOutputNote(output, { sourceTitle }));
-    return rel;
-  }
-
-  private basename(output: ContentOutput, sourceTitle?: string): string {
-    return `${output.channel}-${slugify(sourceTitle ?? output.id)}-${output.id.slice(-6)}`;
-  }
-
-  private async writeIndex(
-    campaignId: string,
-    notes: ReadonlyArray<{ output: ContentOutput; rel: string }>,
-  ): Promise<string> {
-    const links = notes
-      .map(({ output, rel }) => {
-        const base = (rel.split(/[/\\]/).pop() ?? '').replace(/\.md$/, '');
-        return `- [[${base}]] — ${output.channel} · ${output.audience} (${output.status})`;
-      })
+  private async writeIndex(campaignId: string, hubPaths: string[]): Promise<string> {
+    const links = hubPaths
+      .map((rel) => `- [[${(rel.split(/[/\\]/).pop() ?? '').replace(/\.md$/, '')}]]`)
       .join('\n');
     const body =
       `---\nforskai: campaign-index\ncampaign: ${campaignId}\n---\n\n` +
-      `# Campaign ${campaignId}\n\n${notes.length} output(s).\n\n${links}\n`;
+      `# Campaign ${campaignId}\n\n${hubPaths.length} idea(s).\n\n${links}\n`;
     const rel = join(EXPORT_ROOT, campaignId, '_index.md');
     await this.write(rel, body);
     return rel;

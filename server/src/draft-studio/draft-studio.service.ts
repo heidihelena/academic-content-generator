@@ -1,14 +1,18 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import {
   AUDIENCES,
   Audience,
   CONTENT_CHANNELS,
+  ClaimRisk,
   ContentChannel,
-  ContentOutput,
+  ContentItem,
+  ContentPillar,
+  ContentVariant,
+  EvidenceLevel,
   SourceMaterial,
+  VariantFormat,
 } from '../domain/academic';
-import { OutputsService } from '../outputs/outputs.service';
+import { ContentService } from '../content/content.service';
 import { MEDICAL_DISCLAIMER, isPatientFacing } from '../safety/patient-safe';
 import { SafetyService } from '../safety/safety.service';
 import { SourcesService } from '../sources/sources.service';
@@ -20,11 +24,29 @@ export interface DraftStudioRequest {
   audience: Audience;
   /** Optional angle/hook (e.g. a picked Idea Lab idea) to steer the draft. */
   idea?: { angle?: string; hook?: string };
+  /** Optional strategy fields for the content item (sensible defaults otherwise). */
+  pillar?: ContentPillar;
+  evidenceLevel?: EvidenceLevel;
+  claimRisk?: ClaimRisk;
 }
 
+/** The natural format for each channel. */
+const CHANNEL_FORMAT: Record<ContentChannel, VariantFormat> = {
+  linkedin: 'post',
+  bluesky: 'thread',
+  threads: 'thread',
+  instagram: 'post',
+  newsletter: 'newsletter-paragraph',
+  teaching: 'slide',
+  talk: 'talk-script',
+  shorts: 'short-script',
+};
+
 /**
- * Draft Studio (issue #35): the end-to-end workflow in one call — pick a source,
- * compose a draft for a channel + audience, and run the claim/safety review.
+ * Draft Studio (issue #35): pick a source, compose a draft for a channel +
+ * audience, run the claim/safety review, and persist it as a {@link ContentItem}
+ * (the idea) with one {@link ContentVariant} (the channel rendering). Further
+ * channel/audience variants attach to the same item.
  *
  * Composition is delegated to a `DraftComposer` (deterministic local by default,
  * Claude when configured). The not-medical-advice disclaimer for patient-facing
@@ -35,11 +57,14 @@ export class DraftStudioService {
   constructor(
     private readonly sources: SourcesService,
     private readonly safety: SafetyService,
-    private readonly outputs: OutputsService,
+    private readonly content: ContentService,
     @Inject(DRAFT_COMPOSER) private readonly composer: DraftComposer,
   ) {}
 
-  async create(req: DraftStudioRequest, now: Date = new Date()): Promise<ContentOutput> {
+  async create(
+    req: DraftStudioRequest,
+    now: Date = new Date(),
+  ): Promise<{ item: ContentItem; variant: ContentVariant }> {
     this.validate(req.channel, req.audience);
     const source = await this.sources.get(req.sourceId); // throws 404 if missing
 
@@ -47,21 +72,35 @@ export class DraftStudioService {
       this.composeRequest(source, req.channel, req.audience, req.idea),
     );
     const body = this.ensureDisclaimer(composed, req.audience);
-    const reviewState = this.safety.review(body, now, req.audience);
-    const iso = now.toISOString();
+    const safetyReview = this.safety.review(body, now, req.audience);
 
-    // Persist the reviewed draft so it can move on to scheduled/exported.
-    return this.outputs.save({
-      id: `co_${randomUUID()}`,
-      sourceId: source.id,
-      channel: req.channel,
-      audience: req.audience,
-      body,
-      status: 'reviewed',
-      reviewState,
-      createdAt: iso,
-      updatedAt: iso,
-    });
+    const item = await this.content.createItem(
+      {
+        title: source.title,
+        sourceIds: [source.id],
+        audience: req.audience,
+        pillar: req.pillar ?? 'explainer',
+        evidenceLevel: req.evidenceLevel ?? 'unknown',
+        claimRisk: req.claimRisk ?? (isPatientFacing(req.audience) ? 'moderate' : 'low'),
+        status: 'reviewed',
+      },
+      now,
+    );
+
+    const variant = await this.content.addVariant(
+      item.id,
+      {
+        channel: req.channel,
+        format: CHANNEL_FORMAT[req.channel],
+        body,
+        hook: req.idea?.hook,
+        status: 'reviewed',
+        safetyReview,
+      },
+      now,
+    );
+
+    return { item, variant };
   }
 
   /** Suggest a single opening hook for a source + channel + audience. */

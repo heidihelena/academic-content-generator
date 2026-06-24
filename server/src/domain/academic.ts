@@ -157,24 +157,6 @@ export interface ReviewState {
   cleared: boolean;
 }
 
-/** A generated piece of content derived from a source, for one channel + audience. */
-export interface ContentOutput {
-  id: string;
-  sourceId: string;
-  channel: ContentChannel;
-  audience: Audience;
-  body: string;
-  status: ContentStatus;
-  /** The campaign (series) this output belongs to, when generated as a set. */
-  campaignId?: string;
-  /** When the piece is scheduled to go out (ISO 8601), once status is `scheduled`. */
-  scheduledFor?: string;
-  /** Present once the draft has been through review. */
-  reviewState?: ReviewState;
-  createdAt: string;
-  updatedAt: string;
-}
-
 /**
  * Whether a set of safety findings clears export. Content is cleared when it
  * carries no `block`-severity finding; `info`/`warn` are advisory. Shared by the
@@ -247,11 +229,11 @@ export interface CampaignStatusRollup {
 
 /** Summarises content items by status, with every status present (zero-filled). */
 export function rollupByStatus(
-  outputs: readonly Pick<ContentOutput, 'status'>[],
+  items: readonly { status: ContentStatus }[],
 ): CampaignStatusRollup {
   const byStatus = Object.fromEntries(
     CONTENT_STATUSES.map((status) => [status, 0]),
   ) as Record<ContentStatus, number>;
-  for (const output of outputs) byStatus[output.status]++;
-  return { total: outputs.length, byStatus };
+  for (const item of items) byStatus[item.status]++;
+  return { total: items.length, byStatus };
 }
