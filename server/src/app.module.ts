@@ -11,6 +11,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
 import { SafetyModule } from './safety/safety.module';
+import { SourcesModule } from './sources/sources.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
@@ -30,6 +31,7 @@ import { ShortsModule } from './shorts/shorts.module';
     VaultModule,
     AiModule,
     SafetyModule,
+    SourcesModule,
     MediaModule,
     RenderModule,
     ShortsModule,
