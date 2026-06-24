@@ -45,6 +45,12 @@ export interface ReviewState {
   cleared: boolean;
 }
 
+/** A source handed off from the Source Inbox to pre-fill the Compose stage. */
+export interface StudioSeed {
+  title: string;
+  material: string;
+}
+
 /** What the author provides in the Compose stage. */
 export interface StudioInput {
   title: string;

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   STUDIO_AUDIENCES,
   STUDIO_CHANNELS,
   type SafetyFinding,
   type StudioInput,
+  type StudioSeed,
 } from '../studio/studioTypes';
 import {
   STUDIO_STAGES,
@@ -12,6 +13,7 @@ import {
   advance,
   canGoBack,
   canGoForward,
+  emptyInput,
   goBack,
   initialState,
 } from '../studio/studioWorkflow';
@@ -43,8 +45,17 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
  * loop: at every stage they can send the work **back** to revise or **forward**,
  * and the Review gate blocks export until the draft clears safety.
  */
-export function DraftStudio() {
+export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   const [state, setState] = useState<StudioState>(initialState);
+
+  // A source picked in the Source Inbox pre-fills Compose and restarts the flow.
+  useEffect(() => {
+    if (!seed) return;
+    setState({
+      ...initialState(),
+      input: { ...emptyInput(), title: seed.title, material: seed.material },
+    });
+  }, [seed]);
 
   const setInput = (patch: Partial<StudioInput>) =>
     setState((s) => ({ ...s, input: { ...s.input, ...patch } }));

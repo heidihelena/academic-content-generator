@@ -9,6 +9,7 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
   calendar: { title: 'Content Calendar', subtitle: 'Plan your research communication across every network' },
   list: { title: 'All content', subtitle: 'Every post in one sortable, filterable table' },
+  inbox: { title: 'Source Inbox', subtitle: 'Your papers, notes, links and Obsidian vault in one place' },
   studio: { title: 'Draft Studio', subtitle: 'Compose, review and export reviewed, audience-specific content' },
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
