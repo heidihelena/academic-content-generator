@@ -84,4 +84,40 @@ describe('DraftStudioService', () => {
       service.create({ sourceId: 'src_missing', channel: 'linkedin', audience: 'peers' }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
+
+  it('adds the not-medical-advice disclaimer for patient-facing audiences (#34)', async () => {
+    const { sources, service } = setup();
+    const src = await sources.create({ kind: 'paper', title: 'Sleep' });
+    const patient = await service.create(
+      { sourceId: src.id, channel: 'newsletter', audience: 'patients' },
+      fixed,
+    );
+    expect(patient.body.toLowerCase()).toContain('not medical advice');
+
+    const peers = await service.create(
+      { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
+      fixed,
+    );
+    expect(peers.body.toLowerCase()).not.toContain('not medical advice');
+  });
+
+  it('blocks export of causal claims for a patient audience but not for peers (#34)', async () => {
+    const { sources, service } = setup();
+    const src = await sources.create({
+      kind: 'paper',
+      title: 'Coffee and weight',
+      abstract: 'Drinking coffee causes weight loss in observational data.',
+    });
+    const patient = await service.create(
+      { sourceId: src.id, channel: 'instagram', audience: 'public' },
+      fixed,
+    );
+    expect(patient.reviewState?.cleared).toBe(false);
+
+    const peers = await service.create(
+      { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
+      fixed,
+    );
+    expect(peers.reviewState?.cleared).toBe(true);
+  });
 });
