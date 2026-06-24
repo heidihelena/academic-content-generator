@@ -127,6 +127,8 @@ export interface ContentOutput {
   status: ContentStatus;
   /** The campaign (series) this output belongs to, when generated as a set. */
   campaignId?: string;
+  /** When the piece is scheduled to go out (ISO 8601), once status is `scheduled`. */
+  scheduledFor?: string;
   /** Present once the draft has been through review. */
   reviewState?: ReviewState;
   createdAt: string;

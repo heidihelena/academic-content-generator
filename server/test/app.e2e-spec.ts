@@ -115,6 +115,59 @@ describe('Content Calendar API (e2e, memory driver)', () => {
       .expect(400);
   });
 
+  it('walks the academic path: source → idea → draft → review → scheduled → exported', async () => {
+    // Source
+    const source = await request(http)
+      .post('/api/sources')
+      .send({ kind: 'paper', title: 'Sleep and memory', abstract: 'Rest was associated with better recall.' })
+      .expect(201);
+    const sourceId = source.body.id;
+
+    // Idea Lab → pick an idea to steer the draft
+    const ideas = await request(http).post('/api/idea-lab').send({ sourceId, audience: 'peers' }).expect(201);
+    expect(ideas.body.ideas).toHaveLength(5);
+    const idea = ideas.body.ideas[0];
+
+    // Draft Studio → composes + reviews + persists (status 'reviewed')
+    const draft = await request(http)
+      .post('/api/draft-studio')
+      .send({ sourceId, channel: 'linkedin', audience: 'peers', idea: { angle: idea.angle, hook: idea.hook } })
+      .expect(201);
+    const outputId = draft.body.id;
+    expect(draft.body.status).toBe('reviewed');
+    expect(draft.body.reviewState.cleared).toBe(true);
+
+    // It is persisted and listable
+    const stored = await request(http).get(`/api/outputs/${outputId}`).expect(200);
+    expect(stored.body.sourceId).toBe(sourceId);
+
+    // Schedule → status 'scheduled' with a date
+    const scheduled = await request(http)
+      .post(`/api/outputs/${outputId}/schedule`)
+      .send({ scheduledFor: '2030-02-01T09:00:00.000Z' })
+      .expect(201);
+    expect(scheduled.body.status).toBe('scheduled');
+    expect(scheduled.body.scheduledFor).toBe('2030-02-01T09:00:00.000Z');
+
+    // Publish/export → gated by the (cleared) safety review
+    const exported = await request(http).post(`/api/outputs/${outputId}/publish`).expect(201);
+    expect(exported.body.status).toBe('exported');
+  });
+
+  it('blocks export of a draft whose safety review is not cleared', async () => {
+    const source = await request(http)
+      .post('/api/sources')
+      .send({ kind: 'paper', title: 'Bold claims', abstract: 'This cure is 100% effective and guaranteed.' })
+      .expect(201);
+    const draft = await request(http)
+      .post('/api/draft-studio')
+      .send({ sourceId: source.body.id, channel: 'linkedin', audience: 'public' })
+      .expect(201);
+    expect(draft.body.reviewState.cleared).toBe(false);
+    // Export is refused while blocking findings remain.
+    await request(http).post(`/api/outputs/${draft.body.id}/publish`).expect(400);
+  });
+
   it('generates 5 AI ideas and validates input', async () => {
     const ok = await request(http)
       .post('/api/ai/ideas')

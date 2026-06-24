@@ -8,6 +8,7 @@ import {
   ContentOutput,
   SourceMaterial,
 } from '../domain/academic';
+import { OutputsService } from '../outputs/outputs.service';
 import { MEDICAL_DISCLAIMER, isPatientFacing } from '../safety/patient-safe';
 import { SafetyService } from '../safety/safety.service';
 import { SourcesService } from '../sources/sources.service';
@@ -34,6 +35,7 @@ export class DraftStudioService {
   constructor(
     private readonly sources: SourcesService,
     private readonly safety: SafetyService,
+    private readonly outputs: OutputsService,
     @Inject(DRAFT_COMPOSER) private readonly composer: DraftComposer,
   ) {}
 
@@ -48,7 +50,8 @@ export class DraftStudioService {
     const reviewState = this.safety.review(body, now, req.audience);
     const iso = now.toISOString();
 
-    return {
+    // Persist the reviewed draft so it can move on to scheduled/exported.
+    return this.outputs.save({
       id: `co_${randomUUID()}`,
       sourceId: source.id,
       channel: req.channel,
@@ -58,7 +61,7 @@ export class DraftStudioService {
       reviewState,
       createdAt: iso,
       updatedAt: iso,
-    };
+    });
   }
 
   /** Suggest a single opening hook for a source + channel + audience. */
