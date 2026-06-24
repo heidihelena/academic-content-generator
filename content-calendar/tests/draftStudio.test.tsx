@@ -64,6 +64,28 @@ describe('Draft Studio', () => {
     expect(screen.getByTestId('studio-draft')).toBeInTheDocument();
   });
 
+  it('saves the reviewed draft to the content calendar as a draft post', async () => {
+    render(<App initialView="studio" />);
+    compose('Street trees', 'Tree cover was associated with cooler streets.');
+    fireEvent.click(screen.getByRole('button', { name: /Generate draft/i }));
+    await screen.findByTestId('studio-draft');
+    fireEvent.click(screen.getByRole('button', { name: /Run review/i }));
+    await screen.findByTestId('review-status');
+    fireEvent.click(screen.getByRole('button', { name: /Approve & export/i }));
+    await screen.findByTestId('ready-banner');
+
+    const before = useStore.getState().posts.length;
+    fireEvent.click(screen.getByRole('button', { name: /Save to calendar/i }));
+
+    expect(screen.getByTestId('studio-saved')).toBeInTheDocument();
+    const posts = useStore.getState().posts;
+    expect(posts.length).toBe(before + 1);
+    const saved = posts[posts.length - 1];
+    expect(saved.status).toBe('draft');
+    expect(saved.platform).toBe('linkedin');
+    expect(saved.body).toContain('Street trees');
+  });
+
   it('suggests a hook into the hook field', async () => {
     render(<App initialView="studio" />);
     compose('Street trees', 'Tree cover and cooler streets.');

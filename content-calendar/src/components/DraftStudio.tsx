@@ -17,7 +17,28 @@ import {
   initialState,
 } from '../studio/studioWorkflow';
 import { composeStudioDraft, reviewStudioDraft, suggestStudioHook } from '../studio/studioEngine';
+import type { StudioChannel } from '../studio/studioTypes';
+import { useStore } from '../store/useStore';
+import type { Platform } from '../types';
 import { BookIcon } from './icons';
+
+/** Map a content channel to the calendar platform it posts to. */
+const CHANNEL_PLATFORM: Record<StudioChannel, Platform> = {
+  linkedin: 'linkedin',
+  threads: 'threads',
+  instagram: 'instagram',
+  // No native platform — save as a LinkedIn-style text draft to plan it.
+  newsletter: 'linkedin',
+  teaching: 'linkedin',
+};
+
+/** Tomorrow at 09:00 local — a sensible default slot for a saved draft. */
+function tomorrowMorning(): string {
+  const at = new Date();
+  at.setDate(at.getDate() + 1);
+  at.setHours(9, 0, 0, 0);
+  return at.toISOString();
+}
 
 const STAGE_LABEL: Record<StudioStage, string> = {
   compose: 'Compose',
@@ -46,16 +67,19 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
  * and the Review gate blocks export until the draft clears safety.
  */
 export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
+  const createThreadFromParts = useStore((s) => s.createThreadFromParts);
   const [state, setState] = useState<StudioState>(initialState);
   const [busy, setBusy] = useState(false);
   const [hookBusy, setHookBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   // A source picked in the Source Inbox pre-fills Compose and restarts the flow.
   useEffect(() => {
     if (!seed) return;
     setBusy(false);
     setError(null);
+    setSaved(false);
     setState({
       ...initialState(),
       input: {
@@ -112,7 +136,19 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   const back = () => setState((s) => goBack(s));
   const reset = () => {
     setError(null);
+    setSaved(false);
     setState(initialState());
+  };
+
+  // Save the reviewed draft to the content calendar as a draft post.
+  const saveToCalendar = () => {
+    createThreadFromParts([state.draft], {
+      platform: CHANNEL_PLATFORM[state.input.channel],
+      scheduledAt: tomorrowMorning(),
+      status: 'draft',
+      audience: state.input.audience,
+    });
+    setSaved(true);
   };
 
   const review = state.review;
@@ -324,10 +360,18 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
             {state.draft}
           </pre>
           <div className="flex flex-wrap gap-2">
+            <button className="btn-primary py-1.5 text-xs" onClick={saveToCalendar} disabled={saved}>
+              {saved ? '✓ Saved to calendar' : 'Save to calendar'}
+            </button>
             <button className="btn-secondary py-1.5 text-xs" onClick={copyDraft}>Copy</button>
             <button className="btn-secondary py-1.5 text-xs" onClick={downloadMarkdown}>Download .md</button>
             <button className="btn-ghost py-1.5 text-xs" onClick={reset}>Start over</button>
           </div>
+          {saved && (
+            <p data-testid="studio-saved" className="text-xs text-status-published">
+              Saved as a draft on your content calendar.
+            </p>
+          )}
         </div>
       )}
 
