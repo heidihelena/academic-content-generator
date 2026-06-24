@@ -13,9 +13,9 @@ change, not a code change.
 
 Out of the box:
 
-- **Persistence** is in-memory (`PERSISTENCE_DRIVER=memory`). The ForskAI Version 1
-  features (Source Inbox, Idea Lab, Draft Studio, Campaigns) use **in-memory
-  stores** — data lives only for the life of the process.
+- **Persistence** is in-memory (`PERSISTENCE_DRIVER=memory`) — data lives only for
+  the life of the process. Set a durable driver (`file`/`sqlite`/`neon`) to keep
+  manual sources and campaigns across restarts (see below).
 - **AI idea generation** uses the **mock generator** (`IDEA_GENERATOR=mock`) — no
   network calls.
 - **Draft generation** in the Draft Studio is **local and deterministic** — no LLM call.
@@ -55,9 +55,13 @@ written into the vault.
 | `sqlite` | A local file at `SQLITE_PATH` (default `./data/content-calendar.sqlite`). |
 | `neon` | A Postgres database at `DATABASE_URL`. |
 
-> Note: the Version 1 academic features (sources, campaigns, content output)
-> currently use **in-memory** stores regardless of `PERSISTENCE_DRIVER`; wiring
-> them into the drivers above is a planned follow-up.
+> Note: **manual sources and campaigns** persist to durable JSON files
+> (`SOURCES_STORE_PATH` default `./data/sources.json`, `CAMPAIGNS_STORE_PATH`
+> default `./data/campaigns.json`) whenever `PERSISTENCE_DRIVER` is anything other
+> than `memory`; under `memory` they are process-only. Generated content
+> (`ContentOutput`) is not stored yet — that lands with the "save to calendar"
+> follow-up. Native SQL tables for sources/campaigns are a possible later
+> optimization.
 
 The source vault is read from `VAULT_PATH` (default `./vault`); set
 `VAULT_WATCH=true` to watch it for changes.

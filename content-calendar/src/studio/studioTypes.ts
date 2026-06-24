@@ -45,6 +45,14 @@ export interface ReviewState {
   cleared: boolean;
 }
 
+/** A source handed off from the Source Inbox to pre-fill the Compose stage. */
+export interface StudioSeed {
+  title: string;
+  material: string;
+  /** Backend source id, when the seed came from a stored source. */
+  sourceId?: string;
+}
+
 /** What the author provides in the Compose stage. */
 export interface StudioInput {
   title: string;
@@ -54,4 +62,6 @@ export interface StudioInput {
   audience: StudioAudience;
   /** Optional hook / angle to steer the draft. */
   hook: string;
+  /** Backend source id when drafting from a stored source (enables API compose). */
+  sourceId?: string;
 }

@@ -1,11 +1,13 @@
-import { composeDraft } from './studioDraft';
-import { reviewDraft } from './studioReview';
 import type { ReviewState, StudioInput } from './studioTypes';
 
 /**
  * The Draft Studio workflow as a pure state machine. The human drives it with
  * back/forward controls; advancing past Review is gated on the safety review
  * clearing, so unsafe drafts must be sent back and revised first.
+ *
+ * The work of each forward step (composing the draft, running the review) is
+ * async and lives in `studioEngine`; this module only owns the stages, the
+ * guards, and going back.
  */
 
 export const STUDIO_STAGES = ['compose', 'draft', 'review', 'ready'] as const;
@@ -49,27 +51,6 @@ export function canGoForward(state: StudioState): boolean {
       return state.review?.cleared === true;
     case 'ready':
       return false;
-  }
-}
-
-/**
- * Move forward one stage, performing the stage's work:
- *  - compose → draft: assemble the draft from the inputs
- *  - draft → review: run the claim/safety review (re-runs on every revision)
- *  - review → ready: lock in the reviewed draft
- * Returns the state unchanged when the forward guard is not satisfied.
- */
-export function advance(state: StudioState): StudioState {
-  if (!canGoForward(state)) return state;
-  switch (state.stage) {
-    case 'compose':
-      return { ...state, stage: 'draft', draft: composeDraft(state.input) };
-    case 'draft':
-      return { ...state, stage: 'review', review: reviewDraft(state.draft, state.input.audience) };
-    case 'review':
-      return { ...state, stage: 'ready' };
-    default:
-      return state;
   }
 }
 

@@ -8,7 +8,9 @@ import { PipelineBoard } from './components/board/PipelineBoard';
 import { Analytics } from './components/Analytics';
 import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
+import { SourceInbox } from './components/SourceInbox';
 import { DraftStudio } from './components/DraftStudio';
+import type { StudioSeed } from './studio/studioTypes';
 import { AbstractToThread } from './components/AbstractToThread';
 import { VideoToShorts } from './components/VideoToShorts';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
@@ -23,6 +25,12 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
   const loadError = useStore((s) => s.loadError);
   const [view, setView] = useState<View>(initialView);
   const [ready, setReady] = useState(false);
+  const [studioSeed, setStudioSeed] = useState<StudioSeed | null>(null);
+
+  const draftFromSource = (seed: StudioSeed) => {
+    setStudioSeed(seed);
+    setView('studio');
+  };
 
   useEffect(() => {
     initialize();
@@ -56,9 +64,14 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
                   <ConnectedAccounts />
                 </div>
               )}
+              {view === 'inbox' && (
+                <div className="mx-auto max-w-3xl">
+                  <SourceInbox onDraft={draftFromSource} />
+                </div>
+              )}
               {view === 'studio' && (
                 <div className="mx-auto max-w-3xl">
-                  <DraftStudio />
+                  <DraftStudio seed={studioSeed} />
                 </div>
               )}
               {view === 'ideas' && (

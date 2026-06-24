@@ -1,21 +1,44 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   STUDIO_AUDIENCES,
   STUDIO_CHANNELS,
   type SafetyFinding,
   type StudioInput,
+  type StudioSeed,
 } from '../studio/studioTypes';
 import {
   STUDIO_STAGES,
   type StudioStage,
   type StudioState,
-  advance,
   canGoBack,
   canGoForward,
+  emptyInput,
   goBack,
   initialState,
 } from '../studio/studioWorkflow';
+import { composeStudioDraft, reviewStudioDraft, suggestStudioHook } from '../studio/studioEngine';
+import type { StudioChannel } from '../studio/studioTypes';
+import { useStore } from '../store/useStore';
+import type { Platform } from '../types';
 import { BookIcon } from './icons';
+
+/** Map a content channel to the calendar platform it posts to. */
+const CHANNEL_PLATFORM: Record<StudioChannel, Platform> = {
+  linkedin: 'linkedin',
+  threads: 'threads',
+  instagram: 'instagram',
+  // No native platform — save as a LinkedIn-style text draft to plan it.
+  newsletter: 'linkedin',
+  teaching: 'linkedin',
+};
+
+/** Tomorrow at 09:00 local — a sensible default slot for a saved draft. */
+function tomorrowMorning(): string {
+  const at = new Date();
+  at.setDate(at.getDate() + 1);
+  at.setHours(9, 0, 0, 0);
+  return at.toISOString();
+}
 
 const STAGE_LABEL: Record<StudioStage, string> = {
   compose: 'Compose',
@@ -43,15 +66,90 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
  * loop: at every stage they can send the work **back** to revise or **forward**,
  * and the Review gate blocks export until the draft clears safety.
  */
-export function DraftStudio() {
+export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
+  const createThreadFromParts = useStore((s) => s.createThreadFromParts);
   const [state, setState] = useState<StudioState>(initialState);
+  const [busy, setBusy] = useState(false);
+  const [hookBusy, setHookBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  // A source picked in the Source Inbox pre-fills Compose and restarts the flow.
+  useEffect(() => {
+    if (!seed) return;
+    setBusy(false);
+    setError(null);
+    setSaved(false);
+    setState({
+      ...initialState(),
+      input: {
+        ...emptyInput(),
+        title: seed.title,
+        material: seed.material,
+        sourceId: seed.sourceId,
+      },
+    });
+  }, [seed]);
 
   const setInput = (patch: Partial<StudioInput>) =>
     setState((s) => ({ ...s, input: { ...s.input, ...patch } }));
 
-  const forward = () => setState((s) => advance(s));
+  // Forward performs the stage's async work (compose → review) via the engine,
+  // which uses the backend when configured and falls back to the local mirror.
+  const forward = async () => {
+    if (!canGoForward(state) || busy) return;
+    if (state.stage === 'review') {
+      setState((s) => ({ ...s, stage: 'ready' }));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      if (state.stage === 'compose') {
+        const draft = await composeStudioDraft(state.input);
+        setState((s) => ({ ...s, stage: 'draft', draft }));
+      } else if (state.stage === 'draft') {
+        const review = await reviewStudioDraft(state.draft, state.input.audience);
+        setState((s) => ({ ...s, stage: 'review', review }));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const suggestHook = async () => {
+    if (hookBusy) return;
+    setHookBusy(true);
+    setError(null);
+    try {
+      const hook = await suggestStudioHook(state.input);
+      setInput({ hook });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not suggest a hook.');
+    } finally {
+      setHookBusy(false);
+    }
+  };
+
   const back = () => setState((s) => goBack(s));
-  const reset = () => setState(initialState());
+  const reset = () => {
+    setError(null);
+    setSaved(false);
+    setState(initialState());
+  };
+
+  // Save the reviewed draft to the content calendar as a draft post.
+  const saveToCalendar = () => {
+    createThreadFromParts([state.draft], {
+      platform: CHANNEL_PLATFORM[state.input.channel],
+      scheduledAt: tomorrowMorning(),
+      status: 'draft',
+      audience: state.input.audience,
+    });
+    setSaved(true);
+  };
 
   const review = state.review;
 
@@ -159,7 +257,17 @@ export function DraftStudio() {
             </div>
           </div>
           <div>
-            <label htmlFor="studio-hook" className="label">Hook / angle (optional)</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="studio-hook" className="label">Hook / angle (optional)</label>
+              <button
+                type="button"
+                className="btn-ghost py-1 text-xs"
+                onClick={suggestHook}
+                disabled={hookBusy || !state.input.title.trim()}
+              >
+                {hookBusy ? 'Suggesting…' : '✦ Suggest hook'}
+              </button>
+            </div>
             <input
               id="studio-hook"
               className="input"
@@ -252,21 +360,39 @@ export function DraftStudio() {
             {state.draft}
           </pre>
           <div className="flex flex-wrap gap-2">
+            <button className="btn-primary py-1.5 text-xs" onClick={saveToCalendar} disabled={saved}>
+              {saved ? '✓ Saved to calendar' : 'Save to calendar'}
+            </button>
             <button className="btn-secondary py-1.5 text-xs" onClick={copyDraft}>Copy</button>
             <button className="btn-secondary py-1.5 text-xs" onClick={downloadMarkdown}>Download .md</button>
             <button className="btn-ghost py-1.5 text-xs" onClick={reset}>Start over</button>
           </div>
+          {saved && (
+            <p data-testid="studio-saved" className="text-xs text-status-published">
+              Saved as a draft on your content calendar.
+            </p>
+          )}
         </div>
+      )}
+
+      {error && (
+        <p data-testid="studio-error" className="text-xs text-status-failed">
+          {error}
+        </p>
       )}
 
       {/* Back / Forward controls */}
       {state.stage !== 'ready' && (
         <footer className="flex items-center justify-between border-t border-surface-800 pt-4">
-          <button className="btn-ghost" onClick={back} disabled={!canGoBack(state)}>
+          <button className="btn-ghost" onClick={back} disabled={!canGoBack(state) || busy}>
             ← Back
           </button>
-          <button className="btn-primary" onClick={forward} disabled={!canGoForward(state)}>
-            {FORWARD_LABEL[state.stage]}
+          <button
+            className="btn-primary"
+            onClick={forward}
+            disabled={!canGoForward(state) || busy}
+          >
+            {busy ? 'Working…' : FORWARD_LABEL[state.stage]}
           </button>
         </footer>
       )}

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import {
   AUDIENCES,
@@ -11,6 +11,7 @@ import {
 import { MEDICAL_DISCLAIMER, isPatientFacing } from '../safety/patient-safe';
 import { SafetyService } from '../safety/safety.service';
 import { SourcesService } from '../sources/sources.service';
+import { ComposeRequest, DRAFT_COMPOSER, DraftComposer } from './composer.types';
 
 export interface DraftStudioRequest {
   sourceId: string;
@@ -22,30 +23,28 @@ export interface DraftStudioRequest {
 
 /**
  * Draft Studio (issue #35): the end-to-end workflow in one call — pick a source,
- * generate a draft for a channel + audience, and run the claim/safety review.
+ * compose a draft for a channel + audience, and run the claim/safety review.
  *
- * Composes the local-first services (SourcesService, SafetyService). Draft text
- * is assembled deterministically from the source + idea so the studio works with
- * zero config; the LLM DraftsService can be swapped into `composeDraft` later
- * without changing this contract.
+ * Composition is delegated to a `DraftComposer` (deterministic local by default,
+ * Claude when configured). The not-medical-advice disclaimer for patient-facing
+ * audiences is enforced here so it holds regardless of which composer ran.
  */
 @Injectable()
 export class DraftStudioService {
   constructor(
     private readonly sources: SourcesService,
     private readonly safety: SafetyService,
+    @Inject(DRAFT_COMPOSER) private readonly composer: DraftComposer,
   ) {}
 
   async create(req: DraftStudioRequest, now: Date = new Date()): Promise<ContentOutput> {
-    if (!CONTENT_CHANNELS.includes(req.channel)) {
-      throw new BadRequestException(`channel must be one of: ${CONTENT_CHANNELS.join(', ')}`);
-    }
-    if (!AUDIENCES.includes(req.audience)) {
-      throw new BadRequestException(`audience must be one of: ${AUDIENCES.join(', ')}`);
-    }
+    this.validate(req.channel, req.audience);
     const source = await this.sources.get(req.sourceId); // throws 404 if missing
 
-    const body = this.composeDraft(source, req.channel, req.audience, req.idea);
+    const composed = await this.composer.composeDraft(
+      this.composeRequest(source, req.channel, req.audience, req.idea),
+    );
+    const body = this.ensureDisclaimer(composed, req.audience);
     const reviewState = this.safety.review(body, now, req.audience);
     const iso = now.toISOString();
 
@@ -62,27 +61,47 @@ export class DraftStudioService {
     };
   }
 
-  /** Deterministic, local-first draft assembly from the source + idea. */
-  private composeDraft(
+  /** Suggest a single opening hook for a source + channel + audience. */
+  async hook(
+    sourceId: string,
+    channel: ContentChannel,
+    audience: Audience,
+  ): Promise<{ hook: string }> {
+    this.validate(channel, audience);
+    const source = await this.sources.get(sourceId);
+    const hook = await this.composer.composeHook(this.composeRequest(source, channel, audience));
+    return { hook };
+  }
+
+  private composeRequest(
     source: SourceMaterial,
     channel: ContentChannel,
     audience: Audience,
     idea?: { angle?: string; hook?: string },
-  ): string {
-    const hook = idea?.hook?.trim() || `New from our work: ${source.title}`;
-    const angle = idea?.angle?.trim() || source.title;
-    const gist = (source.abstract || source.body || '').trim().slice(0, 280);
+  ): ComposeRequest {
+    return {
+      title: source.title,
+      material: (source.abstract || source.body || '').trim(),
+      channel,
+      audience,
+      hook: idea?.hook,
+      angle: idea?.angle,
+    };
+  }
 
-    const lines = [hook, '', `${angle}.`];
-    if (gist) lines.push('', gist);
-    if (source.tags.length) {
-      lines.push('', source.tags.map((t) => `#${t.replace(/\s+/g, '')}`).join(' '));
+  private validate(channel: ContentChannel, audience: Audience): void {
+    if (!CONTENT_CHANNELS.includes(channel)) {
+      throw new BadRequestException(`channel must be one of: ${CONTENT_CHANNELS.join(', ')}`);
     }
-    lines.push('', `— for ${audience} · ${channel}`);
-    // Patient-safe mode (#34): plain non-advice framing for patient/public content.
-    if (isPatientFacing(audience)) {
-      lines.push('', MEDICAL_DISCLAIMER);
+    if (!AUDIENCES.includes(audience)) {
+      throw new BadRequestException(`audience must be one of: ${AUDIENCES.join(', ')}`);
     }
-    return lines.join('\n');
+  }
+
+  private ensureDisclaimer(body: string, audience: Audience): string {
+    if (isPatientFacing(audience) && !body.includes(MEDICAL_DISCLAIMER)) {
+      return `${body}\n\n${MEDICAL_DISCLAIMER}`;
+    }
+    return body;
   }
 }
