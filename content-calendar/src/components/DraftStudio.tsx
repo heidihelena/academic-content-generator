@@ -10,13 +10,13 @@ import {
   STUDIO_STAGES,
   type StudioStage,
   type StudioState,
-  advance,
   canGoBack,
   canGoForward,
   emptyInput,
   goBack,
   initialState,
 } from '../studio/studioWorkflow';
+import { composeStudioDraft, reviewStudioDraft } from '../studio/studioEngine';
 import { BookIcon } from './icons';
 
 const STAGE_LABEL: Record<StudioStage, string> = {
@@ -47,22 +47,58 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
  */
 export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   const [state, setState] = useState<StudioState>(initialState);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // A source picked in the Source Inbox pre-fills Compose and restarts the flow.
   useEffect(() => {
     if (!seed) return;
+    setBusy(false);
+    setError(null);
     setState({
       ...initialState(),
-      input: { ...emptyInput(), title: seed.title, material: seed.material },
+      input: {
+        ...emptyInput(),
+        title: seed.title,
+        material: seed.material,
+        sourceId: seed.sourceId,
+      },
     });
   }, [seed]);
 
   const setInput = (patch: Partial<StudioInput>) =>
     setState((s) => ({ ...s, input: { ...s.input, ...patch } }));
 
-  const forward = () => setState((s) => advance(s));
+  // Forward performs the stage's async work (compose → review) via the engine,
+  // which uses the backend when configured and falls back to the local mirror.
+  const forward = async () => {
+    if (!canGoForward(state) || busy) return;
+    if (state.stage === 'review') {
+      setState((s) => ({ ...s, stage: 'ready' }));
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      if (state.stage === 'compose') {
+        const draft = await composeStudioDraft(state.input);
+        setState((s) => ({ ...s, stage: 'draft', draft }));
+      } else if (state.stage === 'draft') {
+        const review = await reviewStudioDraft(state.draft, state.input.audience);
+        setState((s) => ({ ...s, stage: 'review', review }));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const back = () => setState((s) => goBack(s));
-  const reset = () => setState(initialState());
+  const reset = () => {
+    setError(null);
+    setState(initialState());
+  };
 
   const review = state.review;
 
@@ -270,14 +306,24 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
         </div>
       )}
 
+      {error && (
+        <p data-testid="studio-error" className="text-xs text-status-failed">
+          {error}
+        </p>
+      )}
+
       {/* Back / Forward controls */}
       {state.stage !== 'ready' && (
         <footer className="flex items-center justify-between border-t border-surface-800 pt-4">
-          <button className="btn-ghost" onClick={back} disabled={!canGoBack(state)}>
+          <button className="btn-ghost" onClick={back} disabled={!canGoBack(state) || busy}>
             ← Back
           </button>
-          <button className="btn-primary" onClick={forward} disabled={!canGoForward(state)}>
-            {FORWARD_LABEL[state.stage]}
+          <button
+            className="btn-primary"
+            onClick={forward}
+            disabled={!canGoForward(state) || busy}
+          >
+            {busy ? 'Working…' : FORWARD_LABEL[state.stage]}
           </button>
         </footer>
       )}

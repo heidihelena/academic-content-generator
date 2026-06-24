@@ -191,7 +191,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
               </div>
               <button
                 className="btn-primary shrink-0 py-1.5 text-xs"
-                onClick={() => onDraft({ title: s.title, material: sourceMaterial(s) })}
+                onClick={() => onDraft({ title: s.title, material: sourceMaterial(s), sourceId: s.id })}
               >
                 Draft in Studio →
               </button>
