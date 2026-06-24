@@ -3,12 +3,13 @@ import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
 import { DraftStudioService } from './draft-studio.service';
+import { LocalDraftComposer } from './local.composer';
 
 const emptyVault = { listNotes: async () => [], getNote: async () => null } as never;
 
 function setup() {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
-  const service = new DraftStudioService(sources, new SafetyService());
+  const service = new DraftStudioService(sources, new SafetyService(), new LocalDraftComposer());
   return { sources, service };
 }
 
@@ -121,5 +122,23 @@ describe('DraftStudioService', () => {
       fixed,
     );
     expect(peers.reviewState?.cleared).toBe(true);
+  });
+
+  it('suggests a hook for a source', async () => {
+    const { sources, service } = setup();
+    const src = await sources.create({ kind: 'paper', title: 'Street trees' });
+    const { hook } = await service.hook(src.id, 'linkedin', 'peers');
+    expect(hook).toContain('Street trees');
+  });
+
+  it('validates channel/audience and 404s an unknown source for hook()', async () => {
+    const { sources, service } = setup();
+    const src = await sources.create({ kind: 'note', title: 'X' });
+    await expect(service.hook(src.id, 'bogus' as never, 'peers')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    await expect(service.hook('src_missing', 'linkedin', 'peers')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });

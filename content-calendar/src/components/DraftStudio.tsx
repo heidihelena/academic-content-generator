@@ -16,7 +16,7 @@ import {
   goBack,
   initialState,
 } from '../studio/studioWorkflow';
-import { composeStudioDraft, reviewStudioDraft } from '../studio/studioEngine';
+import { composeStudioDraft, reviewStudioDraft, suggestStudioHook } from '../studio/studioEngine';
 import { BookIcon } from './icons';
 
 const STAGE_LABEL: Record<StudioStage, string> = {
@@ -48,6 +48,7 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
 export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   const [state, setState] = useState<StudioState>(initialState);
   const [busy, setBusy] = useState(false);
+  const [hookBusy, setHookBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // A source picked in the Source Inbox pre-fills Compose and restarts the flow.
@@ -91,6 +92,20 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const suggestHook = async () => {
+    if (hookBusy) return;
+    setHookBusy(true);
+    setError(null);
+    try {
+      const hook = await suggestStudioHook(state.input);
+      setInput({ hook });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not suggest a hook.');
+    } finally {
+      setHookBusy(false);
     }
   };
 
@@ -206,7 +221,17 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
             </div>
           </div>
           <div>
-            <label htmlFor="studio-hook" className="label">Hook / angle (optional)</label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="studio-hook" className="label">Hook / angle (optional)</label>
+              <button
+                type="button"
+                className="btn-ghost py-1 text-xs"
+                onClick={suggestHook}
+                disabled={hookBusy || !state.input.title.trim()}
+              >
+                {hookBusy ? 'Suggesting…' : '✦ Suggest hook'}
+              </button>
+            </div>
             <input
               id="studio-hook"
               className="input"

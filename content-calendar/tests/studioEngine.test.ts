@@ -15,8 +15,9 @@ const input = (over: Partial<StudioInput> = {}): StudioInput => ({
 const fakeApi = (post: ApiClient['post']): ApiClient => ({ post } as unknown as ApiClient);
 
 describe('LocalStudioEngine', () => {
-  it('composes a draft from the input and reviews it', async () => {
+  it('suggests, composes and reviews', async () => {
     const engine = new LocalStudioEngine();
+    expect(await engine.suggestHook(input())).toBe('New from our work: Sleep');
     expect(await engine.compose(input())).toContain('Sleep');
     expect((await engine.review('This drug cures cancer.', 'peers')).cleared).toBe(false);
   });
@@ -38,6 +39,12 @@ describe('ApiStudioEngine', () => {
   it('composes from the backend when a sourceId is present', async () => {
     const engine = new ApiStudioEngine(fakeApi(async () => ({ body: 'SERVER DRAFT' }) as never));
     expect(await engine.compose(input({ sourceId: 'src_1' }))).toBe('SERVER DRAFT');
+  });
+
+  it('suggests a hook from the backend with a sourceId, local without one', async () => {
+    const engine = new ApiStudioEngine(fakeApi(async () => ({ hook: 'SERVER HOOK' }) as never));
+    expect(await engine.suggestHook(input({ sourceId: 'src_1' }))).toBe('SERVER HOOK');
+    expect(await engine.suggestHook(input())).toBe('New from our work: Sleep');
   });
 
   it('falls back to the local composer when the API call fails', async () => {

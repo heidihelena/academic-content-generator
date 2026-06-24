@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from '../src/App';
 import { useStore, __setPersistence } from '../src/store/useStore';
 import { MemoryPersistence } from '../src/lib/persistence';
@@ -62,6 +62,17 @@ describe('Draft Studio', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Back/i }));
     expect(screen.getByTestId('studio-draft')).toBeInTheDocument();
+  });
+
+  it('suggests a hook into the hook field', async () => {
+    render(<App initialView="studio" />);
+    compose('Street trees', 'Tree cover and cooler streets.');
+    fireEvent.click(screen.getByRole('button', { name: /Suggest hook/i }));
+    await waitFor(() =>
+      expect((screen.getByLabelText('Hook / angle (optional)') as HTMLInputElement).value).toContain(
+        'Street trees',
+      ),
+    );
   });
 
   it('appends the not-medical-advice disclaimer for a patient audience', async () => {

@@ -12,11 +12,19 @@ import type { ReviewState, StudioAudience, StudioInput } from './studioTypes';
  *    configured). It falls back to local on any error, so the flow never breaks.
  */
 export interface StudioEngine {
+  suggestHook(input: StudioInput): Promise<string>;
   compose(input: StudioInput): Promise<string>;
   review(body: string, audience: StudioAudience): Promise<ReviewState>;
 }
 
+function localHook(input: StudioInput): string {
+  return input.hook.trim() || `New from our work: ${input.title.trim()}`;
+}
+
 export class LocalStudioEngine implements StudioEngine {
+  async suggestHook(input: StudioInput): Promise<string> {
+    return localHook(input);
+  }
   async compose(input: StudioInput): Promise<string> {
     return composeDraft(input);
   }
@@ -29,6 +37,22 @@ export class ApiStudioEngine implements StudioEngine {
   private readonly local = new LocalStudioEngine();
 
   constructor(private readonly api: ApiClient) {}
+
+  async suggestHook(input: StudioInput): Promise<string> {
+    // The backend hook composer needs a stored source; otherwise stay local.
+    if (!input.sourceId) return this.local.suggestHook(input);
+    try {
+      const out = await this.api.post<{ hook?: string }>('/draft-studio/hook', {
+        sourceId: input.sourceId,
+        channel: input.channel,
+        audience: input.audience,
+      });
+      if (out.hook?.trim()) return out.hook.trim();
+    } catch {
+      // fall through to the local hook
+    }
+    return this.local.suggestHook(input);
+  }
 
   async compose(input: StudioInput): Promise<string> {
     // The backend Draft Studio composes from a stored source; without one we
@@ -70,6 +94,10 @@ let active: StudioEngine = createDefault();
 /** Override the active engine (used by tests). */
 export function setStudioEngine(engine: StudioEngine): void {
   active = engine;
+}
+
+export function suggestStudioHook(input: StudioInput): Promise<string> {
+  return active.suggestHook(input);
 }
 
 export function composeStudioDraft(input: StudioInput): Promise<string> {
