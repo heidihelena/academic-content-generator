@@ -1,19 +1,60 @@
 import { ApiClient } from '../lib/api';
-import type { ContentClient, ContentItemWithVariants, ContentVariant } from './contentTypes';
+import type {
+  ContentClient,
+  ContentItemWithVariants,
+  ContentVariant,
+  SafetyFinding,
+} from './contentTypes';
 
 /**
  * Content client — lists ContentItems with their variants and drives the
- * variant lifecycle (schedule → publish). Local mock by default (sample data,
- * works offline and in tests); the backend when `VITE_API_URL` is set.
+ * variant workflow (edit → run reviews → mark reviewed → schedule → publish).
+ * Local mock by default (sample data, works offline and in tests); the backend
+ * when `VITE_API_URL` is set.
  */
 
-const cleared = (findings: string[] = []) => ({ cleared: findings.length === 0, findings });
+const ok = (): { cleared: true; findings: [] } => ({ cleared: true, findings: [] });
+
+// Illustrative subset of the canonical server rules; the authoritative reviews
+// run server-side in API mode.
+const OVERCLAIMS: Array<[RegExp, string]> = [
+  [/\bcures?\b/i, 'overclaim “cure” — Vahtian records, it doesn’t prove'],
+  [/\bguarantees?\b/i, 'overclaim “guarantee” — soften to “may”'],
+  [/\b100% ?(?:effective|accurate)\b/i, 'absolute claim “100%”'],
+  [/\bproves?\b/i, 'overclaim “proves” — report associations, not proof'],
+];
+const CAUSAL = /\b(causes?|caused|leads? to)\b/i;
+const QUANTITATIVE = /\b\d+(?:\.\d+)?\s?%|\bby \d+/i;
+const CITATION_PRESENT = /\(\w+,?\s*\d{4}\)|\[\d+\]|doi:|https?:\/\//i;
+
+function localSafetyReview(body: string, patientFacing: boolean): ContentVariant['safetyReview'] {
+  const findings: SafetyFinding[] = [];
+  for (const [re, message] of OVERCLAIMS) if (re.test(body)) findings.push({ severity: 'block', message });
+  if (CAUSAL.test(body)) {
+    findings.push({
+      severity: patientFacing ? 'block' : 'warn',
+      message: 'causal language — confirm the evidence supports causation',
+    });
+  }
+  return { cleared: findings.every((f) => f.severity !== 'block'), findings };
+}
+
+function localCitationReview(body: string): ContentVariant['citationReview'] {
+  const claims = body
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => QUANTITATIVE.test(s) || CAUSAL.test(s))
+    .map((text) => ({ text, needsCitation: !CITATION_PRESENT.test(text) }));
+  return { cleared: claims.every((c) => !c.needsCitation), claims };
+}
 
 export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
   {
     id: 'ci_trees',
     title: 'Street trees cool low-income neighbourhoods least',
     sourceIds: ['src_sample_trees'],
+    campaignId: 'cmp_heat',
+    ownerId: 'you',
     audience: 'public',
     pillar: 'research-finding',
     evidenceLevel: 'observational',
@@ -25,31 +66,29 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
         contentItemId: 'ci_trees',
         channel: 'linkedin',
         format: 'post',
-        body: 'Across 84 cities, tree canopy was associated with cooler streets…',
+        body: 'Across 84 cities, tree canopy was associated with cooler streets (Smith, 2024).',
         hook: 'Your street’s temperature is an equity issue.',
         hashtags: ['UrbanHeat', 'Equity'],
         status: 'reviewed',
-        safetyReview: cleared(),
+        safetyReview: ok(),
       },
       {
         id: 'cv_trees_bs',
         contentItemId: 'ci_trees',
         channel: 'bluesky',
         format: 'thread',
-        body: '1/ Tree cover and heat aren’t evenly shared…',
+        body: '1/ Tree cover and heat aren’t evenly shared across a city.',
         hashtags: [],
-        status: 'reviewed',
-        safetyReview: cleared(),
+        status: 'draft',
       },
       {
         id: 'cv_trees_patient',
         contentItemId: 'ci_trees',
         channel: 'newsletter',
         format: 'newsletter-paragraph',
-        body: 'Trees guarantee a cooler home and cure heat illness.',
+        body: 'Planting trees cures heat illness and guarantees a cooler home.',
         hashtags: [],
         status: 'draft',
-        safetyReview: cleared(['overclaim “guarantee” — Vahtian records, it doesn’t prove']),
       },
     ],
   },
@@ -57,6 +96,7 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
     id: 'ci_sleep',
     title: 'Slow-wave sleep and memory consolidation',
     sourceIds: ['src_sample_sleep'],
+    ownerId: 'you',
     audience: 'students',
     pillar: 'explainer',
     evidenceLevel: 'mechanistic',
@@ -68,10 +108,11 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
         contentItemId: 'ci_sleep',
         channel: 'teaching',
         format: 'slide',
-        body: 'Slide: how sleep consolidates memory.',
+        body: 'Slide: how slow-wave sleep consolidates the day’s memories.',
         hashtags: [],
         status: 'reviewed',
-        safetyReview: cleared(),
+        safetyReview: ok(),
+        humanReviewedAt: '2026-06-20T00:00:00.000Z',
       },
     ],
   },
@@ -89,29 +130,58 @@ export class LocalContentClient implements ContentClient {
     return this.items.map((i) => ({ ...i, variants: i.variants.map((v) => ({ ...v })) }));
   }
 
-  private find(variantId: string): ContentVariant {
+  private locate(variantId: string): { item: ContentItemWithVariants; variant: ContentVariant } {
     for (const item of this.items) {
-      const v = item.variants.find((x) => x.id === variantId);
-      if (v) return v;
+      const variant = item.variants.find((v) => v.id === variantId);
+      if (variant) return { item, variant };
     }
     throw new Error('Variant not found.');
   }
 
-  async schedule(variantId: string, scheduledAt: string): Promise<ContentVariant> {
-    const v = this.find(variantId);
-    v.status = 'scheduled';
-    v.scheduledAt = scheduledAt;
-    return { ...v };
+  async updateVariant(
+    id: string,
+    patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
+  ): Promise<ContentVariant> {
+    const { variant } = this.locate(id);
+    Object.assign(variant, patch);
+    return { ...variant };
   }
 
-  async publish(variantId: string): Promise<ContentVariant> {
-    const v = this.find(variantId);
-    if (!v.safetyReview?.cleared) {
-      throw new Error('Cannot export: the safety review has unresolved blocking findings.');
-    }
-    v.status = 'exported';
-    v.exportedAt = new Date().toISOString();
-    return { ...v };
+  async runSafetyReview(id: string): Promise<ContentVariant> {
+    const { item, variant } = this.locate(id);
+    variant.safetyReview = localSafetyReview(
+      variant.body,
+      item.audience === 'patients' || item.audience === 'public',
+    );
+    return { ...variant };
+  }
+
+  async runCitationReview(id: string): Promise<ContentVariant> {
+    const { variant } = this.locate(id);
+    variant.citationReview = localCitationReview(variant.body);
+    return { ...variant };
+  }
+
+  async markReviewed(id: string): Promise<ContentVariant> {
+    const { variant } = this.locate(id);
+    variant.humanReviewedAt = new Date().toISOString();
+    return { ...variant };
+  }
+
+  async schedule(id: string, scheduledAt: string): Promise<ContentVariant> {
+    const { variant } = this.locate(id);
+    variant.status = 'scheduled';
+    variant.scheduledAt = scheduledAt;
+    return { ...variant };
+  }
+
+  async publish(id: string): Promise<ContentVariant> {
+    const { variant } = this.locate(id);
+    if (!variant.safetyReview?.cleared) throw new Error('Cannot export: blocking safety findings.');
+    if (!variant.humanReviewedAt) throw new Error('Cannot export: not marked human-reviewed.');
+    variant.status = 'exported';
+    variant.exportedAt = new Date().toISOString();
+    return { ...variant };
   }
 }
 
@@ -129,12 +199,26 @@ export class ApiContentClient implements ContentClient {
     );
   }
 
-  schedule(variantId: string, scheduledAt: string): Promise<ContentVariant> {
-    return this.api.post<ContentVariant>(`/content-variants/${variantId}/schedule`, { scheduledAt });
+  updateVariant(
+    id: string,
+    patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
+  ): Promise<ContentVariant> {
+    return this.api.patch<ContentVariant>(`/content-variants/${id}`, patch);
   }
-
-  publish(variantId: string): Promise<ContentVariant> {
-    return this.api.post<ContentVariant>(`/content-variants/${variantId}/publish`);
+  runSafetyReview(id: string): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-variants/${id}/review/safety`);
+  }
+  runCitationReview(id: string): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-variants/${id}/review/citation`);
+  }
+  markReviewed(id: string): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-variants/${id}/mark-reviewed`);
+  }
+  schedule(id: string, scheduledAt: string): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-variants/${id}/schedule`, { scheduledAt });
+  }
+  publish(id: string): Promise<ContentVariant> {
+    return this.api.post<ContentVariant>(`/content-variants/${id}/publish`);
   }
 }
 
@@ -150,12 +234,13 @@ export function setContentClient(client: ContentClient): void {
   active = client;
 }
 
-export function listContentItems(): Promise<ContentItemWithVariants[]> {
-  return active.listItems();
-}
-export function scheduleVariant(variantId: string, scheduledAt: string): Promise<ContentVariant> {
-  return active.schedule(variantId, scheduledAt);
-}
-export function publishVariant(variantId: string): Promise<ContentVariant> {
-  return active.publish(variantId);
-}
+export const contentClient = {
+  listItems: () => active.listItems(),
+  updateVariant: (id: string, patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>) =>
+    active.updateVariant(id, patch),
+  runSafetyReview: (id: string) => active.runSafetyReview(id),
+  runCitationReview: (id: string) => active.runCitationReview(id),
+  markReviewed: (id: string) => active.markReviewed(id),
+  schedule: (id: string, scheduledAt: string) => active.schedule(id, scheduledAt),
+  publish: (id: string) => active.publish(id),
+};

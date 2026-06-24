@@ -2,10 +2,27 @@
 
 export type Audience = 'peers' | 'students' | 'patients' | 'public';
 export type ContentStatus = 'idea' | 'draft' | 'reviewed' | 'scheduled' | 'exported';
+export type Severity = 'info' | 'warn' | 'block';
 
-export interface VariantReview {
+export interface SafetyFinding {
+  severity: Severity;
+  message: string;
+  category?: string;
+}
+
+export interface SafetyReview {
   cleared: boolean;
-  findings: string[];
+  findings: SafetyFinding[];
+}
+
+export interface Claim {
+  text: string;
+  needsCitation: boolean;
+}
+
+export interface CitationReview {
+  cleared: boolean;
+  claims: Claim[];
 }
 
 export interface ContentVariant {
@@ -17,9 +34,11 @@ export interface ContentVariant {
   hook?: string;
   hashtags: string[];
   status: ContentStatus;
-  safetyReview?: VariantReview;
+  safetyReview?: SafetyReview;
+  citationReview?: CitationReview;
   scheduledAt?: string;
   exportedAt?: string;
+  humanReviewedAt?: string;
 }
 
 export interface ContentItem {
@@ -27,6 +46,7 @@ export interface ContentItem {
   title: string;
   sourceIds: string[];
   campaignId?: string;
+  ownerId?: string;
   audience: Audience;
   pillar: string;
   evidenceLevel: string;
@@ -38,9 +58,32 @@ export interface ContentItemWithVariants extends ContentItem {
   variants: ContentVariant[];
 }
 
+/**
+ * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
+ * Empty array ⇒ cleared for export.
+ */
+export function exportBlockers(variant: ContentVariant): string[] {
+  const blockers: string[] = [];
+  if (!variant.safetyReview) {
+    blockers.push('Medical-safety review has not been run.');
+  } else if (!variant.safetyReview.cleared) {
+    const blocks = variant.safetyReview.findings.filter((f) => f.severity === 'block').length;
+    blockers.push(`${blocks} blocking safety finding${blocks === 1 ? '' : 's'} unresolved.`);
+  }
+  if (!variant.humanReviewedAt) blockers.push('Not yet marked human-reviewed.');
+  return blockers;
+}
+
 export interface ContentClient {
   readonly name: string;
   listItems(): Promise<ContentItemWithVariants[]>;
-  schedule(variantId: string, scheduledAt: string): Promise<ContentVariant>;
-  publish(variantId: string): Promise<ContentVariant>;
+  updateVariant(
+    id: string,
+    patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
+  ): Promise<ContentVariant>;
+  runSafetyReview(id: string): Promise<ContentVariant>;
+  runCitationReview(id: string): Promise<ContentVariant>;
+  markReviewed(id: string): Promise<ContentVariant>;
+  schedule(id: string, scheduledAt: string): Promise<ContentVariant>;
+  publish(id: string): Promise<ContentVariant>;
 }
