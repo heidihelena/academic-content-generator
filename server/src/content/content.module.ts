@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContentItem, ContentVariant } from '../domain/academic';
 import { JsonFileStore } from '../persistence/json-file.store';
+import { SafetyModule } from '../safety/safety.module';
+import { ContentReviewService } from './content-review.service';
 import { ContentItemsController, ContentVariantsController } from './content.controller';
 import {
   CONTENT_ITEMS_REPOSITORY,
@@ -17,9 +19,10 @@ import { ContentService } from './content.service';
 
 /** ContentItem + ContentVariant model (one idea → many channel/format variants). */
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, SafetyModule],
   providers: [
     ContentService,
+    ContentReviewService,
     {
       provide: CONTENT_ITEMS_REPOSITORY,
       inject: [ConfigService],
@@ -42,6 +45,6 @@ import { ContentService } from './content.service';
     },
   ],
   controllers: [ContentItemsController, ContentVariantsController],
-  exports: [ContentService],
+  exports: [ContentService, ContentReviewService],
 })
 export class ContentModule {}

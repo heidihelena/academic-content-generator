@@ -87,7 +87,7 @@ describe('ContentService — variants', () => {
     ).rejects.toBeInstanceOf(BadRequestException);
   });
 
-  it('runs the variant lifecycle: schedule then publish, gated by the safety review', async () => {
+  it('runs the variant lifecycle: schedule, human review, then publish', async () => {
     const service = setup();
     const item = await service.createItem(itemInput);
     const variant = await service.addVariant(item.id, {
@@ -100,6 +100,11 @@ describe('ContentService — variants', () => {
     const scheduled = await service.scheduleVariant(variant.id, '2030-02-01T09:00:00.000Z');
     expect(scheduled.status).toBe('scheduled');
     expect(scheduled.scheduledAt).toBe('2030-02-01T09:00:00.000Z');
+
+    // Safety-cleared but not yet human-reviewed → still blocked.
+    await expect(service.exportVariant(variant.id)).rejects.toBeInstanceOf(BadRequestException);
+    const signed = await service.markReviewed(variant.id);
+    expect(signed.humanReviewedAt).toBeTruthy();
 
     const exported = await service.exportVariant(variant.id);
     expect(exported.status).toBe('exported');
@@ -115,6 +120,7 @@ describe('ContentService — variants', () => {
       body: 'copy',
       safetyReview: review(false),
     });
+    await service.markReviewed(blocked.id); // even signed off, blocking findings stop export
     await expect(service.exportVariant(blocked.id)).rejects.toBeInstanceOf(BadRequestException);
     await expect(service.updateVariant(blocked.id, { status: 'exported' })).rejects.toBeInstanceOf(
       BadRequestException,

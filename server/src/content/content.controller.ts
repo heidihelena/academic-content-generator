@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { ContentReviewService } from './content-review.service';
 import {
   ContentService,
   CreateContentItemInput,
@@ -52,7 +53,28 @@ export class ContentItemsController {
 
 @Controller('content-variants')
 export class ContentVariantsController {
-  constructor(private readonly content: ContentService) {}
+  constructor(
+    private readonly content: ContentService,
+    private readonly review: ContentReviewService,
+  ) {}
+
+  /** POST /api/content-variants/:id/review/safety — run the medical-safety review. */
+  @Post(':id/review/safety')
+  runSafetyReview(@Param('id') id: string) {
+    return this.review.runSafetyReview(id);
+  }
+
+  /** POST /api/content-variants/:id/review/citation — run the citation review. */
+  @Post(':id/review/citation')
+  runCitationReview(@Param('id') id: string) {
+    return this.review.runCitationReview(id);
+  }
+
+  /** POST /api/content-variants/:id/mark-reviewed — human sign-off. */
+  @Post(':id/mark-reviewed')
+  markReviewed(@Param('id') id: string) {
+    return this.review.markReviewed(id);
+  }
 
   @Get(':id')
   get(@Param('id') id: string) {
