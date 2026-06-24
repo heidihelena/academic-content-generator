@@ -1,4 +1,5 @@
 import { SafetyFinding } from '../domain/academic';
+import { overclaimRegex } from './overclaim-terms';
 
 /**
  * Medical overclaiming review (issue #32).
@@ -25,7 +26,8 @@ interface Rule {
 /** Each pattern carries the `g` flag so every occurrence yields its own finding. */
 const RULES: readonly Rule[] = [
   {
-    pattern: /\b(?:cures?|cured|miracle|guaranteed?|100%\s+effective|completely safe|no side effects?)\b/gi,
+    // Single source of truth for absolute claims (see overclaim-terms.ts).
+    pattern: overclaimRegex(),
     category: 'overclaiming',
     severity: 'block',
     message: 'Absolute efficacy/safety claim — research findings are rarely certain.',
