@@ -11,6 +11,12 @@ on:
       - 'v*'
     branches:
       - 'claude/social-content-calendar-yntmj7'
+    # Only build when actual app source changes — not for README/docs/profile or
+    # workflow edits. Keeps doc commits from triggering expensive desktop builds.
+    paths:
+      - 'content-calendar/**'
+      - 'server/**'
+      - 'desktop/**'
 
 # The frontend is built with the API URL the desktop app serves on (must match
 # PORT in desktop/src/main.ts).
