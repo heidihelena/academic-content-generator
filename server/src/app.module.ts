@@ -10,6 +10,10 @@ import { AccountsModule } from './accounts/accounts.module';
 import { SchedulerModule } from './scheduler/scheduler.module';
 import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
+import { SafetyModule } from './safety/safety.module';
+import { SourcesModule } from './sources/sources.module';
+import { IdeaLabModule } from './idea-lab/idea-lab.module';
+import { DraftStudioModule } from './draft-studio/draft-studio.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
@@ -28,6 +32,10 @@ import { ShortsModule } from './shorts/shorts.module';
     SchedulerModule,
     VaultModule,
     AiModule,
+    SafetyModule,
+    SourcesModule,
+    IdeaLabModule,
+    DraftStudioModule,
     MediaModule,
     RenderModule,
     ShortsModule,
