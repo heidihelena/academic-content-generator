@@ -1,23 +1,69 @@
-# Hi, I'm Heidi 👋
+# vahtian · Content Calendar
 
-Researcher who cares about **sharing science clearly** — with peers and with the
-public — and who builds small tools to make that easier.
+A production-quality social media **content calendar** for managing Instagram,
+LinkedIn, and Threads from one workspace — a dark-mode React dashboard backed by
+a NestJS API with social integrations, a vector-searchable content vault, and an
+AI idea generator.
 
-- 🔬 Working in research and science communication
-- 🛠️ Building **forskAI** — a calendar for planning and scheduling research-communication posts across social networks
-- 🌱 Always learning
+## Repository layout
 
-<!--
-  This is your GitHub profile README: its contents appear on your public
-  profile page (github.com/heidihelena) once this repository is PUBLIC and the
-  change is on the default branch (main). The repo is currently private, so
-  nothing here is public yet.
+| Path | What it is |
+| --- | --- |
+| [`content-calendar/`](content-calendar/) | React + TypeScript + Vite dashboard (calendar, editor, analytics, AI). Runs standalone (local mode) or against the API. |
+| [`server/`](server/) | NestJS backend: posts + scheduler, OAuth + real platform clients, swappable persistence (memory / SQLite+sqlite-vec / Neon+pgvector), markdown/Obsidian vault vector search, RAG idea generator. |
+| [`docker-compose.yml`](docker-compose.yml) | One-command local stack: Postgres+pgvector, the API, and the dashboard. |
+| `.github/workflows/` | CI for the frontend and the backend (typecheck · test · build). |
 
-  Make it yours — edit the lines above, or just tell Claude what to put here:
-    • your field, role, or institution
-    • links: website · LinkedIn · Bluesky · ORCID · email
-    • what you're working on or interested in
--->
+## Quick start
 
-<sub>📦 This repository also holds the source for the forskAI app — see
-[PROJECT.md](PROJECT.md).</sub>
+### Option A — full stack with Docker (one command)
+
+```bash
+docker compose up --build
+```
+
+- Dashboard → http://localhost:8080
+- API → http://localhost:3000/api
+- Postgres+pgvector with the API on the `neon` driver
+
+Runs entirely on mocks (no API keys). Add real credentials to the `api` service
+in `docker-compose.yml` to go live — see
+[`server/docs/PLATFORM_SETUP.md`](server/docs/PLATFORM_SETUP.md).
+
+### Option B — frontend only (zero config)
+
+```bash
+cd content-calendar && npm install && npm run dev   # http://localhost:5173
+```
+
+Sample data + `localStorage`, mock integrations, client-side AI — no backend
+needed. See [`content-calendar/README.md`](content-calendar/README.md).
+
+### Option C — frontend + backend, run directly
+
+```bash
+cd server && npm install && npm run start:dev       # http://localhost:3000/api
+# then, in another terminal:
+cd content-calendar && echo "VITE_API_URL=http://localhost:3000/api" > .env.local && npm run dev
+```
+
+## Tests
+
+```bash
+cd content-calendar && npm test   # 60 tests (Vitest + RTL)
+cd server          && npm test    # 37 tests (Jest + supertest)
+```
+
+## Going live
+
+Every external service is swappable via config; mocks are the default so nothing
+is required to run:
+
+- **Persistence** — `PERSISTENCE_DRIVER=memory|sqlite|neon`
+- **Social platforms** — set `*_CLIENT_ID`/`*_CLIENT_SECRET` per platform (real
+  Instagram/LinkedIn/Threads clients, mock fallback otherwise)
+- **AI ideas** — `IDEA_GENERATOR=llm` + `ANTHROPIC_API_KEY` (Claude)
+- **Embeddings** — `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY`
+
+Details in [`server/README.md`](server/README.md) and
+[`server/docs/PLATFORM_SETUP.md`](server/docs/PLATFORM_SETUP.md).
