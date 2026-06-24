@@ -7,6 +7,12 @@ public — and who builds small tools to make that easier.
 - 🛠️ Building **forskAI** — a calendar for planning and scheduling research-communication posts across social networks
 - 🌱 Always learning
 
+### Find me
+
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0001--5923--5865-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0001-5923-5865)
+
+- 🔗 ORCID: [0000-0001-5923-5865](https://orcid.org/0000-0001-5923-5865)
+
 <!--
   This is your GitHub profile README: its contents appear on your public
   profile page (github.com/heidihelena) once this repository is PUBLIC and the
