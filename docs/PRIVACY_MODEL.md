@@ -55,13 +55,13 @@ written into the vault.
 | `sqlite` | A local file at `SQLITE_PATH` (default `./data/content-calendar.sqlite`). |
 | `neon` | A Postgres database at `DATABASE_URL`. |
 
-> Note: **manual sources and campaigns** persist to durable JSON files
-> (`SOURCES_STORE_PATH` default `./data/sources.json`, `CAMPAIGNS_STORE_PATH`
-> default `./data/campaigns.json`) whenever `PERSISTENCE_DRIVER` is anything other
-> than `memory`; under `memory` they are process-only. Generated content
-> (`ContentOutput`) is not stored yet — that lands with the "save to calendar"
-> follow-up. Native SQL tables for sources/campaigns are a possible later
-> optimization.
+> Note: **manual sources, campaigns and generated content** persist to durable
+> JSON files (`SOURCES_STORE_PATH` default `./data/sources.json`,
+> `CAMPAIGNS_STORE_PATH` default `./data/campaigns.json`, and
+> `CONTENT_ITEMS_STORE_PATH` / `CONTENT_VARIANTS_STORE_PATH` default
+> `./data/content-items.json` / `./data/content-variants.json`) whenever
+> `PERSISTENCE_DRIVER` is anything other than `memory`; under `memory` they are
+> process-only. Native SQL tables are a possible later optimization.
 
 The source vault is read from `VAULT_PATH` (default `./vault`); set
 `VAULT_WATCH=true` to watch it for changes.

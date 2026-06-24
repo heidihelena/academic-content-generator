@@ -1,4 +1,4 @@
-import { Audience, Campaign, ContentOutput, ReviewState } from '../domain/academic';
+import { Audience, Campaign, ContentItem, ContentVariant, ReviewState } from '../domain/academic';
 import { ContentPlan } from '../content-plan/content-plan.types';
 
 export interface TalkPackageRequest {
@@ -19,9 +19,11 @@ export interface TalkPackageRequest {
  */
 export interface TalkPackageResult {
   campaign: Campaign;
+  /** The idea these variants belong to. */
+  item: ContentItem;
   plan: ContentPlan;
-  talk: ContentOutput;
-  shorts: ContentOutput[];
+  talk: ContentVariant;
+  shorts: ContentVariant[];
   /** Aggregate safety review over the talk + all shorts. */
   review: ReviewState;
   estimatedMinutes: number;

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { OutputsModule } from '../outputs/outputs.module';
+import { ContentModule } from '../content/content.module';
 import { SafetyModule } from '../safety/safety.module';
 import { SourcesModule } from '../sources/sources.module';
 import { DraftStudioController } from './draft-studio.controller';
@@ -11,7 +11,7 @@ import { LlmDraftComposer } from './llm.composer';
 
 /** Draft Studio workflow (ForskAI Version 1, issue #35). */
 @Module({
-  imports: [OutputsModule, SafetyModule, SourcesModule, ConfigModule],
+  imports: [ContentModule, SafetyModule, SourcesModule, ConfigModule],
   providers: [
     DraftStudioService,
     {

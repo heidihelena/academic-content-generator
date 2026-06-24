@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { OutputsModule } from '../outputs/outputs.module';
+import { ContentModule } from '../content/content.module';
 import { ReuseController } from './reuse.controller';
 import { ReuseService } from './reuse.service';
 
-/** Cross-campaign reuse over the outputs store (prior-work lookups + composer context). */
+/** Cross-campaign reuse over the content store (prior-work lookups + composer context). */
 @Module({
-  imports: [OutputsModule],
+  imports: [ContentModule],
   providers: [ReuseService],
   controllers: [ReuseController],
   exports: [ReuseService],

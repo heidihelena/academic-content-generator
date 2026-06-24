@@ -1,8 +1,11 @@
 import { InMemoryCampaignsRepository } from '../campaigns/campaigns.repository';
 import { CampaignsService } from '../campaigns/campaigns.service';
+import {
+  InMemoryContentItemsRepository,
+  InMemoryContentVariantsRepository,
+} from '../content/content.repository';
+import { ContentService } from '../content/content.service';
 import { ContentPlanService } from '../content-plan/content-plan.service';
-import { InMemoryOutputsRepository } from '../outputs/outputs.repository';
-import { OutputsService } from '../outputs/outputs.service';
 import { ReuseService } from '../reuse/reuse.service';
 import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
@@ -15,20 +18,23 @@ const emptyVault = { listNotes: async () => [], getNote: async () => null } as n
 function setup(composer = new LocalTalkComposer()) {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
   const campaigns = new CampaignsService(new InMemoryCampaignsRepository());
-  const outputs = new OutputsService(new InMemoryOutputsRepository());
+  const content = new ContentService(
+    new InMemoryContentItemsRepository(),
+    new InMemoryContentVariantsRepository(),
+  );
   const service = new TalkPackageService(
     new ContentPlanService(sources),
     campaigns,
     new SafetyService(),
-    outputs,
-    new ReuseService(outputs),
+    content,
+    new ReuseService(content),
     composer,
   );
-  return { sources, campaigns, outputs, service };
+  return { sources, campaigns, content, service };
 }
 
 describe('TalkPackageService', () => {
-  it('generates a talk + one short per point, persisted as a campaign', async () => {
+  it('generates an item with a talk + one short variant per point, under a campaign', async () => {
     const { sources, campaigns, service } = setup();
     const src = await sources.create({
       kind: 'paper',
@@ -38,8 +44,8 @@ describe('TalkPackageService', () => {
 
     const result = await service.generate({ sourceId: src.id, durationMin: 12, url: 'vahtian.com/x' });
 
-    // Talk anchor.
     expect(result.talk.channel).toBe('talk');
+    expect(result.talk.format).toBe('talk-script');
     expect(result.talk.body).toContain('## Opening');
     expect(result.estimatedMinutes).toBeGreaterThan(0);
 
@@ -48,16 +54,18 @@ describe('TalkPackageService', () => {
     expect(result.shorts.every((s) => s.channel === 'shorts')).toBe(true);
     expect(result.shorts[0].body).toContain('CTA: ');
 
-    // Persisted campaign, with every output linked to it.
+    // Persisted item under the campaign; every variant linked to the item.
     expect(await campaigns.get(result.campaign.id)).toBeTruthy();
-    for (const out of [result.talk, ...result.shorts]) {
-      expect(out.campaignId).toBe(result.campaign.id);
-      expect(out.reviewState).toBeDefined();
+    expect(result.item.campaignId).toBe(result.campaign.id);
+    expect(result.item.sourceIds).toEqual([src.id]);
+    for (const variant of [result.talk, ...result.shorts]) {
+      expect(variant.contentItemId).toBe(result.item.id);
+      expect(variant.safetyReview).toBeDefined();
     }
   });
 
-  it('persists the talk + shorts to the outputs store, linked to the campaign', async () => {
-    const { sources, outputs, service } = setup();
+  it('persists the talk + shorts as variants of the item', async () => {
+    const { sources, content, service } = setup();
     const src = await sources.create({
       kind: 'paper',
       title: 'Trees',
@@ -65,13 +73,13 @@ describe('TalkPackageService', () => {
     });
     const result = await service.generate({ sourceId: src.id });
 
-    const stored = await outputs.list({ campaignId: result.campaign.id });
-    expect(stored).toHaveLength(1 + result.shorts.length);
-    expect(stored.filter((o) => o.channel === 'talk')).toHaveLength(1);
-    expect((await outputs.get(result.talk.id)).body).toBe(result.talk.body);
+    const variants = await content.listVariants(result.item.id);
+    expect(variants).toHaveLength(1 + result.shorts.length);
+    expect(variants.filter((v) => v.channel === 'talk')).toHaveLength(1);
+    expect((await content.getVariant(result.talk.id)).body).toBe(result.talk.body);
   });
 
-  it('feeds prior outputs from the same source to the composer on regeneration', async () => {
+  it('feeds prior variants from the same source to the composer on regeneration', async () => {
     const seen: string[][] = [];
     const composer = new LocalTalkComposer();
     const original = composer.composeTalk.bind(composer);

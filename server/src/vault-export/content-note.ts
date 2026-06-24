@@ -1,5 +1,16 @@
 import { ContentItem, ContentVariant, isCleared } from '../domain/academic';
-import { slugify } from './output-note';
+
+/** Filesystem-safe slug for a note filename. */
+export function slugify(text: string, max = 60): string {
+  return (
+    text
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, max)
+      .replace(/-+$/g, '') || 'untitled'
+  );
+}
 
 /**
  * Renders ContentItems and ContentVariants as a linked Obsidian map-of-content:

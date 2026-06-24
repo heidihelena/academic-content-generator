@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ContentChannel, ContentOutput } from '../domain/academic';
-import { OutputsService } from '../outputs/outputs.service';
+import { ContentChannel, ContentItem, ContentVariant } from '../domain/academic';
+import { ContentService } from '../content/content.service';
 
-/** The leading meaningful line of an output body, stripped of markdown markers. */
+/** The leading meaningful line of a variant body, stripped of markdown markers. */
 function hookOf(body: string): string {
   for (const raw of (body ?? '').split('\n')) {
     const stripped = raw
@@ -31,36 +31,44 @@ export interface ReuseSummary {
 /**
  * Cross-campaign reuse: what has already been generated from a source. Lets the
  * planner see prior work (avoid duplicating or contradicting it) and feeds the
- * composer optional "already covered" context. The vault's backlink graph is
- * the human-facing version of the same idea; this is the structured one.
+ * composer optional "already covered" context. Reads the ContentItem/Variant
+ * store — the structured twin of the vault's backlink graph.
  */
 @Injectable()
 export class ReuseService {
-  constructor(private readonly outputs: OutputsService) {}
+  constructor(private readonly content: ContentService) {}
 
-  prior(sourceId: string): Promise<ContentOutput[]> {
-    return this.outputs.list({ sourceId });
+  /** Prior (item, variant) pairs derived from a source. */
+  private async pairs(sourceId: string): Promise<Array<{ item: ContentItem; variant: ContentVariant }>> {
+    const items = await this.content.listItems({ sourceId });
+    const out: Array<{ item: ContentItem; variant: ContentVariant }> = [];
+    for (const item of items) {
+      for (const variant of await this.content.listVariants(item.id)) out.push({ item, variant });
+    }
+    return out;
   }
 
-  /** Short descriptors of prior outputs, for the composer to avoid repeating. */
+  /** Short descriptors of prior variants, for the composer to avoid repeating. */
   async priorContext(sourceId: string): Promise<string[]> {
-    return (await this.prior(sourceId)).map((o) => `${o.channel}/${o.audience}: ${hookOf(o.body)}`);
+    return (await this.pairs(sourceId)).map(
+      ({ item, variant }) => `${variant.channel}/${item.audience}: ${hookOf(variant.body)}`,
+    );
   }
 
   async summary(sourceId: string): Promise<ReuseSummary> {
-    const items = await this.prior(sourceId);
+    const pairs = await this.pairs(sourceId);
     const byChannel: Partial<Record<ContentChannel, number>> = {};
-    for (const o of items) byChannel[o.channel] = (byChannel[o.channel] ?? 0) + 1;
+    for (const { variant } of pairs) byChannel[variant.channel] = (byChannel[variant.channel] ?? 0) + 1;
     return {
       sourceId,
-      total: items.length,
+      total: pairs.length,
       byChannel,
-      items: items.map((o) => ({
-        id: o.id,
-        channel: o.channel,
-        audience: o.audience,
-        campaignId: o.campaignId,
-        hook: hookOf(o.body),
+      items: pairs.map(({ item, variant }) => ({
+        id: variant.id,
+        channel: variant.channel,
+        audience: item.audience,
+        campaignId: item.campaignId,
+        hook: hookOf(variant.body),
       })),
     };
   }

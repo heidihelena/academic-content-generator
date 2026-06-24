@@ -1,6 +1,9 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { InMemoryOutputsRepository } from '../outputs/outputs.repository';
-import { OutputsService } from '../outputs/outputs.service';
+import {
+  InMemoryContentItemsRepository,
+  InMemoryContentVariantsRepository,
+} from '../content/content.repository';
+import { ContentService } from '../content/content.service';
 import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
@@ -11,20 +14,18 @@ const emptyVault = { listNotes: async () => [], getNote: async () => null } as n
 
 function setup() {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
-  const outputs = new OutputsService(new InMemoryOutputsRepository());
-  const service = new DraftStudioService(
-    sources,
-    new SafetyService(),
-    outputs,
-    new LocalDraftComposer(),
+  const content = new ContentService(
+    new InMemoryContentItemsRepository(),
+    new InMemoryContentVariantsRepository(),
   );
-  return { sources, outputs, service };
+  const service = new DraftStudioService(sources, new SafetyService(), content, new LocalDraftComposer());
+  return { sources, content, service };
 }
 
 const fixed = new Date('2026-01-01T00:00:00.000Z');
 
 describe('DraftStudioService', () => {
-  it('produces a reviewed ContentOutput from a source', async () => {
+  it('produces a reviewed ContentItem + ContentVariant from a source', async () => {
     const { sources, service } = setup();
     const src = await sources.create({
       kind: 'paper',
@@ -32,39 +33,51 @@ describe('DraftStudioService', () => {
       abstract: 'rest helps recall',
       tags: ['neuro'],
     });
-    const out = await service.create(
+    const { item, variant } = await service.create(
       { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
       fixed,
     );
 
-    expect(out.id).toMatch(/^co_/);
-    expect(out.sourceId).toBe(src.id);
-    expect(out.channel).toBe('linkedin');
-    expect(out.audience).toBe('peers');
-    expect(out.status).toBe('reviewed');
-    expect(out.body).toContain('Sleep and memory');
-    expect(out.reviewState?.reviewedAt).toBe('2026-01-01T00:00:00.000Z');
-    expect(out.createdAt).toBe('2026-01-01T00:00:00.000Z');
+    expect(item.id).toMatch(/^ci_/);
+    expect(item.sourceIds).toEqual([src.id]);
+    expect(item.audience).toBe('peers');
+    expect(item.status).toBe('reviewed');
+
+    expect(variant.id).toMatch(/^cv_/);
+    expect(variant.contentItemId).toBe(item.id);
+    expect(variant.channel).toBe('linkedin');
+    expect(variant.format).toBe('post');
+    expect(variant.status).toBe('reviewed');
+    expect(variant.body).toContain('Sleep and memory');
+    expect(variant.safetyReview?.reviewedAt).toBe('2026-01-01T00:00:00.000Z');
   });
 
-  it('persists the draft so it can move on through the pipeline', async () => {
-    const { sources, outputs, service } = setup();
+  it('persists the variant so it can move on through the pipeline', async () => {
+    const { sources, content, service } = setup();
     const src = await sources.create({ kind: 'paper', title: 'Sleep and memory', abstract: 'rest helps recall' });
-    const out = await service.create({ sourceId: src.id, channel: 'linkedin', audience: 'peers' }, fixed);
+    const { variant } = await service.create({ sourceId: src.id, channel: 'linkedin', audience: 'peers' }, fixed);
 
-    // Source → … → review → scheduled → exported, all persisted.
-    expect((await outputs.get(out.id)).status).toBe('reviewed');
-    const scheduled = await outputs.schedule(out.id, '2026-02-01T09:00:00.000Z');
+    expect((await content.getVariant(variant.id)).status).toBe('reviewed');
+    const scheduled = await content.scheduleVariant(variant.id, '2026-02-01T09:00:00.000Z');
     expect(scheduled.status).toBe('scheduled');
-    expect(scheduled.scheduledFor).toBe('2026-02-01T09:00:00.000Z');
-    const exported = await outputs.export(out.id);
+    expect(scheduled.scheduledAt).toBe('2026-02-01T09:00:00.000Z');
+    const exported = await content.exportVariant(variant.id);
     expect(exported.status).toBe('exported');
+  });
+
+  it('maps each channel to its natural format', async () => {
+    const { sources, service } = setup();
+    const src = await sources.create({ kind: 'note', title: 'X', abstract: 'a' });
+    const bluesky = await service.create({ sourceId: src.id, channel: 'bluesky', audience: 'peers' }, fixed);
+    expect(bluesky.variant.format).toBe('thread');
+    const teaching = await service.create({ sourceId: src.id, channel: 'teaching', audience: 'peers' }, fixed);
+    expect(teaching.variant.format).toBe('slide');
   });
 
   it('uses a provided idea hook/angle in the body', async () => {
     const { sources, service } = setup();
     const src = await sources.create({ kind: 'note', title: 'X' });
-    const out = await service.create(
+    const { variant } = await service.create(
       {
         sourceId: src.id,
         channel: 'threads',
@@ -73,23 +86,24 @@ describe('DraftStudioService', () => {
       },
       fixed,
     );
-    expect(out.body).toContain('Did you know?');
-    expect(out.body).toContain('memory tricks');
+    expect(variant.body).toContain('Did you know?');
+    expect(variant.body).toContain('memory tricks');
+    expect(variant.hook).toBe('Did you know?');
   });
 
-  it('flags unsafe content in the reviewState', async () => {
+  it('flags unsafe content in the safetyReview', async () => {
     const { sources, service } = setup();
     const src = await sources.create({
       kind: 'paper',
       title: 'This drug cures everything',
       abstract: 'guaranteed 100% effective',
     });
-    const out = await service.create(
+    const { variant } = await service.create(
       { sourceId: src.id, channel: 'linkedin', audience: 'public' },
       fixed,
     );
-    expect(out.reviewState?.cleared).toBe(false);
-    expect(out.reviewState?.findings.length).toBeGreaterThan(0);
+    expect(variant.safetyReview?.cleared).toBe(false);
+    expect(variant.safetyReview?.findings.length).toBeGreaterThan(0);
   });
 
   it('validates channel and audience before loading the source', async () => {
@@ -117,13 +131,14 @@ describe('DraftStudioService', () => {
       { sourceId: src.id, channel: 'newsletter', audience: 'patients' },
       fixed,
     );
-    expect(patient.body.toLowerCase()).toContain('not medical advice');
+    expect(patient.variant.body.toLowerCase()).toContain('not medical advice');
+    expect(patient.item.claimRisk).toBe('moderate'); // patient-facing default
 
     const peers = await service.create(
       { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
       fixed,
     );
-    expect(peers.body.toLowerCase()).not.toContain('not medical advice');
+    expect(peers.variant.body.toLowerCase()).not.toContain('not medical advice');
   });
 
   it('blocks export of causal claims for a patient audience but not for peers (#34)', async () => {
@@ -137,13 +152,13 @@ describe('DraftStudioService', () => {
       { sourceId: src.id, channel: 'instagram', audience: 'public' },
       fixed,
     );
-    expect(patient.reviewState?.cleared).toBe(false);
+    expect(patient.variant.safetyReview?.cleared).toBe(false);
 
     const peers = await service.create(
       { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
       fixed,
     );
-    expect(peers.reviewState?.cleared).toBe(true);
+    expect(peers.variant.safetyReview?.cleared).toBe(true);
   });
 
   it('suggests a hook for a source', async () => {

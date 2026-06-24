@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { ContentOutput } from '../domain/academic';
+import { ContentStatus } from '../domain/academic';
 import { InMemoryCampaignsRepository } from './campaigns.repository';
 import { CampaignsService } from './campaigns.service';
 
@@ -68,7 +68,7 @@ describe('CampaignsService', () => {
 
   it('rolls up content items by status with every status zero-filled', () => {
     const svc = makeService();
-    const item = (status: ContentOutput['status']) => ({ status });
+    const item = (status: ContentStatus) => ({ status });
     const rollup = svc.rollup([item('draft'), item('draft'), item('reviewed')]);
     expect(rollup.total).toBe(3);
     expect(rollup.byStatus.draft).toBe(2);
