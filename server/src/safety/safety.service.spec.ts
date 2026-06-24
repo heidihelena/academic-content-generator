@@ -23,4 +23,12 @@ describe('SafetyService', () => {
     const result = svc.review('hello world');
     expect(result.reviewedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
   });
+
+  it('escalates advisory findings to block for a patient-facing audience (#34)', () => {
+    const body = 'Coffee causes weight loss.'; // warn: causal-language
+    expect(svc.review(body, fixed).cleared).toBe(true);
+    const strict = svc.review(body, fixed, 'patients');
+    expect(strict.cleared).toBe(false);
+    expect(strict.findings.some((f) => f.severity === 'block')).toBe(true);
+  });
 });

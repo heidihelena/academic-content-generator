@@ -8,6 +8,7 @@ import {
   ContentOutput,
   SourceMaterial,
 } from '../domain/academic';
+import { MEDICAL_DISCLAIMER, isPatientFacing } from '../safety/patient-safe';
 import { SafetyService } from '../safety/safety.service';
 import { SourcesService } from '../sources/sources.service';
 
@@ -45,7 +46,7 @@ export class DraftStudioService {
     const source = await this.sources.get(req.sourceId); // throws 404 if missing
 
     const body = this.composeDraft(source, req.channel, req.audience, req.idea);
-    const reviewState = this.safety.review(body, now);
+    const reviewState = this.safety.review(body, now, req.audience);
     const iso = now.toISOString();
 
     return {
@@ -78,6 +79,10 @@ export class DraftStudioService {
       lines.push('', source.tags.map((t) => `#${t.replace(/\s+/g, '')}`).join(' '));
     }
     lines.push('', `— for ${audience} · ${channel}`);
+    // Patient-safe mode (#34): plain non-advice framing for patient/public content.
+    if (isPatientFacing(audience)) {
+      lines.push('', MEDICAL_DISCLAIMER);
+    }
     return lines.join('\n');
   }
 }

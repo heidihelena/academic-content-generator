@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ReviewState, isCleared } from '../domain/academic';
+import { Audience, ReviewState, isCleared } from '../domain/academic';
 import { detectClaims } from './citation';
 import { reviewOverclaiming } from './overclaiming';
+import { escalateForAudience } from './patient-safe';
 
 /**
  * Runs the claim + medical-safety reviewers over a draft and combines their
@@ -13,10 +14,13 @@ export class SafetyService {
   /**
    * Reviews `body` and returns the combined claims + findings. `now` is a
    * parameter (defaulting to the current time) so `reviewedAt` stays
-   * deterministic in tests.
+   * deterministic in tests. When `audience` is patient-facing, advisory
+   * findings are escalated so they gate export (patient-safe mode, #34).
    */
-  review(body: string, now: Date = new Date()): ReviewState {
-    const findings = reviewOverclaiming(body);
+  review(body: string, now: Date = new Date(), audience?: Audience): ReviewState {
+    const findings = audience
+      ? escalateForAudience(reviewOverclaiming(body), audience)
+      : reviewOverclaiming(body);
     return {
       claims: detectClaims(body),
       findings,
