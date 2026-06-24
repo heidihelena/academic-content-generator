@@ -2,11 +2,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { readdir, readFile, stat } from 'fs/promises';
 import { existsSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, resolve, sep } from 'path';
 import type { VaultChunk, VaultSearchResult } from '../domain/types';
 import { VECTOR_STORE, type VectorStore } from '../persistence/repository.interfaces';
 import { EMBEDDINGS_SERVICE, type EmbeddingsService } from '../embeddings/embeddings.types';
 import { chunkId, chunkMarkdown, hashContent } from './markdown';
+import { buildNote, type VaultNote } from './note';
 
 export interface IngestReport {
   files: number;
@@ -88,6 +89,34 @@ export class VaultService {
   async search(query: string, k = 5): Promise<VaultSearchResult[]> {
     const [embedding] = await this.embeddings.embed([query]);
     return this.vectors.search(embedding, k);
+  }
+
+  /**
+   * Lists every markdown note in the vault as a `VaultNote`, newest first. Lets
+   * the Source Inbox surface Obsidian notes as pickable sources without copying
+   * them. Returns `[]` when the vault path does not exist.
+   */
+  async listNotes(): Promise<VaultNote[]> {
+    const root = this.vaultPath;
+    if (!existsSync(root)) return [];
+    const files = await this.findMarkdown(root);
+    const notes = await Promise.all(files.map((file) => this.readNote(root, file)));
+    return notes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt));
+  }
+
+  /** Reads a single note by its vault-relative path, or `null` if absent. */
+  async getNote(relativePath: string): Promise<VaultNote | null> {
+    const root = resolve(this.vaultPath);
+    const full = resolve(root, relativePath);
+    // Guard against path traversal — the resolved path must stay inside the vault.
+    if (full !== root && !full.startsWith(root + sep)) return null;
+    if (!existsSync(full)) return null;
+    return this.readNote(this.vaultPath, full);
+  }
+
+  private async readNote(root: string, full: string): Promise<VaultNote> {
+    const [raw, info] = await Promise.all([readFile(full, 'utf8'), stat(full)]);
+    return buildNote(relative(root, full), raw, info.mtime.toISOString());
   }
 
   private async findMarkdown(dir: string): Promise<string[]> {

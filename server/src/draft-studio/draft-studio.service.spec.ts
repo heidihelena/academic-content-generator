@@ -4,8 +4,10 @@ import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
 import { DraftStudioService } from './draft-studio.service';
 
+const emptyVault = { listNotes: async () => [], getNote: async () => null } as never;
+
 function setup() {
-  const sources = new SourcesService(new InMemorySourcesRepository());
+  const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
   const service = new DraftStudioService(sources, new SafetyService());
   return { sources, service };
 }

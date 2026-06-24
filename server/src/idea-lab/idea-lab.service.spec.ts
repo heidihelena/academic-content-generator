@@ -19,8 +19,10 @@ class StubGenerator implements IdeaGenerator {
   }
 }
 
+const emptyVault = { listNotes: async () => [], getNote: async () => null } as never;
+
 function setup() {
-  const sources = new SourcesService(new InMemorySourcesRepository());
+  const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
   const generator = new StubGenerator();
   const service = new IdeaLabService(generator, sources);
   return { sources, generator, service };
