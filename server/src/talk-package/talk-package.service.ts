@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { CampaignsService } from '../campaigns/campaigns.service';
 import { ContentPlanService } from '../content-plan/content-plan.service';
 import { Audience, ContentChannel, ContentOutput } from '../domain/academic';
 import { SafetyService } from '../safety/safety.service';
+import { TALK_COMPOSER, TalkComposer } from './talk-composer.types';
 import { TalkPackageRequest, TalkPackageResult } from './talk-package.types';
-import { pointCountForDuration, renderShort, renderTalk } from './talk-render';
+import { estimateMinutes, pointCountForDuration } from './talk-render';
 
 const DEFAULT_DURATION_MIN = 12;
 
@@ -26,6 +27,7 @@ export class TalkPackageService {
     private readonly plans: ContentPlanService,
     private readonly campaigns: CampaignsService,
     private readonly safety: SafetyService,
+    @Inject(TALK_COMPOSER) private readonly composer: TalkComposer,
   ) {}
 
   async generate(req: TalkPackageRequest, now: Date = new Date()): Promise<TalkPackageResult> {
@@ -50,19 +52,22 @@ export class TalkPackageService {
       now,
     );
 
-    const talkRender = renderTalk(plan, { durationMin, audience });
-    const talk = this.output(plan.sourceId, campaign.id, 'talk', audience, talkRender.body, now);
+    // Compose the talk and every short (Claude-backed when configured, local
+    // scaffold otherwise) concurrently, then review each piece.
+    const [talkBody, shortBodies] = await Promise.all([
+      this.composer.composeTalk(plan, { durationMin, audience }),
+      Promise.all(
+        plan.points.map((point, i) =>
+          this.composer.composeShort(plan, point, i, { url, audience }),
+        ),
+      ),
+    ]);
+
+    const talk = this.output(plan.sourceId, campaign.id, 'talk', audience, talkBody, now);
     talk.reviewState = this.safety.review(talk.body, now, audience);
 
-    const shorts = plan.points.map((point, i) => {
-      const out = this.output(
-        plan.sourceId,
-        campaign.id,
-        'shorts',
-        audience,
-        renderShort(plan, point, i, { url, audience }),
-        now,
-      );
+    const shorts = shortBodies.map((body) => {
+      const out = this.output(plan.sourceId, campaign.id, 'shorts', audience, body, now);
       out.reviewState = this.safety.review(out.body, now, audience);
       return out;
     });
@@ -73,7 +78,14 @@ export class TalkPackageService {
       audience,
     );
 
-    return { campaign, plan, talk, shorts, review, estimatedMinutes: talkRender.estimatedMinutes };
+    return {
+      campaign,
+      plan,
+      talk,
+      shorts,
+      review,
+      estimatedMinutes: estimateMinutes(talk.body),
+    };
   }
 
   private output(

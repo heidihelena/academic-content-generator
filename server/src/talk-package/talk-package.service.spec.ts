@@ -4,6 +4,7 @@ import { ContentPlanService } from '../content-plan/content-plan.service';
 import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
+import { LocalTalkComposer } from './local.talk-composer';
 import { TalkPackageService } from './talk-package.service';
 
 const emptyVault = { listNotes: async () => [], getNote: async () => null } as never;
@@ -15,6 +16,7 @@ function setup() {
     new ContentPlanService(sources),
     campaigns,
     new SafetyService(),
+    new LocalTalkComposer(),
   );
   return { sources, campaigns, service };
 }

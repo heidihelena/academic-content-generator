@@ -25,6 +25,12 @@ export function pointCountForDuration(durationMin: number): number {
   return Math.min(5, Math.max(1, Math.round(durationMin / 4)));
 }
 
+/** Estimated spoken minutes for a script, at ~140 wpm (one decimal place). */
+export function estimateMinutes(text: string): number {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.round((words / WORDS_PER_MINUTE) * 10) / 10;
+}
+
 export interface TalkRenderOptions {
   durationMin: number;
   audience: Audience;
@@ -72,8 +78,7 @@ export function renderTalk(
   if (isPatientFacing(opts.audience)) lines.push(DISCLAIMER);
 
   const body = lines.join('\n');
-  const words = body.split(/\s+/).filter(Boolean).length;
-  return { body, estimatedMinutes: Math.round((words / WORDS_PER_MINUTE) * 10) / 10 };
+  return { body, estimatedMinutes: estimateMinutes(body) };
 }
 
 /** First clause of a sentence, for a short's attention line. */
