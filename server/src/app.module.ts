@@ -12,6 +12,7 @@ import { VaultModule } from './vault/vault.module';
 import { AiModule } from './ai/ai.module';
 import { SafetyModule } from './safety/safety.module';
 import { SourcesModule } from './sources/sources.module';
+import { IdeaLabModule } from './idea-lab/idea-lab.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
@@ -32,6 +33,7 @@ import { ShortsModule } from './shorts/shorts.module';
     AiModule,
     SafetyModule,
     SourcesModule,
+    IdeaLabModule,
     MediaModule,
     RenderModule,
     ShortsModule,

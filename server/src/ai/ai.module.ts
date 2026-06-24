@@ -28,5 +28,8 @@ import { LlmIdeaGenerator } from './generators/llm.generator';
     },
   ],
   controllers: [IdeasController, DraftsController],
+  // Exported so other features (e.g. the Idea Lab) can compose the configured
+  // generator without re-declaring the mock/llm selection factory.
+  exports: [IDEA_GENERATOR],
 })
 export class AiModule {}
