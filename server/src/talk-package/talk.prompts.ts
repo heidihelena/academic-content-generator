@@ -25,11 +25,17 @@ function planBlock(plan: ContentPlan): string {
 }
 
 export function buildTalkUserPrompt(plan: ContentPlan, opts: TalkComposeOptions): string {
+  const priorBlock = opts.priorContext?.length
+    ? '\nAlready published from this source — keep messaging consistent and do NOT repeat:\n' +
+      opts.priorContext.map((c) => `  - ${c}`).join('\n') +
+      '\n'
+    : '';
   return [
     `Write a spoken conference-talk script of about ${opts.durationMin} minutes ` +
       `(~${Math.round(opts.durationMin * 140)} words) for a ${opts.audience} audience.`,
     '',
     planBlock(plan),
+    priorBlock,
     '',
     'Structure: a short opening that earns attention and previews the points; ' +
       'one section per point that states the claim, explains the evidence faithfully ' +

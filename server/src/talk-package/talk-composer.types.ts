@@ -4,6 +4,8 @@ import { ContentPlan, ContentPoint } from '../content-plan/content-plan.types';
 export interface TalkComposeOptions {
   durationMin: number;
   audience: Audience;
+  /** Descriptors of content already made from this source — avoid repeating it. */
+  priorContext?: string[];
 }
 
 export interface ShortComposeOptions {
