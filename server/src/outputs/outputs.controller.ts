@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ContentStatus } from '../domain/academic';
 import { OutputsService } from './outputs.service';
 
@@ -21,6 +21,18 @@ export class OutputsController {
   @Patch(':id')
   updateStatus(@Param('id') id: string, @Body('status') status: ContentStatus) {
     return this.outputs.updateStatus(id, status);
+  }
+
+  /** POST /api/outputs/:id/schedule — set a date and move to `scheduled`. */
+  @Post(':id/schedule')
+  schedule(@Param('id') id: string, @Body('scheduledFor') scheduledFor: string) {
+    return this.outputs.schedule(id, scheduledFor);
+  }
+
+  /** POST /api/outputs/:id/publish — export the piece (gated by the safety review). */
+  @Post(':id/publish')
+  publish(@Param('id') id: string) {
+    return this.outputs.export(id);
   }
 
   @Delete(':id')

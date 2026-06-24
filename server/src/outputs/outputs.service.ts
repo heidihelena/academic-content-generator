@@ -42,7 +42,38 @@ export class OutputsService {
       throw new BadRequestException(`status must be one of: ${CONTENT_STATUSES.join(', ')}`);
     }
     const existing = await this.get(id); // 404 if missing
+    if (status === 'exported') this.assertCleared(existing);
     return this.repo.upsert({ ...existing, status, updatedAt: now.toISOString() });
+  }
+
+  /** Move a reviewed piece to `scheduled` with a date — the last step before export. */
+  async schedule(id: string, scheduledFor: string, now: Date = new Date()): Promise<ContentOutput> {
+    if (!scheduledFor?.trim() || Number.isNaN(Date.parse(scheduledFor))) {
+      throw new BadRequestException('scheduledFor must be a valid ISO date');
+    }
+    const existing = await this.get(id); // 404 if missing
+    return this.repo.upsert({
+      ...existing,
+      status: 'scheduled',
+      scheduledFor,
+      updatedAt: now.toISOString(),
+    });
+  }
+
+  /** Export a piece — gated by the safety review (patient-safe: blocks are fatal). */
+  async export(id: string, now: Date = new Date()): Promise<ContentOutput> {
+    const existing = await this.get(id); // 404 if missing
+    this.assertCleared(existing);
+    return this.repo.upsert({ ...existing, status: 'exported', updatedAt: now.toISOString() });
+  }
+
+  /** Export is blocked until the piece has a cleared safety review. */
+  private assertCleared(output: ContentOutput): void {
+    if (!output.reviewState?.cleared) {
+      throw new BadRequestException(
+        'Cannot export: the safety review has unresolved blocking findings (or has not run).',
+      );
+    }
   }
 
   async remove(id: string): Promise<void> {

@@ -1,4 +1,6 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { InMemoryOutputsRepository } from '../outputs/outputs.repository';
+import { OutputsService } from '../outputs/outputs.service';
 import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
@@ -9,8 +11,14 @@ const emptyVault = { listNotes: async () => [], getNote: async () => null } as n
 
 function setup() {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
-  const service = new DraftStudioService(sources, new SafetyService(), new LocalDraftComposer());
-  return { sources, service };
+  const outputs = new OutputsService(new InMemoryOutputsRepository());
+  const service = new DraftStudioService(
+    sources,
+    new SafetyService(),
+    outputs,
+    new LocalDraftComposer(),
+  );
+  return { sources, outputs, service };
 }
 
 const fixed = new Date('2026-01-01T00:00:00.000Z');
@@ -37,6 +45,20 @@ describe('DraftStudioService', () => {
     expect(out.body).toContain('Sleep and memory');
     expect(out.reviewState?.reviewedAt).toBe('2026-01-01T00:00:00.000Z');
     expect(out.createdAt).toBe('2026-01-01T00:00:00.000Z');
+  });
+
+  it('persists the draft so it can move on through the pipeline', async () => {
+    const { sources, outputs, service } = setup();
+    const src = await sources.create({ kind: 'paper', title: 'Sleep and memory', abstract: 'rest helps recall' });
+    const out = await service.create({ sourceId: src.id, channel: 'linkedin', audience: 'peers' }, fixed);
+
+    // Source → … → review → scheduled → exported, all persisted.
+    expect((await outputs.get(out.id)).status).toBe('reviewed');
+    const scheduled = await outputs.schedule(out.id, '2026-02-01T09:00:00.000Z');
+    expect(scheduled.status).toBe('scheduled');
+    expect(scheduled.scheduledFor).toBe('2026-02-01T09:00:00.000Z');
+    const exported = await outputs.export(out.id);
+    expect(exported.status).toBe('exported');
   });
 
   it('uses a provided idea hook/angle in the body', async () => {

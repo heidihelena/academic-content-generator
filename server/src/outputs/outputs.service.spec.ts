@@ -45,6 +45,32 @@ describe('OutputsService', () => {
     expect(updated.updatedAt).toBe(new Date('2026-07-01').toISOString());
   });
 
+  it('schedules a piece with a date, rejecting an invalid one', async () => {
+    const service = setup();
+    const saved = await service.save(output());
+    const scheduled = await service.schedule(saved.id, '2026-02-01T09:00:00.000Z', new Date('2026-01-10'));
+    expect(scheduled.status).toBe('scheduled');
+    expect(scheduled.scheduledFor).toBe('2026-02-01T09:00:00.000Z');
+    await expect(service.schedule(saved.id, 'not-a-date')).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('gates export on a cleared safety review', async () => {
+    const service = setup();
+    const review = (cleared: boolean) => ({ claims: [], findings: [], reviewedAt: 'x', cleared });
+
+    const blocked = await service.save(output({ reviewState: review(false) }));
+    await expect(service.export(blocked.id)).rejects.toBeInstanceOf(BadRequestException);
+    // Same block applies through the generic status update.
+    await expect(service.updateStatus(blocked.id, 'exported')).rejects.toBeInstanceOf(BadRequestException);
+
+    const cleared = await service.save(output({ reviewState: review(true) }));
+    expect((await service.export(cleared.id)).status).toBe('exported');
+
+    // An output that was never reviewed cannot be exported either.
+    const unreviewed = await service.save(output({ reviewState: undefined }));
+    await expect(service.export(unreviewed.id)).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('rejects an invalid status and 404s for a missing id', async () => {
     const service = setup();
     const saved = await service.save(output());
