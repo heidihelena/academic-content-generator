@@ -1,0 +1,69 @@
+# vahtian · Content Calendar
+
+A production-quality social media **content calendar** for managing Instagram,
+LinkedIn, and Threads from one workspace — a dark-mode React dashboard backed by
+a NestJS API with social integrations, a vector-searchable content vault, and an
+AI idea generator.
+
+## Repository layout
+
+| Path | What it is |
+| --- | --- |
+| [`content-calendar/`](content-calendar/) | React + TypeScript + Vite dashboard (calendar, editor, analytics, AI). Runs standalone (local mode) or against the API. |
+| [`server/`](server/) | NestJS backend: posts + scheduler, OAuth + real platform clients, swappable persistence (memory / SQLite+sqlite-vec / Neon+pgvector), markdown/Obsidian vault vector search, RAG idea generator. |
+| [`docker-compose.yml`](docker-compose.yml) | One-command local stack: Postgres+pgvector, the API, and the dashboard. |
+| `.github/workflows/` | CI for the frontend and the backend (typecheck · test · build). |
+
+## Quick start
+
+### Option A — full stack with Docker (one command)
+
+```bash
+docker compose up --build
+```
+
+- Dashboard → http://localhost:8080
+- API → http://localhost:3000/api
+- Postgres+pgvector with the API on the `neon` driver
+
+Runs entirely on mocks (no API keys). Add real credentials to the `api` service
+in `docker-compose.yml` to go live — see
+[`server/docs/PLATFORM_SETUP.md`](server/docs/PLATFORM_SETUP.md).
+
+### Option B — frontend only (zero config)
+
+```bash
+cd content-calendar && npm install && npm run dev   # http://localhost:5173
+```
+
+Sample data + `localStorage`, mock integrations, client-side AI — no backend
+needed. See [`content-calendar/README.md`](content-calendar/README.md).
+
+### Option C — frontend + backend, run directly
+
+```bash
+cd server && npm install && npm run start:dev       # http://localhost:3000/api
+# then, in another terminal:
+cd content-calendar && echo "VITE_API_URL=http://localhost:3000/api" > .env.local && npm run dev
+```
+
+## Tests
+
+```bash
+cd content-calendar && npm test   # 60 tests (Vitest + RTL)
+cd server          && npm test    # 37 tests (Jest + supertest)
+```
+
+## Going live
+
+Every external service is swappable via config; mocks are the default so nothing
+is required to run:
+
+- **Persistence** — `PERSISTENCE_DRIVER=memory|sqlite|neon`
+- **Social platforms** — set `*_CLIENT_ID`/`*_CLIENT_SECRET` per platform (real
+  Instagram/LinkedIn/Threads clients, mock fallback otherwise)
+- **AI ideas** — `IDEA_GENERATOR=llm` + `ANTHROPIC_API_KEY` (Claude)
+- **Embeddings** — `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY`
+
+Details in [`server/README.md`](server/README.md) and
+[`server/docs/PLATFORM_SETUP.md`](server/docs/PLATFORM_SETUP.md).
