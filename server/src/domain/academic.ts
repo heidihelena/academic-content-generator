@@ -137,3 +137,33 @@ export interface ContentOutput {
 export function isCleared(findings: readonly SafetyFinding[]): boolean {
   return !findings.some((f) => f.severity === 'block');
 }
+
+/** A themed series of content planned across channels and time (issue #36). */
+export interface Campaign {
+  id: string;
+  title: string;
+  goal?: string;
+  audience?: Audience;
+  /** Inclusive ISO date (YYYY-MM-DD) range for the campaign. */
+  startDate?: string;
+  endDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A count of content items by editorial status — a campaign's progress at a glance. */
+export interface CampaignStatusRollup {
+  total: number;
+  byStatus: Record<ContentStatus, number>;
+}
+
+/** Summarises content items by status, with every status present (zero-filled). */
+export function rollupByStatus(
+  outputs: readonly Pick<ContentOutput, 'status'>[],
+): CampaignStatusRollup {
+  const byStatus = Object.fromEntries(
+    CONTENT_STATUSES.map((status) => [status, 0]),
+  ) as Record<ContentStatus, number>;
+  for (const output of outputs) byStatus[output.status]++;
+  return { total: outputs.length, byStatus };
+}

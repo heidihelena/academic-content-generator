@@ -14,6 +14,7 @@ import { SafetyModule } from './safety/safety.module';
 import { SourcesModule } from './sources/sources.module';
 import { IdeaLabModule } from './idea-lab/idea-lab.module';
 import { DraftStudioModule } from './draft-studio/draft-studio.module';
+import { CampaignsModule } from './campaigns/campaigns.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
@@ -36,6 +37,7 @@ import { ShortsModule } from './shorts/shorts.module';
     SourcesModule,
     IdeaLabModule,
     DraftStudioModule,
+    CampaignsModule,
     MediaModule,
     RenderModule,
     ShortsModule,
