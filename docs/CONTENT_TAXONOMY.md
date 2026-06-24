@@ -24,10 +24,13 @@ Where a piece of content is published. `CONTENT_CHANNELS`.
 | Value | Meaning |
 | --- | --- |
 | `linkedin` | A LinkedIn post. |
+| `bluesky` | A Bluesky post / thread. |
 | `threads` | A Threads post / thread. |
 | `instagram` | An Instagram post. |
 | `newsletter` | A newsletter section or issue. |
 | `teaching` | Teaching / course material. |
+| `talk` | A long-form spoken talk script. |
+| `shorts` | A short-form video script. |
 
 ## Audiences
 
@@ -91,3 +94,40 @@ What a safety finding is about. `SAFETY_CATEGORIES`.
 Per-channel formats are described by the idea generator's `ContentFormat` type
 (`carousel`, `reel`, `single image`, `text post`, `video`, `poll`, `story`) in
 [`server/src/ai/ideas.types.ts`](../server/src/ai/ideas.types.ts).
+
+## The content model: ContentItem → ContentVariant
+
+A "post" is too flat for academic content: one idea fans out into many
+channel/format/audience renderings. The model is two levels.
+
+**`ContentItem`** — one idea, the strategy layer. Fields: `title`,
+`sourceIds[]`, `campaignId?`, `ownerId?`, `audience`, `pillar`, `evidenceLevel`,
+`claimRisk`, `status`, timestamps.
+
+**`ContentVariant`** — one channel/format rendering of an item, the copy +
+lifecycle layer. Fields: `contentItemId`, `channel`, `format`, `body`, `hook?`,
+`hashtags[]`, `status`, `safetyReview?`, `citationReview?`, `scheduledAt?`,
+`exportedAt?`, timestamps. Export is gated by a cleared `safetyReview`.
+
+### Content pillars
+
+The strategy bucket an idea belongs to. `CONTENT_PILLARS`: `research-finding`,
+`explainer`, `methods`, `commentary`, `education`, `behind-the-research`,
+`announcement`.
+
+### Evidence levels
+
+Strength of the evidence behind the claims. `EVIDENCE_LEVELS`:
+`systematic-review`, `rct`, `observational`, `mechanistic`, `expert-opinion`,
+`unknown`.
+
+### Claim risk
+
+How overclaim-prone / sensitive the claims are. `CLAIM_RISKS`: `low`,
+`moderate`, `high`.
+
+### Variant formats
+
+The shape a variant takes on its channel (distinct from *where* it publishes).
+`VARIANT_FORMATS`: `post`, `thread`, `carousel`, `slide`,
+`newsletter-paragraph`, `short-script`, `talk-script`.

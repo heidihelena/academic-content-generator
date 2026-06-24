@@ -21,6 +21,7 @@ export type SourceKind = (typeof SOURCE_KINDS)[number];
 /** Output channel a piece of content is shaped for. */
 export const CONTENT_CHANNELS = [
   'linkedin',
+  'bluesky',
   'threads',
   'instagram',
   'newsletter',
@@ -57,6 +58,45 @@ export const SAFETY_CATEGORIES = [
   'identifiable-patient',
 ] as const;
 export type SafetyCategory = (typeof SAFETY_CATEGORIES)[number];
+
+/** Strategy bucket an idea belongs to (a content pillar / theme). */
+export const CONTENT_PILLARS = [
+  'research-finding',
+  'explainer',
+  'methods',
+  'commentary',
+  'education',
+  'behind-the-research',
+  'announcement',
+] as const;
+export type ContentPillar = (typeof CONTENT_PILLARS)[number];
+
+/** Strength of the evidence behind a piece's claims. */
+export const EVIDENCE_LEVELS = [
+  'systematic-review',
+  'rct',
+  'observational',
+  'mechanistic',
+  'expert-opinion',
+  'unknown',
+] as const;
+export type EvidenceLevel = (typeof EVIDENCE_LEVELS)[number];
+
+/** How sensitive/overclaim-prone the claims are — drives review strictness. */
+export const CLAIM_RISKS = ['low', 'moderate', 'high'] as const;
+export type ClaimRisk = (typeof CLAIM_RISKS)[number];
+
+/** The shape a variant takes on its channel (distinct from where it is published). */
+export const VARIANT_FORMATS = [
+  'post',
+  'thread',
+  'carousel',
+  'slide',
+  'newsletter-paragraph',
+  'short-script',
+  'talk-script',
+] as const;
+export type VariantFormat = (typeof VARIANT_FORMATS)[number];
 
 /** A half-open character range `[start, end)` into a content body. */
 export interface TextSpan {
@@ -142,6 +182,48 @@ export interface ContentOutput {
  */
 export function isCleared(findings: readonly SafetyFinding[]): boolean {
   return !findings.some((f) => f.severity === 'block');
+}
+
+/**
+ * The core unit of academic content: one *idea*, derived from sources, that
+ * fans out into many channel/format/audience {@link ContentVariant}s. The item
+ * carries the strategy (pillar, evidence level, claim risk, audience); the
+ * variants carry the actual copy and their own per-channel lifecycle + reviews.
+ */
+export interface ContentItem {
+  id: string;
+  title: string;
+  /** The source material this idea draws on. */
+  sourceIds: string[];
+  campaignId?: string;
+  ownerId?: string;
+  audience: Audience;
+  pillar: ContentPillar;
+  evidenceLevel: EvidenceLevel;
+  claimRisk: ClaimRisk;
+  status: ContentStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** One channel/format rendering of a {@link ContentItem}, with its own lifecycle. */
+export interface ContentVariant {
+  id: string;
+  contentItemId: string;
+  channel: ContentChannel;
+  format: VariantFormat;
+  body: string;
+  hook?: string;
+  hashtags: string[];
+  status: ContentStatus;
+  /** Claim + medical-safety review outcome. */
+  safetyReview?: ReviewState;
+  /** Citation-support review outcome. */
+  citationReview?: ReviewState;
+  scheduledAt?: string;
+  exportedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** A themed series of content planned across channels and time (issue #36). */
