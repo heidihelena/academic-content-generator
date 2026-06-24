@@ -1,6 +1,6 @@
 import { BoardIcon, BookIcon, CalendarIcon, ChartIcon, LinkIcon, ListIcon, PlugIcon, SparkleIcon } from './icons';
 
-export type View = 'board' | 'calendar' | 'list' | 'inbox' | 'studio' | 'analytics' | 'accounts' | 'ideas';
+export type View = 'board' | 'calendar' | 'list' | 'inbox' | 'studio' | 'content' | 'analytics' | 'accounts' | 'ideas';
 
 const NAV: Array<{ id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element }> = [
   { id: 'board', label: 'Pipeline', icon: BoardIcon },
@@ -8,6 +8,7 @@ const NAV: Array<{ id: View; label: string; icon: (p: { width?: number; height?:
   { id: 'list', label: 'List', icon: ListIcon },
   { id: 'inbox', label: 'Source Inbox', icon: LinkIcon },
   { id: 'studio', label: 'Draft Studio', icon: BookIcon },
+  { id: 'content', label: 'Content', icon: ListIcon },
   { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
   { id: 'analytics', label: 'Analytics', icon: ChartIcon },
   { id: 'accounts', label: 'Accounts', icon: PlugIcon },

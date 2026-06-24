@@ -13,6 +13,7 @@ import { DraftStudio } from './components/DraftStudio';
 import type { StudioSeed } from './studio/studioTypes';
 import { AbstractToThread } from './components/AbstractToThread';
 import { TalkPackageStudio } from './components/TalkPackageStudio';
+import { ContentItems } from './components/ContentItems';
 import { VideoToShorts } from './components/VideoToShorts';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
@@ -73,6 +74,11 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
               {view === 'studio' && (
                 <div className="mx-auto max-w-3xl">
                   <DraftStudio seed={studioSeed} />
+                </div>
+              )}
+              {view === 'content' && (
+                <div className="mx-auto max-w-3xl">
+                  <ContentItems />
                 </div>
               )}
               {view === 'ideas' && (
