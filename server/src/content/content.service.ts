@@ -16,6 +16,7 @@ import {
   EVIDENCE_LEVELS,
   EvidenceLevel,
   ReviewState,
+  exportBlockers,
   VARIANT_FORMATS,
   VariantFormat,
 } from '../domain/academic';
@@ -209,16 +210,21 @@ export class ContentService {
     return this.variants.upsert({ ...existing, status: 'exported', exportedAt: iso, updatedAt: iso });
   }
 
+  /** Mark a variant human-reviewed (signs off the explicit export gate). */
+  async markReviewed(id: string, now: Date = new Date()): Promise<ContentVariant> {
+    const existing = await this.getVariant(id);
+    return this.variants.upsert({ ...existing, humanReviewedAt: now.toISOString(), updatedAt: now.toISOString() });
+  }
+
   async removeVariant(id: string): Promise<void> {
     await this.getVariant(id); // 404 if missing
     await this.variants.delete(id);
   }
 
   private assertCleared(variant: ContentVariant): void {
-    if (!variant.safetyReview?.cleared) {
-      throw new BadRequestException(
-        'Cannot export: the safety review has unresolved blocking findings (or has not run).',
-      );
+    const blockers = exportBlockers(variant);
+    if (blockers.length) {
+      throw new BadRequestException(`Cannot export: ${blockers.join(' ')}`);
     }
   }
 

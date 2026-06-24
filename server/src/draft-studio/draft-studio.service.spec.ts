@@ -61,6 +61,7 @@ describe('DraftStudioService', () => {
     const scheduled = await content.scheduleVariant(variant.id, '2026-02-01T09:00:00.000Z');
     expect(scheduled.status).toBe('scheduled');
     expect(scheduled.scheduledAt).toBe('2026-02-01T09:00:00.000Z');
+    await content.markReviewed(variant.id); // explicit human sign-off before export
     const exported = await content.exportVariant(variant.id);
     expect(exported.status).toBe('exported');
   });

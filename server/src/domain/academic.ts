@@ -204,8 +204,30 @@ export interface ContentVariant {
   citationReview?: ReviewState;
   scheduledAt?: string;
   exportedAt?: string;
+  /** When a human signed off on the variant (the explicit review gate). */
+  humanReviewedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/**
+ * Why a variant cannot be exported yet — the explicit gate the UI surfaces so a
+ * user can see *why* a text isn't shippable. Empty array ⇒ cleared for export.
+ * A variant is exportable when its medical-safety review is cleared (no blocking
+ * findings, patient-safe escalation applied) and a human has signed off.
+ */
+export function exportBlockers(
+  variant: Pick<ContentVariant, 'safetyReview' | 'humanReviewedAt'>,
+): string[] {
+  const blockers: string[] = [];
+  if (!variant.safetyReview) {
+    blockers.push('Medical-safety review has not been run.');
+  } else if (!variant.safetyReview.cleared) {
+    const blocks = variant.safetyReview.findings.filter((f) => f.severity === 'block').length;
+    blockers.push(`${blocks} blocking safety finding${blocks === 1 ? '' : 's'} unresolved.`);
+  }
+  if (!variant.humanReviewedAt) blockers.push('Not yet marked human-reviewed.');
+  return blockers;
 }
 
 /** A themed series of content planned across channels and time (issue #36). */

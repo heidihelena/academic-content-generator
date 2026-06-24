@@ -150,7 +150,11 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(scheduled.body.status).toBe('scheduled');
     expect(scheduled.body.scheduledAt).toBe('2030-02-01T09:00:00.000Z');
 
-    // Publish/export → gated by the (cleared) safety review
+    // Gate: safety-cleared but not yet human-reviewed → export refused…
+    await request(http).post(`/api/content-variants/${variantId}/publish`).expect(400);
+    await request(http).post(`/api/content-variants/${variantId}/mark-reviewed`).expect(201);
+
+    // …then publish/export succeeds.
     const exported = await request(http).post(`/api/content-variants/${variantId}/publish`).expect(201);
     expect(exported.body.status).toBe('exported');
   });
