@@ -22,6 +22,15 @@ The default mode is local-first and mock-based. Real platform credentials, LLM p
 > [`docs/PRODUCT_DIRECTION.md`](docs/PRODUCT_DIRECTION.md) for the roadmap and
 > [Version 1 — private academic writing hub](#version-1--private-academic-writing-hub) below.
 
+## Documentation
+
+| Doc | What it covers |
+| --- | --- |
+| [`docs/CONTENT_TAXONOMY.md`](docs/CONTENT_TAXONOMY.md) | The controlled vocabulary: source kinds, channels, audiences, content status, safety severities/categories. |
+| [`docs/MEDICAL_SAFETY_POLICY.md`](docs/MEDICAL_SAFETY_POLICY.md) | What ForskAI will/won't produce for patient-facing content; the severity model and what blocks export. |
+| [`docs/PRIVACY_MODEL.md`](docs/PRIVACY_MODEL.md) | The local-first/mock default and what each opt-in integration sends, and where. |
+| [`docs/PRODUCT_DIRECTION.md`](docs/PRODUCT_DIRECTION.md) | Product roadmap and direction. |
+
 ## Repository layout
 
 | Path | What it is |
