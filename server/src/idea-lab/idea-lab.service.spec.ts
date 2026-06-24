@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { CONTENT_CHANNELS } from '../domain/academic';
 import type { IdeaGenerator, IdeaRequest, PostIdea } from '../ai/ideas.types';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
@@ -40,7 +41,7 @@ describe('IdeaLabService', () => {
     for (const idea of result.ideas) {
       expect(idea.id).toMatch(/^idea_/);
       expect(idea.audience).toBe('students');
-      expect(['linkedin', 'threads', 'instagram', 'newsletter', 'teaching']).toContain(idea.channel);
+      expect(CONTENT_CHANNELS).toContain(idea.channel);
     }
     // a distinct suggested channel per idea
     expect(new Set(result.ideas.map((i) => i.channel)).size).toBe(5);

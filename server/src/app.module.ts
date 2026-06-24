@@ -17,6 +17,7 @@ import { DraftStudioModule } from './draft-studio/draft-studio.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { CarouselModule } from './carousel/carousel.module';
 import { ContentPlanModule } from './content-plan/content-plan.module';
+import { ContentModule } from './content/content.module';
 import { OutputsModule } from './outputs/outputs.module';
 import { ReuseModule } from './reuse/reuse.module';
 import { VaultExportModule } from './vault-export/vault-export.module';
@@ -45,6 +46,7 @@ import { ShortsModule } from './shorts/shorts.module';
     DraftStudioModule,
     CampaignsModule,
     ContentPlanModule,
+    ContentModule,
     OutputsModule,
     ReuseModule,
     VaultExportModule,

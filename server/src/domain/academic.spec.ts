@@ -1,11 +1,15 @@
 import {
   AUDIENCES,
+  CLAIM_RISKS,
   CONTENT_CHANNELS,
+  CONTENT_PILLARS,
   CONTENT_STATUSES,
+  EVIDENCE_LEVELS,
   SAFETY_CATEGORIES,
   SAFETY_SEVERITIES,
   SOURCE_KINDS,
   SafetyFinding,
+  VARIANT_FORMATS,
   isCleared,
 } from './academic';
 
@@ -14,12 +18,25 @@ describe('academic enums', () => {
     expect(SOURCE_KINDS).toEqual(['paper', 'note', 'link', 'lecture']);
     expect(CONTENT_CHANNELS).toEqual([
       'linkedin',
+      'bluesky',
       'threads',
       'instagram',
       'newsletter',
       'teaching',
       'talk',
       'shorts',
+    ]);
+    expect(CONTENT_PILLARS).toContain('research-finding');
+    expect(EVIDENCE_LEVELS).toContain('systematic-review');
+    expect(CLAIM_RISKS).toEqual(['low', 'moderate', 'high']);
+    expect(VARIANT_FORMATS).toEqual([
+      'post',
+      'thread',
+      'carousel',
+      'slide',
+      'newsletter-paragraph',
+      'short-script',
+      'talk-script',
     ]);
     expect(AUDIENCES).toEqual(['peers', 'students', 'patients', 'public']);
     expect(CONTENT_STATUSES).toEqual([
