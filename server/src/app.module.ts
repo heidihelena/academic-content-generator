@@ -16,6 +16,8 @@ import { IdeaLabModule } from './idea-lab/idea-lab.module';
 import { DraftStudioModule } from './draft-studio/draft-studio.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { CarouselModule } from './carousel/carousel.module';
+import { ContentPlanModule } from './content-plan/content-plan.module';
+import { TalkPackageModule } from './talk-package/talk-package.module';
 import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
@@ -39,7 +41,9 @@ import { ShortsModule } from './shorts/shorts.module';
     IdeaLabModule,
     DraftStudioModule,
     CampaignsModule,
+    ContentPlanModule,
     CarouselModule,
+    TalkPackageModule,
     MediaModule,
     RenderModule,
     ShortsModule,

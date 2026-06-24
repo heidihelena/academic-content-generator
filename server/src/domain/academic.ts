@@ -25,6 +25,8 @@ export const CONTENT_CHANNELS = [
   'instagram',
   'newsletter',
   'teaching',
+  'talk',
+  'shorts',
 ] as const;
 export type ContentChannel = (typeof CONTENT_CHANNELS)[number];
 
@@ -123,6 +125,8 @@ export interface ContentOutput {
   audience: Audience;
   body: string;
   status: ContentStatus;
+  /** The campaign (series) this output belongs to, when generated as a set. */
+  campaignId?: string;
   /** Present once the draft has been through review. */
   reviewState?: ReviewState;
   createdAt: string;

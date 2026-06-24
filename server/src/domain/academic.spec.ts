@@ -18,6 +18,8 @@ describe('academic enums', () => {
       'instagram',
       'newsletter',
       'teaching',
+      'talk',
+      'shorts',
     ]);
     expect(AUDIENCES).toEqual(['peers', 'students', 'patients', 'public']);
     expect(CONTENT_STATUSES).toEqual([

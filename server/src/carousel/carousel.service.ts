@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ContentPlanService, shorten } from '../content-plan/content-plan.service';
 import { SafetyService } from '../safety/safety.service';
-import { SourcesService } from '../sources/sources.service';
 import { coverArtDataUrl } from './cover-art';
 import {
   CarouselRequest,
@@ -12,70 +12,53 @@ import {
 const MAX_POINTS = 4;
 const TITLE_MAX = 88; // keep within the builder's legibility lint
 
-function splitSentences(text: string): string[] {
-  return text
-    .split(/(?<=[.!?])\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
-function shorten(text: string, max = TITLE_MAX): string {
-  const t = text.replace(/\s+/g, ' ').trim();
-  if (t.length <= max) return t;
-  const cut = t.slice(0, max);
-  const at = cut.lastIndexOf(' ');
-  return (at > 40 ? cut.slice(0, at) : cut).replace(/[,;:]$/, '') + '…';
-}
-
 /**
- * Generates a Vahtian carousel deck from a source — the agent-drivable bridge
- * between ForskAI content and the carousel builder. Composition is deterministic
- * and local-first; the generated slide text is run through the shared safety
- * review so overclaims surface (the carousel makes brand claims, where the
- * "no overclaim" rule matters most).
+ * Renders a Vahtian carousel deck from a source — the agent-drivable bridge
+ * between ForskAI content and the carousel builder. Composes a shared
+ * {@link ContentPlan} (so it stays consistent with the talk/shorts renderers),
+ * then runs the slide text through the shared safety review so overclaims
+ * surface (the carousel makes brand claims, where the "no overclaim" rule
+ * matters most).
  */
 @Injectable()
 export class CarouselService {
   constructor(
-    private readonly sources: SourcesService,
+    private readonly plans: ContentPlanService,
     private readonly safety: SafetyService,
   ) {}
 
   async generate(req: CarouselRequest): Promise<CarouselResult> {
-    const source = await this.sources.get(req.sourceId); // 404 if missing
+    const plan = await this.plans.fromSource(req.sourceId, { maxPoints: MAX_POINTS }); // 404 if missing
     const theme = THEME_ACCENTS[req.theme ?? ''] ? (req.theme as string) : 'vahtian';
     const bg: 'light' | 'navy' = req.bg === 'navy' ? 'navy' : 'light';
     const url = (req.url || 'vahtian.com').trim();
 
-    const material = (source.abstract || source.body || '').trim();
-    const points: CarouselSlide[] = splitSentences(material)
-      .slice(0, MAX_POINTS)
-      .map((sentence, i) => ({
-        type: 'point',
-        kicker: `POINT ${i + 1}`,
-        title: shorten(sentence),
-        body: '',
-      }));
+    const points: CarouselSlide[] = plan.points.map((point, i) => ({
+      type: 'point',
+      kicker: `POINT ${i + 1}`,
+      title: shorten(point.claim, TITLE_MAX),
+      body: '',
+    }));
 
     const cover: CarouselSlide = {
       type: 'cover',
       kicker: theme.toUpperCase(),
-      title: source.title,
+      title: plan.hook,
       body: '',
-      coverArt: coverArtDataUrl({ accent: THEME_ACCENTS[theme], bg, seed: source.id }),
+      coverArt: coverArtDataUrl({ accent: THEME_ACCENTS[theme], bg, seed: plan.sourceId }),
     };
 
     const cta: CarouselSlide = {
       type: 'cta',
       kicker: '',
-      title: 'Read more.',
+      title: plan.cta,
       body: '',
       url,
     };
 
     const slides = [cover, ...points, cta];
-    const caption = this.buildCaption(source.title, points, url, theme);
-    const deck = { schema: 1, label: source.title, theme, bg, url, caption, slides };
+    const caption = this.buildCaption(plan.hook, points, url, theme);
+    const deck = { schema: 1, label: plan.hook, theme, bg, url, caption, slides };
 
     // Run the shared safety review over all slide text (audience-aware).
     const review = this.safety.review(

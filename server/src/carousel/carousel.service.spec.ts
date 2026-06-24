@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { ContentPlanService } from '../content-plan/content-plan.service';
 import { SafetyService } from '../safety/safety.service';
 import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
@@ -8,7 +9,7 @@ const emptyVault = { listNotes: async () => [], getNote: async () => null } as n
 
 function setup() {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
-  const service = new CarouselService(sources, new SafetyService());
+  const service = new CarouselService(new ContentPlanService(sources), new SafetyService());
   return { sources, service };
 }
 
