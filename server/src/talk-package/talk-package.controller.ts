@@ -1,0 +1,18 @@
+import { Body, Controller, Post } from '@nestjs/common';
+import { TalkPackageRequest } from './talk-package.types';
+import { TalkPackageService } from './talk-package.service';
+
+@Controller('talk-package')
+export class TalkPackageController {
+  constructor(private readonly talkPackage: TalkPackageService) {}
+
+  /**
+   * POST /api/talk-package — turn a source into a long-form talk + derived
+   * shorts, persisted as a campaign. Returns `{ campaign, plan, talk, shorts,
+   * review, estimatedMinutes }`.
+   */
+  @Post()
+  generate(@Body() req: TalkPackageRequest) {
+    return this.talkPackage.generate(req);
+  }
+}

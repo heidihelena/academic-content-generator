@@ -9,6 +9,8 @@ const CHANNEL_LIMITS: Record<ContentChannel, number> = {
   instagram: 2200,
   newsletter: 5000,
   teaching: 5000,
+  talk: 9000, // ~12-minute spoken script
+  shorts: 600, // ~30-60s short script
 };
 
 function isPatientFacing(audience: Audience): boolean {
