@@ -74,9 +74,39 @@ export function exportBlockers(variant: ContentVariant): string[] {
   return blockers;
 }
 
+/** Publishing channels and the shapes a variant can take (mirror the backend). */
+export const VARIANT_CHANNELS = [
+  'linkedin',
+  'bluesky',
+  'threads',
+  'instagram',
+  'newsletter',
+  'teaching',
+  'talk',
+  'shorts',
+] as const;
+export const VARIANT_FORMATS = [
+  'post',
+  'thread',
+  'carousel',
+  'slide',
+  'newsletter-paragraph',
+  'short-script',
+  'talk-script',
+] as const;
+
+export interface NewVariantInput {
+  channel: string;
+  format: string;
+  body: string;
+  hook?: string;
+  hashtags?: string[];
+}
+
 export interface ContentClient {
   readonly name: string;
   listItems(): Promise<ContentItemWithVariants[]>;
+  addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant>;
   updateVariant(
     id: string,
     patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>,
