@@ -16,4 +16,10 @@ export class VaultExportController {
   exportCampaign(@Param('id') id: string) {
     return this.exporter.exportCampaign(id);
   }
+
+  /** POST /api/content-items/:id/export — write the item hub + variant notes, backlinked. */
+  @Post('content-items/:id/export')
+  exportContentItem(@Param('id') id: string) {
+    return this.exporter.exportContentItem(id);
+  }
 }

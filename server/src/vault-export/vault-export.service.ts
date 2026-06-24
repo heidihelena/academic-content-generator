@@ -3,8 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { ContentOutput } from '../domain/academic';
+import { ContentService } from '../content/content.service';
 import { OutputsService } from '../outputs/outputs.service';
 import { SourcesService } from '../sources/sources.service';
+import {
+  itemNoteBasename,
+  renderItemNote,
+  renderVariantNote,
+  variantNoteBasename,
+} from './content-note';
 import { renderOutputNote, slugify } from './output-note';
 
 const EXPORT_ROOT = 'ForskAI';
@@ -24,10 +31,44 @@ export class VaultExportService {
     private readonly config: ConfigService,
     private readonly outputs: OutputsService,
     private readonly sources: SourcesService,
+    private readonly content: ContentService,
   ) {}
 
   private get vaultPath(): string {
     return this.config.get<string>('vault.path') ?? './vault';
+  }
+
+  /**
+   * Export a ContentItem as a linked map-of-content: a hub note backlinking up
+   * to its sources and down to each variant, plus a child note per variant.
+   * Returns the paths written (relative to the vault).
+   */
+  async exportContentItem(itemId: string): Promise<{ paths: string[] }> {
+    const item = await this.content.getItem(itemId); // 404 if missing
+    const variants = await this.content.listVariants(itemId);
+    const dir = join(EXPORT_ROOT, item.campaignId ?? '_unsorted');
+    const itemBase = itemNoteBasename(item);
+
+    const variantBasenames: string[] = [];
+    const paths: string[] = [];
+    for (const variant of variants) {
+      const base = variantNoteBasename(variant);
+      variantBasenames.push(base);
+      const rel = join(dir, itemBase, `${base}.md`);
+      await this.write(rel, renderVariantNote(variant, { itemBasename: itemBase }));
+      paths.push(rel);
+    }
+
+    const sourceTitles: Record<string, string> = {};
+    for (const id of item.sourceIds) {
+      const title = await this.sourceTitle(id);
+      if (title) sourceTitles[id] = title;
+    }
+
+    const itemRel = join(dir, `${itemBase}.md`);
+    await this.write(itemRel, renderItemNote(item, { sourceTitles, variantBasenames }));
+    paths.push(itemRel);
+    return { paths };
   }
 
   /** Export a single output; returns the path written (relative to the vault). */
