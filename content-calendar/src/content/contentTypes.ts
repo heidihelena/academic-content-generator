@@ -126,11 +126,16 @@ export interface TimingSuggestion {
   learnedFrom: number;
 }
 
+export interface EngagementSyncResult {
+  synced: number;
+}
+
 export interface ContentClient {
   readonly name: string;
   listItems(): Promise<ContentItemWithVariants[]>;
   calendarFeed(): Promise<CalendarEntry[]>;
   timingSuggestions(channel: string, audience: string): Promise<TimingSuggestion[]>;
+  syncEngagement(): Promise<EngagementSyncResult>;
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant>;
   updateVariant(
     id: string,

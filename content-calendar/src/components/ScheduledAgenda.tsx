@@ -34,6 +34,25 @@ export function ScheduledAgenda({
   onSelect: (variantId: string) => void;
 }) {
   const [entries, setEntries] = useState<CalendarEntry[] | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+
+  const sync = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const { synced } = await contentClient.syncEngagement();
+      setSyncMsg(
+        synced > 0
+          ? `Synced engagement for ${synced} post${synced === 1 ? '' : 's'} — timing suggestions will adapt.`
+          : 'No exported posts to sync yet.',
+      );
+    } catch {
+      setSyncMsg('Engagement sync failed.');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
     let live = true;
@@ -51,7 +70,17 @@ export function ScheduledAgenda({
         <CalendarIcon width={16} height={16} className="text-brand-400" />
         <h2 className="text-sm font-semibold text-slate-200">Scheduled</h2>
         <span className="text-[11px] text-slate-500">{entries.length} upcoming</span>
+        <button
+          data-testid="sync-engagement"
+          className="btn-secondary ml-auto py-1 text-[11px]"
+          disabled={syncing}
+          onClick={sync}
+          title="Pull engagement for exported posts and feed it to the timing optimizer"
+        >
+          {syncing ? 'Syncing…' : 'Sync engagement'}
+        </button>
       </header>
+      {syncMsg && <p data-testid="sync-result" className="mb-2 text-[11px] text-slate-400">{syncMsg}</p>}
 
       {entries.length === 0 ? (
         <p className="text-xs text-slate-500">Nothing scheduled yet — schedule a variant from its drawer.</p>
