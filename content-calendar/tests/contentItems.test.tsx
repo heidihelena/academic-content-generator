@@ -88,6 +88,23 @@ describe('Content view + editor drawer', () => {
     await waitFor(() => expect(within(drawer).getByText('scheduled')).toBeInTheDocument());
   });
 
+  it('syncs engagement and reports the count after a variant is exported', async () => {
+    render(<App initialView="content" />);
+    // Export the cleared, human-reviewed sleep variant.
+    const sleep = await screen.findByRole('region', { name: /Slow-wave sleep/i });
+    fireEvent.click(within(sleep).getByTestId('variant-row'));
+    const drawer = await screen.findByRole('dialog', { name: /teaching · slide/i });
+    fireEvent.click(within(drawer).getByRole('button', { name: /^Export/ }));
+    await waitFor(() => expect(within(drawer).getByText('exported')).toBeInTheDocument());
+    fireEvent.click(within(drawer).getByRole('button', { name: /Close/i }));
+
+    const agenda = await screen.findByRole('region', { name: /Scheduled content/i });
+    fireEvent.click(within(agenda).getByTestId('sync-engagement'));
+    await waitFor(() =>
+      expect(within(agenda).getByTestId('sync-result').textContent).toMatch(/Synced engagement for 1 post/i),
+    );
+  });
+
   it('runs the safety review and blocks export with reasons for an overclaim', async () => {
     render(<App initialView="content" />);
     const trees = await screen.findByRole('region', { name: /Street trees/i });

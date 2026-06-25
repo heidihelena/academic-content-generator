@@ -185,6 +185,15 @@ export class LocalContentClient implements ContentClient {
     return localSuggestions(channel);
   }
 
+  async syncEngagement(): Promise<{ synced: number }> {
+    // Offline: one outcome per exported variant (mirrors the backend sync).
+    const synced = this.items.reduce(
+      (n, i) => n + i.variants.filter((v) => v.status === 'exported').length,
+      0,
+    );
+    return { synced };
+  }
+
   private locate(variantId: string): { item: ContentItemWithVariants; variant: ContentVariant } {
     for (const item of this.items) {
       const variant = item.variants.find((v) => v.id === variantId);
@@ -279,6 +288,10 @@ export class ApiContentClient implements ContentClient {
       `/timing/suggestions?channel=${encodeURIComponent(channel)}&audience=${encodeURIComponent(audience)}`,
     );
   }
+  async syncEngagement(): Promise<{ synced: number }> {
+    const r = await this.api.post<{ synced: number }>('/engagement/sync');
+    return { synced: r.synced };
+  }
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant> {
     return this.api.post<ContentVariant>(`/content-items/${itemId}/variants`, input);
   }
@@ -322,6 +335,7 @@ export const contentClient = {
   calendarFeed: () => active.calendarFeed(),
   timingSuggestions: (channel: string, audience: string) =>
     active.timingSuggestions(channel, audience),
+  syncEngagement: () => active.syncEngagement(),
   addVariant: (itemId: string, input: NewVariantInput) => active.addVariant(itemId, input),
   updateVariant: (id: string, patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>) =>
     active.updateVariant(id, patch),
