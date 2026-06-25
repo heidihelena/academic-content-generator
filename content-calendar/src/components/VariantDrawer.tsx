@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ContentItem, ContentVariant } from '../content/contentTypes';
+import type { ContentItem, ContentVariant, TimingSuggestion } from '../content/contentTypes';
 import { exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
 import { Drawer } from './ui/Drawer';
@@ -12,6 +12,17 @@ function tomorrowMorning(): string {
   at.setDate(at.getDate() + 1);
   at.setHours(9, 0, 0, 0);
   return at.toISOString();
+}
+
+/** Next future occurrence (UTC) of a given weekday (0–6) + hour. */
+function nextOccurrence(weekday: number, hour: number, from: Date = new Date()): string {
+  const d = new Date(
+    Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate(), hour, 0, 0, 0),
+  );
+  let days = (weekday - d.getUTCDay() + 7) % 7;
+  if (days === 0 && d.getTime() <= from.getTime()) days = 7;
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString();
 }
 
 /**
@@ -38,6 +49,7 @@ export function VariantDrawer({
   const [hashtags, setHashtags] = useState(variant.hashtags.join(', '));
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<TimingSuggestion[]>([]);
 
   // Re-seed the editable fields whenever a different variant is opened.
   useEffect(() => {
@@ -46,6 +58,18 @@ export function VariantDrawer({
     setHashtags(variant.hashtags.join(', '));
     setError(null);
   }, [variant.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch best-time suggestions for this variant's channel + the item's audience.
+  useEffect(() => {
+    let live = true;
+    contentClient
+      .timingSuggestions(variant.channel, item.audience)
+      .then((s) => live && setSuggestions(s.slice(0, 3)))
+      .catch(() => live && setSuggestions([]));
+    return () => {
+      live = false;
+    };
+  }, [variant.channel, item.audience]);
 
   const dirty =
     body !== variant.body ||
@@ -162,6 +186,25 @@ export function VariantDrawer({
                 </li>
               ))}
             </ul>
+          )}
+          {suggestions.length > 0 && variant.status !== 'exported' && (
+            <div data-testid="timing-suggestions" className="space-y-1">
+              <p className="text-[11px] text-slate-500">Best times ({variant.channel} · {item.audience}):</p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestions.map((s) => (
+                  <button
+                    key={s.label}
+                    data-testid="timing-suggestion"
+                    title={`${s.rationale}${s.learnedFrom ? ` · learned from ${s.learnedFrom}` : ''}`}
+                    className="rounded-md border border-surface-700 bg-surface-800/60 px-2 py-1 text-[11px] text-slate-300 hover:border-violet-500"
+                    disabled={busy === 'schedule'}
+                    onClick={() => run('schedule', () => contentClient.schedule(variant.id, nextOccurrence(s.weekday, s.hour)))}
+                  >
+                    🕑 {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
           <div className="flex gap-1.5">
             <button className="btn-secondary py-1 text-xs" disabled={busy === 'schedule' || variant.status === 'exported'}

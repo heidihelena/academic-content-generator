@@ -6,7 +6,32 @@ import type {
   ContentVariant,
   NewVariantInput,
   SafetyFinding,
+  TimingSuggestion,
 } from './contentTypes';
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+// Illustrative mirror of the server heuristic windows; the authoritative,
+// learned suggestions come from the backend in API mode.
+const LOCAL_WINDOWS: Record<string, { weekday: number; hour: number }[]> = {
+  linkedin: [{ weekday: 2, hour: 8 }, { weekday: 3, hour: 8 }, { weekday: 4, hour: 12 }],
+  bluesky: [{ weekday: 2, hour: 12 }, { weekday: 4, hour: 17 }, { weekday: 3, hour: 12 }],
+  newsletter: [{ weekday: 2, hour: 8 }, { weekday: 4, hour: 8 }, { weekday: 3, hour: 8 }],
+  teaching: [{ weekday: 1, hour: 8 }, { weekday: 3, hour: 12 }, { weekday: 5, hour: 8 }],
+};
+function localSuggestions(channel: string): TimingSuggestion[] {
+  const slots = LOCAL_WINDOWS[channel] ?? [
+    { weekday: 2, hour: 12 },
+    { weekday: 4, hour: 17 },
+    { weekday: 3, hour: 8 },
+  ];
+  return slots.map((s, i) => ({
+    ...s,
+    label: `${WEEKDAYS[s.weekday]} ${String(s.hour).padStart(2, '0')}:00`,
+    score: Math.round((0.9 - i * 0.1) * 1000) / 1000,
+    rationale: `${channel} best-practice window`,
+    learnedFrom: 0,
+  }));
+}
 
 /**
  * Content client — lists ContentItems with their variants and drives the
@@ -156,6 +181,10 @@ export class LocalContentClient implements ContentClient {
     return entries.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
   }
 
+  async timingSuggestions(channel: string): Promise<TimingSuggestion[]> {
+    return localSuggestions(channel);
+  }
+
   private locate(variantId: string): { item: ContentItemWithVariants; variant: ContentVariant } {
     for (const item of this.items) {
       const variant = item.variants.find((v) => v.id === variantId);
@@ -245,6 +274,11 @@ export class ApiContentClient implements ContentClient {
   calendarFeed(): Promise<CalendarEntry[]> {
     return this.api.get<CalendarEntry[]>('/calendar/content');
   }
+  timingSuggestions(channel: string, audience: string): Promise<TimingSuggestion[]> {
+    return this.api.get<TimingSuggestion[]>(
+      `/timing/suggestions?channel=${encodeURIComponent(channel)}&audience=${encodeURIComponent(audience)}`,
+    );
+  }
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant> {
     return this.api.post<ContentVariant>(`/content-items/${itemId}/variants`, input);
   }
@@ -286,6 +320,8 @@ export function setContentClient(client: ContentClient): void {
 export const contentClient = {
   listItems: () => active.listItems(),
   calendarFeed: () => active.calendarFeed(),
+  timingSuggestions: (channel: string, audience: string) =>
+    active.timingSuggestions(channel, audience),
   addVariant: (itemId: string, input: NewVariantInput) => active.addVariant(itemId, input),
   updateVariant: (id: string, patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>) =>
     active.updateVariant(id, patch),

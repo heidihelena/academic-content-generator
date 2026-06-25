@@ -116,10 +116,21 @@ export interface CalendarEntry {
   exported: boolean;
 }
 
+/** A suggested posting slot from the timing optimizer (mirrors the backend). */
+export interface TimingSuggestion {
+  weekday: number; // 0=Sun … 6=Sat (UTC)
+  hour: number;
+  label: string;
+  score: number;
+  rationale: string;
+  learnedFrom: number;
+}
+
 export interface ContentClient {
   readonly name: string;
   listItems(): Promise<ContentItemWithVariants[]>;
   calendarFeed(): Promise<CalendarEntry[]>;
+  timingSuggestions(channel: string, audience: string): Promise<TimingSuggestion[]>;
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant>;
   updateVariant(
     id: string,
