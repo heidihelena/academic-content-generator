@@ -70,6 +70,24 @@ describe('Content view + editor drawer', () => {
     expect(await screen.findByRole('dialog', { name: /bluesky · thread/i })).toBeInTheDocument();
   });
 
+  it('shows suggested times in the drawer and schedules from one', async () => {
+    render(<App initialView="content" />);
+    const trees = await screen.findByRole('region', { name: /Street trees/i });
+    // Open the unscheduled bluesky/thread variant.
+    const row = within(trees)
+      .getByText(/bluesky · thread/i)
+      .closest('[data-testid="variant-row"]')!;
+    fireEvent.click(row as HTMLElement);
+
+    const drawer = await screen.findByRole('dialog', { name: /bluesky · thread/i });
+    const picks = within(drawer).getAllByTestId('timing-suggestion');
+    expect(picks.length).toBeGreaterThan(0);
+
+    fireEvent.click(picks[0]);
+    // Scheduling sets the status field to 'scheduled'.
+    await waitFor(() => expect(within(drawer).getByText('scheduled')).toBeInTheDocument());
+  });
+
   it('runs the safety review and blocks export with reasons for an overclaim', async () => {
     render(<App initialView="content" />);
     const trees = await screen.findByRole('region', { name: /Street trees/i });
