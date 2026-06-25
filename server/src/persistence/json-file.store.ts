@@ -6,6 +6,19 @@ export interface Identified {
 }
 
 /**
+ * A small, durable collection keyed by `id`. Implemented by {@link JsonFileStore}
+ * (a JSON file, zero native deps) and `SqliteJsonStore` (a SQLite table), so a
+ * repository can swap its backing store by configuration without changing its
+ * own code. The API is synchronous — both backends are synchronous.
+ */
+export interface CollectionStore<T extends Identified> {
+  list(): T[];
+  get(id: string): T | undefined;
+  upsert(item: T): T;
+  delete(id: string): void;
+}
+
+/**
  * A tiny JSON-file-backed store for small, durable collections (e.g. the Source
  * Inbox and campaigns). Pure Node fs — no native modules — so it bundles cleanly
  * and runs anywhere. Loads on construction and flushes the whole collection on
@@ -13,7 +26,7 @@ export interface Identified {
  * corrupt the store. Volume here is small, so a full rewrite per change is the
  * simplest safe option (the same approach as the `file` persistence driver).
  */
-export class JsonFileStore<T extends Identified> {
+export class JsonFileStore<T extends Identified> implements CollectionStore<T> {
   private readonly byId = new Map<string, T>();
 
   constructor(private readonly path: string) {

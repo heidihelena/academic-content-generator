@@ -1,10 +1,11 @@
 import { ContentItem, ContentVariant } from '../domain/academic';
-import { JsonFileStore } from '../persistence/json-file.store';
+import { CollectionStore } from '../persistence/json-file.store';
 
 /**
  * Repositories for the ContentItem + ContentVariant model. Swappable backing
- * store: in-memory (default) or a durable JSON file when a non-`memory`
- * persistence driver is configured — the same pattern as sources/campaigns.
+ * store: in-memory (default), or a durable {@link CollectionStore} (JSON file or
+ * SQLite) when a non-`memory` persistence driver is configured — the same
+ * pattern as sources/campaigns.
  */
 export const CONTENT_ITEMS_REPOSITORY = Symbol('CONTENT_ITEMS_REPOSITORY');
 export const CONTENT_VARIANTS_REPOSITORY = Symbol('CONTENT_VARIANTS_REPOSITORY');
@@ -64,8 +65,8 @@ export class InMemoryContentVariantsRepository implements ContentVariantsReposit
   }
 }
 
-export class FileContentItemsRepository implements ContentItemsRepository {
-  constructor(private readonly store: JsonFileStore<ContentItem>) {}
+export class StoreBackedContentItemsRepository implements ContentItemsRepository {
+  constructor(private readonly store: CollectionStore<ContentItem>) {}
   async list() {
     return this.store.list().sort(byNewest);
   }
@@ -80,8 +81,8 @@ export class FileContentItemsRepository implements ContentItemsRepository {
   }
 }
 
-export class FileContentVariantsRepository implements ContentVariantsRepository {
-  constructor(private readonly store: JsonFileStore<ContentVariant>) {}
+export class StoreBackedContentVariantsRepository implements ContentVariantsRepository {
+  constructor(private readonly store: CollectionStore<ContentVariant>) {}
   async list() {
     return this.store.list().sort(byNewest);
   }

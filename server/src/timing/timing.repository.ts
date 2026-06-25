@@ -1,10 +1,10 @@
-import { JsonFileStore } from '../persistence/json-file.store';
+import { CollectionStore } from '../persistence/json-file.store';
 import { LearnedSlot } from './timing.types';
 
 /**
- * Store for learned timing scores. Swappable backing store: in-memory (default)
- * or a durable JSON file when a non-`memory` persistence driver is configured —
- * the same pattern as the other repositories.
+ * Store for learned timing scores. Swappable backing store: in-memory (default),
+ * or a durable {@link CollectionStore} (JSON file or SQLite) when a non-`memory`
+ * persistence driver is configured — the same pattern as the other repositories.
  */
 export const TIMING_REPOSITORY = Symbol('TIMING_REPOSITORY');
 
@@ -28,8 +28,8 @@ export class InMemoryTimingRepository implements TimingRepository {
   }
 }
 
-export class FileTimingRepository implements TimingRepository {
-  constructor(private readonly store: JsonFileStore<LearnedSlot>) {}
+export class StoreBackedTimingRepository implements TimingRepository {
+  constructor(private readonly store: CollectionStore<LearnedSlot>) {}
   async list() {
     return this.store.list();
   }
