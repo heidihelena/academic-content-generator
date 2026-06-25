@@ -66,13 +66,32 @@ export interface AppConfig {
     /** Off by default (local-first): the API is open and every request is the
      *  single implicit local user. Turn on to require a bearer token. */
     enabled: boolean;
-    /** Shared bearer token required when `enabled`. If `enabled` is true but this
-     *  is empty, auth stays open (fails safe) with a startup warning. */
+    /** Shared bearer token required when `enabled`. Resolves to `defaultUserId`.
+     *  If `enabled` is true but no token (single or per-user) is set, auth stays
+     *  open (fails safe) with a startup warning. */
     token?: string;
-    /** Identity attached to an authenticated request — the seam future per-user
-     *  accounts plug into (maps to ContentItem.ownerId). */
+    /** Per-user tokens (multi-user) parsed from `AUTH_TOKENS` ("alice:tokA,bob:tokB").
+     *  A matching token resolves the request to that user id, scoping their
+     *  content (ContentItem.ownerId). */
+    tokens: Record<string, string>;
+    /** Identity for the shared token / the open default — the seam per-user
+     *  accounts plug into. */
     defaultUserId: string;
   };
+}
+
+/** Parse `AUTH_TOKENS` ("alice:tokA,bob:tokB") into a `{ userId: token }` map. */
+function parseAuthTokens(raw?: string): Record<string, string> {
+  if (!raw) return {};
+  const map: Record<string, string> = {};
+  for (const pair of raw.split(',')) {
+    const idx = pair.indexOf(':');
+    if (idx <= 0) continue;
+    const userId = pair.slice(0, idx).trim();
+    const token = pair.slice(idx + 1).trim();
+    if (userId && token) map[userId] = token;
+  }
+  return map;
 }
 
 export default (): AppConfig => ({
@@ -139,6 +158,7 @@ export default (): AppConfig => ({
   auth: {
     enabled: process.env.AUTH_ENABLED === 'true',
     token: process.env.AUTH_TOKEN,
+    tokens: parseAuthTokens(process.env.AUTH_TOKENS),
     defaultUserId: process.env.AUTH_DEFAULT_USER_ID ?? 'local',
   },
 });

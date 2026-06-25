@@ -83,20 +83,41 @@ export class ContentService {
   ) {}
 
   // --- items -------------------------------------------------------------
-  async listItems(filter: { campaignId?: string; sourceId?: string } = {}): Promise<ContentItem[]> {
+  /**
+   * Owner scoping (multi-user). `scope` is the current user's id; when given,
+   * only items they own — plus legacy/unowned items — are visible. Omitting it
+   * (internal callers) means no scoping. In the open single-user default every
+   * request is `'local'`, so this is a no-op there.
+   */
+  private canAccess(item: ContentItem, scope?: string): boolean {
+    return !scope || !item.ownerId || item.ownerId === scope;
+  }
+
+  async listItems(
+    filter: { campaignId?: string; sourceId?: string } = {},
+    scope?: string,
+  ): Promise<ContentItem[]> {
     let all = await this.items.list();
+    all = all.filter((i) => this.canAccess(i, scope));
     if (filter.campaignId) all = all.filter((i) => i.campaignId === filter.campaignId);
     if (filter.sourceId) all = all.filter((i) => i.sourceIds.includes(filter.sourceId as string));
     return all;
   }
 
-  async getItem(id: string): Promise<ContentItem> {
+  async getItem(id: string, scope?: string): Promise<ContentItem> {
     const found = await this.items.findById(id);
-    if (!found) throw new NotFoundException(`ContentItem ${id} not found`);
+    // Don't reveal another owner's item exists — 404, not 403.
+    if (!found || !this.canAccess(found, scope)) {
+      throw new NotFoundException(`ContentItem ${id} not found`);
+    }
     return found;
   }
 
-  async createItem(input: CreateContentItemInput, now: Date = new Date()): Promise<ContentItem> {
+  async createItem(
+    input: CreateContentItemInput,
+    now: Date = new Date(),
+    scope?: string,
+  ): Promise<ContentItem> {
     if (!input?.title?.trim()) throw new BadRequestException('title is required');
     this.assertEnum('audience', input.audience, AUDIENCES);
     this.assertEnum('pillar', input.pillar, CONTENT_PILLARS);
@@ -110,7 +131,8 @@ export class ContentService {
       title: input.title.trim(),
       sourceIds: input.sourceIds ?? [],
       campaignId: input.campaignId,
-      ownerId: input.ownerId,
+      // The authenticated owner wins over any client-supplied ownerId (no spoofing).
+      ownerId: scope ?? input.ownerId,
       audience: input.audience,
       pillar: input.pillar,
       evidenceLevel: input.evidenceLevel,
@@ -125,8 +147,9 @@ export class ContentService {
     id: string,
     input: UpdateContentItemInput,
     now: Date = new Date(),
+    scope?: string,
   ): Promise<ContentItem> {
-    const existing = await this.getItem(id);
+    const existing = await this.getItem(id, scope);
     if (input.title !== undefined && !input.title.trim())
       throw new BadRequestException('title cannot be blank');
     if (input.audience) this.assertEnum('audience', input.audience, AUDIENCES);
@@ -143,8 +166,8 @@ export class ContentService {
     });
   }
 
-  async removeItem(id: string): Promise<void> {
-    await this.getItem(id); // 404 if missing
+  async removeItem(id: string, scope?: string): Promise<void> {
+    await this.getItem(id, scope); // 404 if missing or not owned
     for (const variant of await this.variants.listByItem(id)) {
       await this.variants.delete(variant.id);
     }
@@ -152,7 +175,12 @@ export class ContentService {
   }
 
   // --- variants ----------------------------------------------------------
-  listVariants(contentItemId: string): Promise<ContentVariant[]> {
+  /** Variants are reached through their owned item, so listing is scoped via the
+   *  parent item's ownership. Returns [] for a missing or unowned item (rather
+   *  than throwing) — both empty, so another owner's item isn't revealed. */
+  async listVariants(contentItemId: string, scope?: string): Promise<ContentVariant[]> {
+    const item = await this.items.findById(contentItemId);
+    if (!item || !this.canAccess(item, scope)) return [];
     return this.variants.listByItem(contentItemId);
   }
 
@@ -199,8 +227,9 @@ export class ContentService {
     contentItemId: string,
     input: CreateVariantInput,
     now: Date = new Date(),
+    scope?: string,
   ): Promise<ContentVariant> {
-    await this.getItem(contentItemId); // 404 if the item is missing
+    await this.getItem(contentItemId, scope); // 404 if missing or not owned
     this.assertEnum('channel', input.channel, CONTENT_CHANNELS);
     this.assertEnum('format', input.format, VARIANT_FORMATS);
     if (input.status) this.assertEnum('status', input.status, CONTENT_STATUSES);
