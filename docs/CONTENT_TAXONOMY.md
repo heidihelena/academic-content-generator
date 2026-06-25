@@ -149,3 +149,22 @@ a rationale and how many outcomes informed it). `POST /api/timing/outcomes`
 records one. The loop closes automatically: **exporting a variant records a
 positive outcome** for its slot, so suggestions adapt to what actually ships.
 Local-first and explainable — not an opaque model.
+
+### Learning from real engagement
+
+The optimizer learns from how posts actually perform, not just when they ship:
+
+- **`POST /api/timing/engagement`** — submit raw metrics (`impressions`, `likes`,
+  `reposts`, `replies`, `clicks`) for a slot; they're normalised to a weighted
+  `[0,1]` signal (repost > reply > click > like; a weighted engagement rate when
+  impressions are known, a saturating curve otherwise) and learned as an outcome.
+- **`POST /api/engagement/sync`** — pulls metrics for every exported variant from
+  the configured `EngagementSource` and records them. The source is a deterministic
+  **mock** by default (local-first, offline-friendly); a real connected-account
+  source is the config-gated edge — swap by configuration, never by code change.
+  The dashboard's **Sync engagement** button calls this.
+
+Recency is built in: the learned score is an exponentially-weighted moving
+average (α≈0.3), so recent engagement dominates and stale slots fade. The whole
+loop stays explainable — every suggestion reports its rationale and how many
+outcomes informed it.
