@@ -26,6 +26,12 @@ async function bootstrap(): Promise<void> {
   const port = config.get<number>('port')!;
   await app.listen(port);
   Logger.log(`vahtian content-calendar API listening on http://localhost:${port}/api`, 'Bootstrap');
+
+  const authOn = config.get<boolean>('auth.enabled') && Boolean(config.get<string>('auth.token'));
+  Logger.log(
+    authOn ? 'Auth: ENABLED (bearer token required)' : 'Auth: open (local-first default)',
+    'Bootstrap',
+  );
 }
 
 void bootstrap();

@@ -29,12 +29,27 @@ export class ApiError extends Error {
 }
 
 export class ApiClient {
-  constructor(private readonly baseUrl: string) {}
+  constructor(
+    private readonly baseUrl: string,
+    /** Bearer token sent on every request when the backend has auth enabled.
+     *  Defaults to VITE_API_TOKEN; omitted entirely when unset (open backend). */
+    private readonly token: string | undefined = import.meta.env.VITE_API_TOKEN as
+      | string
+      | undefined,
+  ) {}
+
+  private authHeaders(): Record<string, string> {
+    return this.token ? { authorization: `Bearer ${this.token}` } : {};
+  }
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
-      headers: { 'content-type': 'application/json' },
       ...init,
+      headers: {
+        'content-type': 'application/json',
+        ...this.authHeaders(),
+        ...(init?.headers as Record<string, string> | undefined),
+      },
     });
     const text = await res.text();
     const body = text ? JSON.parse(text) : undefined;
@@ -68,7 +83,11 @@ export class ApiClient {
   async upload<T>(path: string, file: File): Promise<T> {
     const form = new FormData();
     form.append('file', file);
-    const res = await fetch(`${this.baseUrl}${path}`, { method: 'POST', body: form });
+    const res = await fetch(`${this.baseUrl}${path}`, {
+      method: 'POST',
+      body: form,
+      headers: this.authHeaders(),
+    });
     const text = await res.text();
     const body = text ? JSON.parse(text) : undefined;
     if (!res.ok) {

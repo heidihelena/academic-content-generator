@@ -62,6 +62,17 @@ export interface AppConfig {
     ollamaBaseUrl: string;
     ollamaModel: string;
   };
+  auth: {
+    /** Off by default (local-first): the API is open and every request is the
+     *  single implicit local user. Turn on to require a bearer token. */
+    enabled: boolean;
+    /** Shared bearer token required when `enabled`. If `enabled` is true but this
+     *  is empty, auth stays open (fails safe) with a startup warning. */
+    token?: string;
+    /** Identity attached to an authenticated request — the seam future per-user
+     *  accounts plug into (maps to ContentItem.ownerId). */
+    defaultUserId: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -124,5 +135,10 @@ export default (): AppConfig => ({
     anthropicModel: process.env.ANTHROPIC_MODEL ?? 'claude-opus-4-8',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
     ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.1',
+  },
+  auth: {
+    enabled: process.env.AUTH_ENABLED === 'true',
+    token: process.env.AUTH_TOKEN,
+    defaultUserId: process.env.AUTH_DEFAULT_USER_ID ?? 'local',
   },
 });
