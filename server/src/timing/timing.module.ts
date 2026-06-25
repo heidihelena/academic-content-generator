@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JsonFileStore } from '../persistence/json-file.store';
+import { createDurableStore } from '../persistence/durable-store';
 import { TimingController } from './timing.controller';
 import {
-  FileTimingRepository,
   InMemoryTimingRepository,
+  StoreBackedTimingRepository,
   TIMING_REPOSITORY,
   type TimingRepository,
 } from './timing.repository';
@@ -22,8 +22,14 @@ import { LearnedSlot } from './timing.types';
       useFactory: (config: ConfigService): TimingRepository => {
         const driver = config.get<string>('persistence.driver') ?? 'memory';
         if (driver === 'memory') return new InMemoryTimingRepository();
-        const path = process.env.TIMING_STORE_PATH ?? './data/timing.json';
-        return new FileTimingRepository(new JsonFileStore<LearnedSlot>(path));
+        return new StoreBackedTimingRepository(
+          createDurableStore<LearnedSlot>({
+            driver,
+            filePath: process.env.TIMING_STORE_PATH ?? './data/timing.json',
+            sqlitePath: config.get<string>('persistence.sqlitePath')!,
+            table: 'timing_slots',
+          }),
+        );
       },
     },
   ],
