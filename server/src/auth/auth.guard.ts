@@ -28,15 +28,17 @@ interface GuardRequest {
  * - `AUTH_ENABLED` unset/false → the API is open; every request is the single
  *   implicit local user (`auth.defaultUserId`). Zero-config default, no change
  *   to the offline/demo experience.
- * - `AUTH_ENABLED=true` + `AUTH_TOKEN` → a valid `Authorization: Bearer <token>`
- *   is required (constant-time compared); otherwise 401.
- * - `AUTH_ENABLED=true` but no token → fails *safe*: stays open with a one-time
- *   warning, so a misconfiguration can't silently lock everyone out (the same
- *   never-break philosophy as the LLM fallbacks).
+ * - `AUTH_ENABLED=true` + a token → a valid `Authorization: Bearer <token>` is
+ *   required (constant-time compared); otherwise 401. The shared `AUTH_TOKEN`
+ *   resolves to `defaultUserId`; per-user `AUTH_TOKENS` resolve to that user id
+ *   (multi-user), scoping their content.
+ * - `AUTH_ENABLED=true` but no token at all → fails *safe*: stays open with a
+ *   one-time warning, so a misconfiguration can't silently lock everyone out
+ *   (the same never-break philosophy as the LLM fallbacks).
  *
  * `@Public()` routes (the health probe) are always allowed. The resolved
- * identity is attached as `req.user` — the seam future per-user data scoping
- * (ContentItem.ownerId) plugs into.
+ * identity is attached as `req.user` — what per-user data scoping
+ * (ContentItem.ownerId) reads.
  */
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -58,13 +60,14 @@ export class AuthGuard implements CanActivate {
     ]);
 
     const enabled = this.config.get<boolean>('auth.enabled');
-    const token = this.config.get<string>('auth.token');
+    // Candidate (userId, token) credentials: per-user tokens + the shared token.
+    const credentials = this.credentials(defaultUserId);
 
-    // Open mode: disabled, or enabled-without-a-token (fail safe).
-    if (!enabled || !token) {
-      if (enabled && !token && !this.warned) {
+    // Open mode: disabled, or enabled-without-any-token (fail safe).
+    if (!enabled || credentials.length === 0) {
+      if (enabled && credentials.length === 0 && !this.warned) {
         this.warned = true;
-        this.logger.warn('AUTH_ENABLED=true but AUTH_TOKEN is empty — auth stays OPEN.');
+        this.logger.warn('AUTH_ENABLED=true but no AUTH_TOKEN/AUTH_TOKENS set — auth stays OPEN.');
       }
       req.user = { userId: defaultUserId };
       return true;
@@ -76,11 +79,23 @@ export class AuthGuard implements CanActivate {
     }
 
     const presented = this.bearer(req.headers.authorization);
-    if (!presented || !this.matches(presented, token)) {
+    const matched = presented && credentials.find((c) => this.matches(presented, c.token));
+    if (!matched) {
       throw new UnauthorizedException('A valid bearer token is required.');
     }
-    req.user = { userId: defaultUserId };
+    req.user = { userId: matched.userId };
     return true;
+  }
+
+  private credentials(defaultUserId: string): Array<{ userId: string; token: string }> {
+    const out: Array<{ userId: string; token: string }> = [];
+    const tokens = this.config.get<Record<string, string>>('auth.tokens') ?? {};
+    for (const [userId, token] of Object.entries(tokens)) {
+      if (token) out.push({ userId, token });
+    }
+    const shared = this.config.get<string>('auth.token');
+    if (shared) out.push({ userId: defaultUserId, token: shared });
+    return out;
   }
 
   private bearer(header?: string): string | undefined {

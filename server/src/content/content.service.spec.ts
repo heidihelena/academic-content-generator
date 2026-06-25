@@ -137,3 +137,52 @@ describe('ContentService — variants', () => {
     await expect(service.scheduleVariant(variant.id, 'soon')).rejects.toBeInstanceOf(BadRequestException);
   });
 });
+
+describe('ContentService — owner scoping (multi-user)', () => {
+  it('stamps the authenticated owner and ignores a client-supplied ownerId', async () => {
+    const service = setup();
+    const item = await service.createItem({ ...itemInput, ownerId: 'someone-else' }, undefined, 'alice');
+    expect(item.ownerId).toBe('alice');
+  });
+
+  it('lists only the current user’s items (plus legacy unowned)', async () => {
+    const service = setup();
+    await service.createItem(itemInput, undefined, 'alice');
+    await service.createItem(itemInput, undefined, 'bob');
+    const legacy = await service.createItem(itemInput); // no scope → unowned
+
+    const forAlice = await service.listItems({}, 'alice');
+    const owners = forAlice.map((i) => i.ownerId);
+    expect(owners).toContain('alice');
+    expect(owners).toContain(undefined); // legacy/unowned stays visible
+    expect(owners).not.toContain('bob');
+    expect(forAlice).toContainEqual(expect.objectContaining({ id: legacy.id }));
+  });
+
+  it('404s when accessing, updating or deleting another owner’s item', async () => {
+    const service = setup();
+    const bobItem = await service.createItem(itemInput, undefined, 'bob');
+
+    await expect(service.getItem(bobItem.id, 'alice')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.updateItem(bobItem.id, { title: 'hijack' }, undefined, 'alice')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(service.removeItem(bobItem.id, 'alice')).rejects.toBeInstanceOf(NotFoundException);
+    // The owner still has access.
+    expect((await service.getItem(bobItem.id, 'bob')).id).toBe(bobItem.id);
+  });
+
+  it('scopes variant listing/adding through the parent item', async () => {
+    const service = setup();
+    const bobItem = await service.createItem(itemInput, undefined, 'bob');
+
+    // Listing is lenient (empty, no existence leak); adding is a hard 404.
+    expect(await service.listVariants(bobItem.id, 'alice')).toEqual([]);
+    await expect(
+      service.addVariant(bobItem.id, { channel: 'linkedin', format: 'post', body: 'x' }, undefined, 'alice'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+    // Bob can add and list his own.
+    await service.addVariant(bobItem.id, { channel: 'linkedin', format: 'post', body: 'x' }, undefined, 'bob');
+    expect(await service.listVariants(bobItem.id, 'bob')).toHaveLength(1);
+  });
+});

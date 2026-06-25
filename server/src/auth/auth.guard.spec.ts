@@ -67,4 +67,23 @@ describe('AuthGuard', () => {
     expect(guard.canActivate(contextFor(req))).toBe(true);
     expect(req.user).toEqual({ userId: 'local' });
   });
+
+  it('resolves per-user identity from AUTH_TOKENS (multi-user)', () => {
+    const guard = guardWith({
+      'auth.enabled': true,
+      'auth.tokens': { alice: 'alice-token', bob: 'bob-token' },
+      'auth.defaultUserId': 'local',
+    });
+    const alice: Req = { headers: { authorization: 'Bearer alice-token' } };
+    expect(guard.canActivate(contextFor(alice))).toBe(true);
+    expect(alice.user).toEqual({ userId: 'alice' });
+
+    const bob: Req = { headers: { authorization: 'Bearer bob-token' } };
+    expect(guard.canActivate(contextFor(bob))).toBe(true);
+    expect(bob.user).toEqual({ userId: 'bob' });
+
+    expect(() =>
+      guard.canActivate(contextFor({ headers: { authorization: 'Bearer nope' } })),
+    ).toThrow(UnauthorizedException);
+  });
 });

@@ -11,6 +11,8 @@ process.env.PERSISTENCE_DRIVER = 'memory';
 process.env.VAULT_WATCH = 'false';
 process.env.AUTH_ENABLED = 'true';
 process.env.AUTH_TOKEN = 'test-token';
+// Per-user tokens (multi-user) — each resolves to its own owner id.
+process.env.AUTH_TOKENS = 'alice:alice-token,bob:bob-token';
 const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-auth-uploads-'));
 process.env.UPLOADS_DIR = UPLOADS_DIR;
 
@@ -34,6 +36,7 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
     rmSync(UPLOADS_DIR, { recursive: true, force: true });
     delete process.env.AUTH_ENABLED;
     delete process.env.AUTH_TOKEN;
+    delete process.env.AUTH_TOKENS;
   });
 
   it('leaves the health probe public', async () => {
@@ -54,5 +57,46 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
       .set('Authorization', 'Bearer test-token')
       .expect(200);
     expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('scopes content per user (multi-user tokens)', async () => {
+    const idea = {
+      title: 'Alice idea',
+      audience: 'peers',
+      pillar: 'research-finding',
+      evidenceLevel: 'observational',
+      claimRisk: 'low',
+    };
+    // Alice creates an item with her token.
+    const created = await request(http)
+      .post('/api/content-items')
+      .set('Authorization', 'Bearer alice-token')
+      .send(idea)
+      .expect(201);
+    const id = created.body.id;
+    expect(created.body.ownerId).toBe('alice');
+
+    // Alice sees it; Bob does not.
+    const aliceList = await request(http)
+      .get('/api/content-items')
+      .set('Authorization', 'Bearer alice-token')
+      .expect(200);
+    expect(aliceList.body.map((i: { id: string }) => i.id)).toContain(id);
+
+    const bobList = await request(http)
+      .get('/api/content-items')
+      .set('Authorization', 'Bearer bob-token')
+      .expect(200);
+    expect(bobList.body.map((i: { id: string }) => i.id)).not.toContain(id);
+
+    // Bob can't fetch Alice's item by id — 404, not 403.
+    await request(http)
+      .get(`/api/content-items/${id}`)
+      .set('Authorization', 'Bearer bob-token')
+      .expect(404);
+    await request(http)
+      .get(`/api/content-items/${id}`)
+      .set('Authorization', 'Bearer alice-token')
+      .expect(200);
   });
 });
