@@ -18,4 +18,7 @@ RUN npm ci --omit=dev --omit=optional && npm install --no-save pg@^8.13.0 \
     && npm cache clean --force
 COPY --from=build /app/dist ./dist
 EXPOSE 3000
+# Liveness probe — GET /api/health (node's global fetch; no curl in the slim image).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://localhost:'+(process.env.PORT||3000)+'/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "dist/main.js"]

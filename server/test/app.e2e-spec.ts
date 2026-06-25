@@ -186,4 +186,13 @@ describe('Content Calendar API (e2e, memory driver)', () => {
       .send({ niche: '', audience: 'baristas', tone: 'witty', platform: 'instagram' })
       .expect(400);
   });
+
+  it('reports health with active backend modes (no secrets)', async () => {
+    const res = await request(http).get('/api/health').expect(200);
+    expect(res.body.status).toBe('ok');
+    expect(typeof res.body.uptime).toBe('number');
+    expect(res.body.config.persistence).toBe('memory');
+    // The probe exposes modes only — never keys/URLs.
+    expect(JSON.stringify(res.body)).not.toMatch(/apiKey|secret|password|token/i);
+  });
 });
