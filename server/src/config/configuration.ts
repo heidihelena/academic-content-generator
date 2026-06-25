@@ -7,6 +7,7 @@
 export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
+export type LlmProvider = 'anthropic' | 'ollama';
 export type StorageDriver = 'local' | 's3';
 
 /** Per-platform OAuth app credentials. When absent, the platform falls back to
@@ -53,8 +54,13 @@ export interface AppConfig {
   };
   ai: {
     generator: IdeaGeneratorKind;
+    /** Which LLM backend to use when `generator==='llm'`. */
+    provider: LlmProvider;
     anthropicApiKey?: string;
     anthropicModel: string;
+    /** Ollama (local LLM) connection, used when `provider==='ollama'`. */
+    ollamaBaseUrl: string;
+    ollamaModel: string;
   };
 }
 
@@ -113,7 +119,10 @@ export default (): AppConfig => ({
   },
   ai: {
     generator: (process.env.IDEA_GENERATOR as IdeaGeneratorKind) ?? 'mock',
+    provider: (process.env.LLM_PROVIDER as LlmProvider) ?? 'anthropic',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     anthropicModel: process.env.ANTHROPIC_MODEL ?? 'claude-opus-4-8',
+    ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
+    ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.1',
   },
 });

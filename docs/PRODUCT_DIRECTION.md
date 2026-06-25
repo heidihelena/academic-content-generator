@@ -233,3 +233,45 @@ Then Kanban (dnd-kit) + the manual-publish assistant.
 > The differentiators to protect throughout: **variants**, **approval workflow**,
 > **strategy fields** (pillars/evidence/claim-risk), and **reuse/derivatives**.
 > Those make this an editorial OS, not another scheduler.
+
+---
+
+## 9. LLM providers (swap by config, never by code)
+
+All generative services — the idea generator, the draft composer and the talk
+composer — depend on a single provider-agnostic `LlmClient`
+(`server/src/ai/llm-client.ts`). Set `IDEA_GENERATOR=llm` to turn the LLM on,
+then pick the backend with `LLM_PROVIDER`. As with every other backend, this is
+a configuration change, not a code change, and **any error falls back to the
+deterministic local implementation**, so endpoints never fail.
+
+| `LLM_PROVIDER` | What it is | Config | Trade-off |
+| --- | --- | --- | --- |
+| `anthropic` *(default)* | Claude via `@anthropic-ai/sdk`, structured JSON output. | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-opus-4-8`). | Best quality; needs a key + network; per-token cost. |
+| `ollama` | A local model via [Ollama](https://ollama.com)'s `/api/chat`. | `OLLAMA_BASE_URL` (default `http://localhost:11434`), `OLLAMA_MODEL` (default `llama3.1`). | Free, private, fully offline; quality depends on the model, which must support JSON/structured output. |
+
+Adding a provider is one `class FooLlmClient implements LlmClient` plus a branch
+in `createLlmClient()` — the composers never change because they only know the
+interface (`completeJson<T>({ system, user, schema, maxTokens })`).
+
+### Why local LLMs fit this product
+
+The hub is **local-first** by design (mocks, in-memory, deterministic, zero
+config). Ollama extends that principle to generation: a researcher on sensitive
+material can draft and compose without anything leaving the machine — no API key,
+no third-party data processor, which matters under the privacy model
+(`docs/PRIVACY_MODEL.md`). The deterministic local composers remain the true
+zero-dependency floor; Ollama is the "real LLM, still offline" middle tier; the
+hosted Claude provider is the top-quality tier.
+
+### Claude Code MCP — a third, code-free integration
+
+Beyond the in-process client there's a complementary path: drive the hub from a
+**Claude Code agent / MCP-aware client** instead of an embedded SDK. Because the
+whole workflow (source → idea → draft → review → schedule/export) is exposed over
+the HTTP API, an agent can compose, run the safety review and schedule by calling
+those endpoints — the model lives *outside* the app. This needs **no provider
+entry** in `createLlmClient` (it isn't an in-process composer), and it composes
+with everything above: the safety gates, the export blockers and the human-review
+requirement still apply because the agent goes through the same API. Use it when
+you want an interactive, tool-using agent rather than a single JSON completion.
