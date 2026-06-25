@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { createLlmClient } from '../ai/llm-client';
 import { CampaignsModule } from '../campaigns/campaigns.module';
 import { ContentModule } from '../content/content.module';
 import { ContentPlanModule } from '../content-plan/content-plan.module';
@@ -17,19 +18,21 @@ import { TalkPackageService } from './talk-package.service';
   providers: [
     TalkPackageService,
     {
-      // Claude-backed prose when configured, deterministic local scaffold
-      // otherwise — the same swap-by-config pattern as the draft composer.
+      // LLM-backed prose when configured (Claude or a local Ollama model),
+      // deterministic local scaffold otherwise — the same swap-by-config
+      // pattern as the draft composer.
       provide: TALK_COMPOSER,
       inject: [ConfigService],
       useFactory: (config: ConfigService): TalkComposer => {
         if (config.get<string>('ai.generator') === 'llm') {
-          const key = config.get<string>('ai.anthropicApiKey');
-          if (key) {
-            return new LlmTalkComposer(
-              key,
-              config.get<string>('ai.anthropicModel') ?? 'claude-opus-4-8',
-            );
-          }
+          const client = createLlmClient({
+            provider: config.get<string>('ai.provider') ?? 'anthropic',
+            anthropicApiKey: config.get<string>('ai.anthropicApiKey'),
+            anthropicModel: config.get<string>('ai.anthropicModel') ?? 'claude-opus-4-8',
+            ollamaBaseUrl: config.get<string>('ai.ollamaBaseUrl') ?? 'http://localhost:11434',
+            ollamaModel: config.get<string>('ai.ollamaModel') ?? 'llama3.1',
+          });
+          if (client) return new LlmTalkComposer(client);
         }
         return new LocalTalkComposer();
       },
