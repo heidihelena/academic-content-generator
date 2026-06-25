@@ -20,6 +20,7 @@ import { ContentPlanModule } from './content-plan/content-plan.module';
 import { ContentModule } from './content/content.module';
 import { ReuseModule } from './reuse/reuse.module';
 import { TimingModule } from './timing/timing.module';
+import { EngagementModule } from './engagement/engagement.module';
 import { VaultExportModule } from './vault-export/vault-export.module';
 import { TalkPackageModule } from './talk-package/talk-package.module';
 import { MediaModule } from './media/media.module';
@@ -49,6 +50,7 @@ import { ShortsModule } from './shorts/shorts.module';
     ContentModule,
     ReuseModule,
     TimingModule,
+    EngagementModule,
     VaultExportModule,
     CarouselModule,
     TalkPackageModule,

@@ -156,6 +156,11 @@ export class ContentService {
     return this.variants.listByItem(contentItemId);
   }
 
+  /** All exported variants — the ones whose real engagement can be synced. */
+  async listExportedVariants(): Promise<ContentVariant[]> {
+    return (await this.variants.list()).filter((v) => v.status === 'exported');
+  }
+
   /**
    * Calendar feed: every variant with a scheduled date, joined to its item for
    * display context, sorted by time. Powers the calendar view.
