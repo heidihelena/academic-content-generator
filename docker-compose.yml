@@ -56,6 +56,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Node-based probe (the slim image has no curl); GET /api/health returns 200
+    # once the API is accepting requests.
+    healthcheck:
+      test:
+        ['CMD', 'node', '-e', "fetch('http://localhost:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   web:
     build:
@@ -66,7 +75,8 @@ services:
     ports:
       - '8080:80'
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   pgdata:
