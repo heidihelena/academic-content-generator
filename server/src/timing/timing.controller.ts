@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { Audience, ContentChannel } from '../domain/academic';
+import { EngagementMetrics } from './engagement';
 import { TimingOutcome } from './timing.types';
 import { TimingService } from './timing.service';
 
@@ -21,5 +22,16 @@ export class TimingController {
   @Post('outcomes')
   record(@Body() outcome: TimingOutcome) {
     return this.timing.recordOutcome(outcome);
+  }
+
+  /**
+   * POST /api/timing/engagement — feed real engagement metrics; they're
+   * normalised to a weighted signal and learned as an outcome.
+   */
+  @Post('engagement')
+  engagement(
+    @Body() body: Omit<TimingOutcome, 'signal'> & { metrics: EngagementMetrics },
+  ) {
+    return this.timing.recordEngagement(body);
   }
 }

@@ -57,6 +57,23 @@ describe('TimingService', () => {
     expect(slot.hour).toBe(17);
   });
 
+  it('learns from real engagement metrics (weighted signal)', async () => {
+    const service = setup();
+    const { slot, signal } = await service.recordEngagement({
+      channel: 'linkedin',
+      audience: 'peers',
+      scheduledAt: '2030-03-05T08:00:00.000Z', // Tue 08:00 UTC
+      metrics: { impressions: 1000, likes: 40, reposts: 15 },
+    });
+    expect(signal).toBeGreaterThan(0);
+    expect(slot.weekday).toBe(2);
+    expect(slot.hour).toBe(8);
+    expect(slot.samples).toBe(1);
+    // The slot now carries a learned score reflecting the engagement.
+    const suggestions = await service.suggest('linkedin', 'peers', 28);
+    expect(suggestions.find((s) => s.weekday === 2 && s.hour === 8)?.learnedFrom).toBe(1);
+  });
+
   it('validates inputs', async () => {
     const service = setup();
     await expect(service.suggest('nope' as never, 'peers')).rejects.toBeInstanceOf(BadRequestException);
