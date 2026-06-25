@@ -43,6 +43,19 @@ export type UpdateContentItemInput = Partial<Omit<CreateContentItemInput, 'title
   title?: string;
 };
 
+/** A scheduled variant flattened for the calendar view. */
+export interface CalendarEntry {
+  variantId: string;
+  itemId: string;
+  title: string;
+  channel: ContentChannel;
+  format: VariantFormat;
+  audience: Audience;
+  scheduledAt: string;
+  status: ContentStatus;
+  exported: boolean;
+}
+
 export interface CreateVariantInput {
   channel: ContentChannel;
   format: VariantFormat;
@@ -139,6 +152,34 @@ export class ContentService {
   // --- variants ----------------------------------------------------------
   listVariants(contentItemId: string): Promise<ContentVariant[]> {
     return this.variants.listByItem(contentItemId);
+  }
+
+  /**
+   * Calendar feed: every variant with a scheduled date, joined to its item for
+   * display context, sorted by time. Powers the calendar view.
+   */
+  async scheduledFeed(): Promise<CalendarEntry[]> {
+    const variants = (await this.variants.list()).filter((v) => v.scheduledAt);
+    const itemCache = new Map<string, ContentItem | null>();
+    const entries: CalendarEntry[] = [];
+    for (const v of variants) {
+      if (!itemCache.has(v.contentItemId)) {
+        itemCache.set(v.contentItemId, await this.items.findById(v.contentItemId));
+      }
+      const item = itemCache.get(v.contentItemId);
+      entries.push({
+        variantId: v.id,
+        itemId: v.contentItemId,
+        title: item?.title ?? '(untitled)',
+        channel: v.channel,
+        format: v.format,
+        audience: item?.audience ?? 'peers',
+        scheduledAt: v.scheduledAt as string,
+        status: v.status,
+        exported: v.status === 'exported',
+      });
+    }
+    return entries.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
   }
 
   async getVariant(id: string): Promise<ContentVariant> {

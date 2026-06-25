@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContentItem, ContentVariant } from '../domain/academic';
 import { JsonFileStore } from '../persistence/json-file.store';
 import { SafetyModule } from '../safety/safety.module';
+import { CalendarController } from './calendar.controller';
 import { ContentReviewService } from './content-review.service';
 import { ContentItemsController, ContentVariantsController } from './content.controller';
 import {
@@ -44,7 +45,7 @@ import { ContentService } from './content.service';
       },
     },
   ],
-  controllers: [ContentItemsController, ContentVariantsController],
+  controllers: [ContentItemsController, ContentVariantsController, CalendarController],
   exports: [ContentService, ContentReviewService],
 })
 export class ContentModule {}
