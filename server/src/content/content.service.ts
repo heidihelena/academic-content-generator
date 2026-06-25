@@ -1,4 +1,5 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
+import { TimingService } from '../timing/timing.service';
 import { randomUUID } from 'crypto';
 import {
   AUDIENCES,
@@ -78,6 +79,7 @@ export class ContentService {
   constructor(
     @Inject(CONTENT_ITEMS_REPOSITORY) private readonly items: ContentItemsRepository,
     @Inject(CONTENT_VARIANTS_REPOSITORY) private readonly variants: ContentVariantsRepository,
+    @Optional() private readonly timing?: TimingService,
   ) {}
 
   // --- items -------------------------------------------------------------
@@ -248,7 +250,38 @@ export class ContentService {
     const existing = await this.getVariant(id);
     this.assertCleared(existing);
     const iso = now.toISOString();
-    return this.variants.upsert({ ...existing, status: 'exported', exportedAt: iso, updatedAt: iso });
+    const exported = await this.variants.upsert({
+      ...existing,
+      status: 'exported',
+      exportedAt: iso,
+      updatedAt: iso,
+    });
+    await this.recordTimingOutcome(exported, iso, now);
+    return exported;
+  }
+
+  /**
+   * Close the learning loop: a successful export is a positive timing outcome
+   * for its (channel, audience, slot). Best-effort — a timing failure must never
+   * block the export, and it's a no-op when the optimizer isn't wired in.
+   */
+  private async recordTimingOutcome(variant: ContentVariant, iso: string, now: Date): Promise<void> {
+    if (!this.timing) return;
+    try {
+      const item = await this.items.findById(variant.contentItemId);
+      if (!item) return;
+      await this.timing.recordOutcome(
+        {
+          channel: variant.channel,
+          audience: item.audience,
+          scheduledAt: variant.scheduledAt ?? iso,
+          signal: 1,
+        },
+        now,
+      );
+    } catch {
+      // learning is advisory; never let it break export
+    }
   }
 
   /** Mark a variant human-reviewed (signs off the explicit export gate). */
