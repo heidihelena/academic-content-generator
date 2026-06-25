@@ -4,6 +4,7 @@ import { postsThisWeek, scheduledVsPublished } from '../analytics/calculations';
 import type { View } from './Sidebar';
 import { getTheme, toggleTheme, type Theme } from '../lib/theme';
 import { MoonIcon, SunIcon } from './icons';
+import { ConnectionStatus } from './ConnectionStatus';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
   board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
@@ -41,6 +42,7 @@ export function Header({ view }: HeaderProps) {
           <Stat label="This week" value={thisWeek} />
           <Stat label="Scheduled" value={scheduled} />
         </div>
+        <ConnectionStatus />
         <ThemeToggle />
       </div>
     </header>
