@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContentItem, ContentVariant } from '../domain/academic';
 import { JsonFileStore } from '../persistence/json-file.store';
 import { SafetyModule } from '../safety/safety.module';
+import { TimingModule } from '../timing/timing.module';
 import { CalendarController } from './calendar.controller';
 import { ContentReviewService } from './content-review.service';
 import { ContentItemsController, ContentVariantsController } from './content.controller';
@@ -20,7 +21,7 @@ import { ContentService } from './content.service';
 
 /** ContentItem + ContentVariant model (one idea → many channel/format variants). */
 @Module({
-  imports: [ConfigModule, SafetyModule],
+  imports: [ConfigModule, SafetyModule, TimingModule],
   providers: [
     ContentService,
     ContentReviewService,

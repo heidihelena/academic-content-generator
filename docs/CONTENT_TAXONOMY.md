@@ -131,3 +131,21 @@ How overclaim-prone / sensitive the claims are. `CLAIM_RISKS`: `low`,
 The shape a variant takes on its channel (distinct from *where* it publishes).
 `VARIANT_FORMATS`: `post`, `thread`, `carousel`, `slide`,
 `newsletter-paragraph`, `short-script`, `talk-script`.
+
+## Scheduling & the timing optimizer
+
+A `ContentVariant` carries a `scheduledAt`; the calendar feed
+(`GET /api/calendar/content`) surfaces scheduled variants for the dashboard
+agenda. The timing optimizer suggests *when* to post:
+
+- **Heuristic baseline** — per-channel best-practice windows (weekday + hour),
+  with a small audience nudge. Every score is traceable to a named window.
+- **Learned bonus** — an exponentially-weighted moving average (α≈0.3) of
+  engagement outcomes per `(channel, audience, weekday, hour)` slot. With no
+  data it degrades to the heuristic; as outcomes arrive, good slots float up.
+
+`GET /api/timing/suggestions?channel=&audience=` returns ranked slots (each with
+a rationale and how many outcomes informed it). `POST /api/timing/outcomes`
+records one. The loop closes automatically: **exporting a variant records a
+positive outcome** for its slot, so suggestions adapt to what actually ships.
+Local-first and explainable — not an opaque model.
