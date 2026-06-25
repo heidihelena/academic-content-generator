@@ -103,9 +103,23 @@ export interface NewVariantInput {
   hashtags?: string[];
 }
 
+/** A scheduled variant flattened for the calendar/agenda (mirrors the backend). */
+export interface CalendarEntry {
+  variantId: string;
+  itemId: string;
+  title: string;
+  channel: string;
+  format: string;
+  audience: string;
+  scheduledAt: string;
+  status: ContentStatus;
+  exported: boolean;
+}
+
 export interface ContentClient {
   readonly name: string;
   listItems(): Promise<ContentItemWithVariants[]>;
+  calendarFeed(): Promise<CalendarEntry[]>;
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant>;
   updateVariant(
     id: string,

@@ -3,6 +3,7 @@ import type { ContentItem, ContentItemWithVariants, ContentVariant } from '../co
 import { VARIANT_CHANNELS, VARIANT_FORMATS, exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
 import { VariantDrawer } from './VariantDrawer';
+import { ScheduledAgenda } from './ScheduledAgenda';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
 
@@ -16,6 +17,7 @@ export function ContentItems() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [refresh, setRefresh] = useState(0);
 
   const load = () => {
     setLoading(true);
@@ -29,7 +31,7 @@ export function ContentItems() {
 
   useEffect(load, []);
 
-  const replaceVariant = (next: ContentVariant) =>
+  const replaceVariant = (next: ContentVariant) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === next.contentItemId
@@ -37,6 +39,8 @@ export function ContentItems() {
           : item,
       ),
     );
+    setRefresh((n) => n + 1); // re-fetch the agenda (schedule/publish may have changed)
+  };
 
   const addVariant = (next: ContentVariant) => {
     setItems((prev) =>
@@ -63,6 +67,8 @@ export function ContentItems() {
           </p>
         </div>
       </header>
+
+      <ScheduledAgenda refreshKey={refresh} onSelect={setOpenId} />
 
       {items.map((item) => (
         <section key={item.id} aria-label={item.title} className="card space-y-3 p-4">

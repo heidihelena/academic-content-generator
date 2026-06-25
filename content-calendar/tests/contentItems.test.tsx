@@ -46,6 +46,15 @@ describe('Content view + editor drawer', () => {
     await waitFor(() => expect(within(drawer).getByText('exported')).toBeInTheDocument());
   });
 
+  it('shows scheduled variants in the agenda and opens one in the drawer', async () => {
+    render(<App initialView="content" />);
+    const agenda = await screen.findByRole('region', { name: /Scheduled content/i });
+    const entries = within(agenda).getAllByTestId('agenda-entry');
+    expect(entries.length).toBe(2); // two sample variants are scheduled
+    fireEvent.click(entries[0]); // earliest: the teaching slide
+    expect(await screen.findByRole('dialog', { name: /teaching · slide/i })).toBeInTheDocument();
+  });
+
   it('adds a new channel variant and opens it in the drawer', async () => {
     render(<App initialView="content" />);
     const sleep = await screen.findByRole('region', { name: /Slow-wave sleep/i });

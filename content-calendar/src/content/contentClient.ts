@@ -1,5 +1,6 @@
 import { ApiClient } from '../lib/api';
 import type {
+  CalendarEntry,
   ContentClient,
   ContentItemWithVariants,
   ContentVariant,
@@ -70,8 +71,10 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
         body: 'Across 84 cities, tree canopy was associated with cooler streets (Smith, 2024).',
         hook: 'Your street’s temperature is an equity issue.',
         hashtags: ['UrbanHeat', 'Equity'],
-        status: 'reviewed',
+        status: 'scheduled',
+        scheduledAt: '2030-03-02T09:00:00.000Z',
         safetyReview: ok(),
+        humanReviewedAt: '2026-06-20T00:00:00.000Z',
       },
       {
         id: 'cv_trees_bs',
@@ -111,7 +114,8 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
         format: 'slide',
         body: 'Slide: how slow-wave sleep consolidates the day’s memories.',
         hashtags: [],
-        status: 'reviewed',
+        status: 'scheduled',
+        scheduledAt: '2030-03-01T14:00:00.000Z',
         safetyReview: ok(),
         humanReviewedAt: '2026-06-20T00:00:00.000Z',
       },
@@ -129,6 +133,27 @@ export class LocalContentClient implements ContentClient {
 
   async listItems(): Promise<ContentItemWithVariants[]> {
     return this.items.map((i) => ({ ...i, variants: i.variants.map((v) => ({ ...v })) }));
+  }
+
+  async calendarFeed(): Promise<CalendarEntry[]> {
+    const entries: CalendarEntry[] = [];
+    for (const item of this.items) {
+      for (const v of item.variants) {
+        if (!v.scheduledAt) continue;
+        entries.push({
+          variantId: v.id,
+          itemId: item.id,
+          title: item.title,
+          channel: v.channel,
+          format: v.format,
+          audience: item.audience,
+          scheduledAt: v.scheduledAt,
+          status: v.status,
+          exported: v.status === 'exported',
+        });
+      }
+    }
+    return entries.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
   }
 
   private locate(variantId: string): { item: ContentItemWithVariants; variant: ContentVariant } {
@@ -217,6 +242,9 @@ export class ApiContentClient implements ContentClient {
     );
   }
 
+  calendarFeed(): Promise<CalendarEntry[]> {
+    return this.api.get<CalendarEntry[]>('/calendar/content');
+  }
   addVariant(itemId: string, input: NewVariantInput): Promise<ContentVariant> {
     return this.api.post<ContentVariant>(`/content-items/${itemId}/variants`, input);
   }
@@ -257,6 +285,7 @@ export function setContentClient(client: ContentClient): void {
 
 export const contentClient = {
   listItems: () => active.listItems(),
+  calendarFeed: () => active.calendarFeed(),
   addVariant: (itemId: string, input: NewVariantInput) => active.addVariant(itemId, input),
   updateVariant: (id: string, patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags'>>) =>
     active.updateVariant(id, patch),
