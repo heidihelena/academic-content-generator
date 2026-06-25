@@ -5,6 +5,19 @@
  * it is unset the app runs in local mode (sample data + localStorage) and this
  * client is never constructed — see `dataSource.ts`.
  */
+/** The backend's `/api/health` report — active backend modes, never secrets. */
+export interface HealthReport {
+  status: 'ok';
+  uptime: number;
+  config: {
+    persistence: string;
+    aiGenerator: string;
+    aiProvider: string;
+    embeddings: string;
+    storage: string;
+  };
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -35,6 +48,11 @@ export class ApiClient {
 
   get<T>(path: string): Promise<T> {
     return this.request<T>(path);
+  }
+
+  /** Liveness/readiness probe — GET /health on the backend. */
+  health(): Promise<HealthReport> {
+    return this.request<HealthReport>('/health');
   }
   post<T>(path: string, data?: unknown): Promise<T> {
     return this.request<T>(path, { method: 'POST', body: data ? JSON.stringify(data) : undefined });
