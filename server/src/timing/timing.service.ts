@@ -1,6 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AUDIENCES, Audience, CONTENT_CHANNELS, ContentChannel } from '../domain/academic';
 import { candidateSlots, heuristicScore, label } from './timing.heuristic';
+import { EngagementMetrics, engagementSignal } from './engagement';
 import { TIMING_REPOSITORY, TimingRepository } from './timing.repository';
 import { LearnedSlot, TimingOutcome, TimingSuggestion, slotId } from './timing.types';
 
@@ -69,6 +70,19 @@ export class TimingService {
       samples: (existing?.samples ?? 0) + 1,
       updatedAt: now.toISOString(),
     });
+  }
+
+  /**
+   * Record real engagement: normalise the metrics to a weighted [0,1] signal,
+   * then learn from it as a timing outcome. Returns the updated slot + signal.
+   */
+  async recordEngagement(
+    input: Omit<TimingOutcome, 'signal'> & { metrics: EngagementMetrics },
+    now: Date = new Date(),
+  ): Promise<{ slot: LearnedSlot; signal: number }> {
+    const signal = engagementSignal(input.metrics);
+    const slot = await this.recordOutcome({ ...input, signal }, now);
+    return { slot, signal };
   }
 
   private resolveSlot(outcome: TimingOutcome): { weekday: number; hour: number } {
