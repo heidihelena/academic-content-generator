@@ -27,6 +27,7 @@ import { MediaModule } from './media/media.module';
 import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
 import { HealthModule } from './health/health.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,6 +37,8 @@ import { HealthModule } from './health/health.module';
     PersistenceModule.forRoot(),
     IntegrationsModule,
     EmbeddingsModule,
+    // Global config-gated auth guard (no-op unless AUTH_ENABLED=true).
+    AuthModule,
     // Feature modules.
     HealthModule,
     PostsModule,
