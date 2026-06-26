@@ -219,8 +219,16 @@ export class ContentService {
     return entries.sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
   }
 
-  async getVariant(id: string): Promise<ContentVariant> {
+  async getVariant(id: string, scope?: string): Promise<ContentVariant> {
     const found = await this.variants.findById(id);
+    // Scope a variant through its parent item's ownership — 404 (not 403) so an
+    // unowned variant's existence isn't revealed, matching the item rule.
+    if (found && scope) {
+      const item = await this.items.findById(found.contentItemId);
+      if (!item || !this.canAccess(item, scope)) {
+        throw new NotFoundException(`ContentVariant ${id} not found`);
+      }
+    }
     if (!found) throw new NotFoundException(`ContentVariant ${id} not found`);
     return found;
   }
@@ -260,8 +268,9 @@ export class ContentService {
     id: string,
     patch: Partial<Pick<ContentVariant, 'body' | 'hook' | 'hashtags' | 'status' | 'safetyReview' | 'citationReview'>>,
     now: Date = new Date(),
+    scope?: string,
   ): Promise<ContentVariant> {
-    const existing = await this.getVariant(id);
+    const existing = await this.getVariant(id, scope);
     if (patch.status) {
       this.assertEnum('status', patch.status, CONTENT_STATUSES);
       if (patch.status === 'exported') this.assertCleared(existing);
@@ -272,11 +281,16 @@ export class ContentService {
   }
 
   /** Schedule a variant with a date — the last step before export. */
-  async scheduleVariant(id: string, scheduledAt: string, now: Date = new Date()): Promise<ContentVariant> {
+  async scheduleVariant(
+    id: string,
+    scheduledAt: string,
+    now: Date = new Date(),
+    scope?: string,
+  ): Promise<ContentVariant> {
     if (!scheduledAt?.trim() || Number.isNaN(Date.parse(scheduledAt))) {
       throw new BadRequestException('scheduledAt must be a valid ISO date');
     }
-    const existing = await this.getVariant(id);
+    const existing = await this.getVariant(id, scope);
     const scheduled = await this.variants.upsert({
       ...existing,
       status: 'scheduled',
@@ -288,8 +302,8 @@ export class ContentService {
   }
 
   /** Export a variant — gated by its safety review (patient-safe: blocks are fatal). */
-  async exportVariant(id: string, now: Date = new Date()): Promise<ContentVariant> {
-    const existing = await this.getVariant(id);
+  async exportVariant(id: string, now: Date = new Date(), scope?: string): Promise<ContentVariant> {
+    const existing = await this.getVariant(id, scope);
     this.assertCleared(existing);
     const iso = now.toISOString();
     const exported = await this.variants.upsert({
@@ -328,13 +342,13 @@ export class ContentService {
   }
 
   /** Mark a variant human-reviewed (signs off the explicit export gate). */
-  async markReviewed(id: string, now: Date = new Date()): Promise<ContentVariant> {
-    const existing = await this.getVariant(id);
+  async markReviewed(id: string, now: Date = new Date(), scope?: string): Promise<ContentVariant> {
+    const existing = await this.getVariant(id, scope);
     return this.variants.upsert({ ...existing, humanReviewedAt: now.toISOString(), updatedAt: now.toISOString() });
   }
 
-  async removeVariant(id: string): Promise<void> {
-    await this.getVariant(id); // 404 if missing
+  async removeVariant(id: string, scope?: string): Promise<void> {
+    await this.getVariant(id, scope); // 404 if missing or not owned
     await this.variants.delete(id);
   }
 

@@ -23,8 +23,9 @@ export class PublishLogService {
     private readonly content: ContentService,
   ) {}
 
-  /** Logs for a variant, newest first. */
-  async listForVariant(variantId: string): Promise<PublishLog[]> {
+  /** Logs for a variant, newest first. Scoped to the variant's owner. */
+  async listForVariant(variantId: string, scope?: string): Promise<PublishLog[]> {
+    await this.content.getVariant(variantId, scope); // 404 if missing or not owned
     return this.repo.listByVariant(variantId);
   }
 
@@ -32,8 +33,9 @@ export class PublishLogService {
     variantId: string,
     input: RecordPublishInput,
     now: Date = new Date(),
+    scope?: string,
   ): Promise<PublishLog> {
-    const variant = await this.content.getVariant(variantId); // 404 if missing
+    const variant = await this.content.getVariant(variantId, scope); // 404 if missing or not owned
 
     if (input.publishedAt && Number.isNaN(Date.parse(input.publishedAt))) {
       throw new BadRequestException('publishedAt must be a valid ISO date');

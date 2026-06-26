@@ -98,5 +98,26 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
       .get(`/api/content-items/${id}`)
       .set('Authorization', 'Bearer alice-token')
       .expect(200);
+
+    // …and the variant under it is scoped the same way (by parent-item owner).
+    const variant = await request(http)
+      .post(`/api/content-items/${id}/variants`)
+      .set('Authorization', 'Bearer alice-token')
+      .send({ channel: 'linkedin', format: 'post', body: 'Hi' })
+      .expect(201);
+    const vid = variant.body.id;
+    await request(http)
+      .get(`/api/content-variants/${vid}`)
+      .set('Authorization', 'Bearer bob-token')
+      .expect(404);
+    await request(http)
+      .patch(`/api/content-variants/${vid}`)
+      .set('Authorization', 'Bearer bob-token')
+      .send({ body: 'hijack' })
+      .expect(404);
+    await request(http)
+      .get(`/api/content-variants/${vid}`)
+      .set('Authorization', 'Bearer alice-token')
+      .expect(200);
   });
 });
