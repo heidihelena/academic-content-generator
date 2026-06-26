@@ -1,4 +1,5 @@
 import type { Post } from '../types';
+import type { CalendarEntry } from '../content/contentTypes';
 import { getPlatformMeta } from './platforms';
 import { sourceUrl } from './evidence';
 
@@ -56,11 +57,20 @@ function descriptionFor(post: Post): string {
   return lines.join('\n');
 }
 
+/** The minimal data one VEVENT needs — the shape both exporters map to. */
+interface IcsEvent {
+  uid: string;
+  scheduledAt: string;
+  summary: string;
+  description: string;
+}
+
 /**
- * Build a VCALENDAR string from posts. Each post becomes a 30-minute event at
- * its scheduled time. Pass `now` for deterministic DTSTAMP in tests.
+ * Wrap events in a VCALENDAR. Each becomes a 30-minute VEVENT at its scheduled
+ * time. Pass `now` for a deterministic DTSTAMP in tests. The single place the
+ * RFC 5545 details (folding, escaping, UTC stamps) live.
  */
-export function buildIcs(posts: Post[], now: Date = new Date()): string {
+function buildCalendar(events: IcsEvent[], now: Date): string {
   const stamp = toIcsDate(now.toISOString());
   const lines: string[] = [
     'BEGIN:VCALENDAR',
@@ -68,24 +78,59 @@ export function buildIcs(posts: Post[], now: Date = new Date()): string {
     'PRODID:-//Content Calendar//Academic//EN',
     'CALSCALE:GREGORIAN',
   ];
-
-  for (const post of posts) {
-    const start = toIcsDate(post.scheduledAt);
-    const end = toIcsDate(new Date(new Date(post.scheduledAt).getTime() + 30 * 60_000).toISOString());
+  for (const event of events) {
+    const start = toIcsDate(event.scheduledAt);
+    const end = toIcsDate(new Date(new Date(event.scheduledAt).getTime() + 30 * 60_000).toISOString());
     lines.push(
       'BEGIN:VEVENT',
-      `UID:${post.id}@content-calendar`,
+      `UID:${event.uid}@content-calendar`,
       `DTSTAMP:${stamp}`,
       `DTSTART:${start}`,
       `DTEND:${end}`,
-      fold(`SUMMARY:${escapeText(summaryFor(post))}`),
-      fold(`DESCRIPTION:${escapeText(descriptionFor(post))}`),
+      fold(`SUMMARY:${escapeText(event.summary)}`),
+      fold(`DESCRIPTION:${escapeText(event.description)}`),
       'END:VEVENT',
     );
   }
-
   lines.push('END:VCALENDAR');
   return lines.join('\r\n');
+}
+
+/**
+ * Build a VCALENDAR string from posts (legacy Post model). Each post becomes a
+ * 30-minute event at its scheduled time.
+ */
+export function buildIcs(posts: Post[], now: Date = new Date()): string {
+  return buildCalendar(
+    posts.map((post) => ({
+      uid: post.id,
+      scheduledAt: post.scheduledAt,
+      summary: summaryFor(post),
+      description: descriptionFor(post),
+    })),
+    now,
+  );
+}
+
+/**
+ * Build a VCALENDAR from scheduled content-calendar entries (the ContentVariant
+ * model). One 30-minute event per scheduled variant.
+ */
+export function buildContentIcs(entries: CalendarEntry[], now: Date = new Date()): string {
+  return buildCalendar(
+    entries.map((e) => ({
+      uid: e.variantId,
+      scheduledAt: e.scheduledAt,
+      summary: `${e.channel}: ${e.title}`,
+      description: [
+        e.title,
+        `Channel: ${e.channel} · ${e.format}`,
+        `Audience: ${e.audience}`,
+        `Status: ${e.status}`,
+      ].join('\n'),
+    })),
+    now,
+  );
 }
 
 /**
@@ -93,7 +138,19 @@ export function buildIcs(posts: Post[], now: Date = new Date()): string {
  * (e.g. SSR/tests). Returns the generated calendar string for convenience.
  */
 export function downloadIcs(posts: Post[], filename = 'content-calendar.ics'): string {
-  const ics = buildIcs(posts);
+  return triggerDownload(buildIcs(posts), filename);
+}
+
+/** Trigger a browser download of scheduled content entries as an .ics file. */
+export function downloadContentIcs(
+  entries: CalendarEntry[],
+  filename = 'content-calendar.ics',
+): string {
+  return triggerDownload(buildContentIcs(entries), filename);
+}
+
+/** Shared blob-download mechanics. No-ops outside a DOM (SSR/tests). */
+function triggerDownload(ics: string, filename: string): string {
   if (typeof document === 'undefined' || typeof URL.createObjectURL !== 'function') return ics;
   const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);

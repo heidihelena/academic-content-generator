@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { buildIcs } from '../src/lib/ics';
+import { buildIcs, buildContentIcs } from '../src/lib/ics';
 import type { Post } from '../src/types';
+import type { CalendarEntry } from '../src/content/contentTypes';
 
 function post(overrides: Partial<Post> = {}): Post {
   return {
@@ -51,5 +52,39 @@ describe('buildIcs', () => {
   it('escapes commas in the summary text', () => {
     const ics = buildIcs([post({ body: 'Trees, heat, and equity' })], now);
     expect(ics).toContain('Trees\\, heat\\, and equity');
+  });
+});
+
+describe('buildContentIcs', () => {
+  const now = new Date('2026-06-01T00:00:00.000Z');
+  function entry(over: Partial<CalendarEntry> = {}): CalendarEntry {
+    return {
+      variantId: 'cv_1',
+      itemId: 'ci_1',
+      title: 'Street trees and heat',
+      channel: 'linkedin',
+      format: 'post',
+      audience: 'peers',
+      scheduledAt: '2026-06-22T09:00:00.000Z',
+      status: 'scheduled',
+      exported: false,
+      ...over,
+    };
+  }
+
+  it('emits one VEVENT per scheduled variant with channel-prefixed summary', () => {
+    const ics = buildContentIcs([entry({ variantId: 'a' }), entry({ variantId: 'b' })], now);
+    expect(ics).toMatch(/^BEGIN:VCALENDAR/);
+    expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(2);
+    expect(ics).toContain('UID:a@content-calendar');
+    expect(ics).toContain('SUMMARY:linkedin: Street trees and heat');
+    expect(ics).toContain('DTSTART:20260622T090000Z');
+    expect(ics).toContain('DTEND:20260622T093000Z');
+  });
+
+  it('puts audience and status in the description', () => {
+    const unfolded = buildContentIcs([entry()], now).replace(/\r\n[ \t]/g, '');
+    expect(unfolded).toContain('Audience: peers');
+    expect(unfolded).toContain('Status: scheduled');
   });
 });
