@@ -113,6 +113,16 @@ export interface ChecklistEntry {
   createdAt: string;
 }
 
+/** A media attachment on a content item (mirrors the backend Asset). */
+export interface AssetEntry {
+  id: string;
+  itemId: string;
+  url: string;
+  type: 'image' | 'video';
+  label?: string;
+  createdAt: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -216,4 +226,8 @@ export interface ContentClient {
   addChecklistItem(itemId: string, label: string): Promise<ChecklistEntry>;
   setChecklistDone(itemId: string, checkId: string, done: boolean): Promise<ChecklistEntry>;
   removeChecklistItem(itemId: string, checkId: string): Promise<void>;
+  /** Media attachments on a content item. */
+  listAssets(itemId: string): Promise<AssetEntry[]>;
+  attachAsset(itemId: string, input: { url: string; type: 'image' | 'video'; label?: string }): Promise<AssetEntry>;
+  removeAsset(itemId: string, assetId: string): Promise<void>;
 }

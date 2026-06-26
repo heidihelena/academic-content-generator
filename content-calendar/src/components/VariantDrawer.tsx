@@ -9,6 +9,7 @@ import { PublishAssistant } from './PublishAssistant';
 import { StatusTimeline } from './StatusTimeline';
 import { CommentsSection } from './CommentsSection';
 import { ChecklistSection } from './ChecklistSection';
+import { AssetsSection } from './AssetsSection';
 
 /** Tomorrow 09:00 local — a sensible default schedule slot. */
 function tomorrowMorning(): string {
@@ -231,6 +232,9 @@ export function VariantDrawer({
 
         {/* Pre-publish QA checklist on the parent item. */}
         <ChecklistSection itemId={item.id} />
+
+        {/* Media attachments on the parent item. */}
+        <AssetsSection itemId={item.id} />
 
         {/* Collaboration thread on the parent item. */}
         <CommentsSection itemId={item.id} />
