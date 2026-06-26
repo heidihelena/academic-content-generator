@@ -28,6 +28,7 @@ import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { PublishLogModule } from './publish-log/publish-log.module';
 import { InsightsModule } from './insights/insights.module';
 import { CommentsModule } from './comments/comments.module';
@@ -44,6 +45,8 @@ import { AssetsModule } from './assets/assets.module';
     EmbeddingsModule,
     // Global config-gated auth guard (no-op unless AUTH_ENABLED=true).
     AuthModule,
+    // Global config-gated per-user rate limit (no-op unless RATE_LIMIT_ENABLED=true).
+    RateLimitModule,
     // Feature modules.
     HealthModule,
     PostsModule,

@@ -1,7 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { RateLimited } from '../rate-limit/rate-limited.decorator';
 import { IdeasService } from './ideas.service';
 import type { IdeaRequest } from './ideas.types';
 
+@RateLimited()
 @Controller('ai')
 export class IdeasController {
   constructor(private readonly ideas: IdeasService) {}

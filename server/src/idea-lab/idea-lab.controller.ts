@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { Audience } from '../domain/academic';
+import { RateLimited } from '../rate-limit/rate-limited.decorator';
 import { IdeaLabService } from './idea-lab.service';
 
 interface IdeaLabRequest {
@@ -8,6 +9,7 @@ interface IdeaLabRequest {
   audience?: Audience;
 }
 
+@RateLimited()
 @Controller('idea-lab')
 export class IdeaLabController {
   constructor(private readonly ideaLab: IdeaLabService) {}
