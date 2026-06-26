@@ -32,7 +32,10 @@ describe('ApiClient.health', () => {
 
 describe('checkConnection', () => {
   it('reports api/online with the backend modes when the probe succeeds', async () => {
-    const client = { health: vi.fn().mockResolvedValue(REPORT) } as unknown as ApiClient;
+    const client = {
+      health: vi.fn().mockResolvedValue(REPORT),
+      me: vi.fn().mockResolvedValue({ userId: 'alice', authEnabled: true }),
+    } as unknown as ApiClient;
     vi.stubEnv('VITE_API_URL', 'http://localhost:3000/api');
 
     const status = await checkConnection(client);
@@ -41,7 +44,22 @@ describe('checkConnection', () => {
       online: true,
       baseUrl: 'http://localhost:3000/api',
       backend: REPORT.config,
+      user: { userId: 'alice', authEnabled: true },
     });
+
+    vi.unstubAllEnvs();
+  });
+
+  it('stays online with no user when /me 401s (auth on, no token)', async () => {
+    const client = {
+      health: vi.fn().mockResolvedValue(REPORT),
+      me: vi.fn().mockRejectedValue(new Error('401')),
+    } as unknown as ApiClient;
+    vi.stubEnv('VITE_API_URL', 'http://localhost:3000/api');
+
+    const status = await checkConnection(client);
+    expect(status.online).toBe(true);
+    expect(status.user).toBeUndefined();
 
     vi.unstubAllEnvs();
   });
