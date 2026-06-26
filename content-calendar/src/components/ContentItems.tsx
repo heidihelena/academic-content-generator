@@ -5,6 +5,7 @@ import { contentClient } from '../content/contentClient';
 import { VariantDrawer } from './VariantDrawer';
 import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
+import { ContentTable } from './ContentTable';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
 import { downloadContentIcs } from '../lib/ics';
@@ -21,7 +22,7 @@ export function ContentItems() {
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
-  const [mode, setMode] = useState<'list' | 'board'>('list');
+  const [mode, setMode] = useState<'list' | 'board' | 'table'>('list');
 
   const load = () => {
     setLoading(true);
@@ -86,7 +87,7 @@ export function ContentItems() {
             Export .ics
           </button>
           <div className="inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
-            {(['list', 'board'] as const).map((m) => (
+            {(['list', 'board', 'table'] as const).map((m) => (
               <button
                 key={m}
                 role="tab"
@@ -106,6 +107,8 @@ export function ContentItems() {
       <ScheduledAgenda refreshKey={refresh} onSelect={setOpenId} />
 
       {mode === 'board' && <ContentBoard items={items} onOpen={setOpenId} />}
+
+      {mode === 'table' && <ContentTable items={items} onOpen={setOpenId} />}
 
       {mode === 'list' && items.map((item) => (
         <section key={item.id} aria-label={item.title} className="card space-y-3 p-4">
