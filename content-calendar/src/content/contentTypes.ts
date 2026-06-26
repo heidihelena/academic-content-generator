@@ -93,6 +93,12 @@ export interface CommentEntry {
   createdAt: string;
 }
 
+/** A campaign (mirrors the backend Campaign) — enough to resolve a name. */
+export interface Campaign {
+  id: string;
+  title: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -189,4 +195,6 @@ export interface ContentClient {
   /** Notes/comments on a content item. */
   listComments(itemId: string): Promise<CommentEntry[]>;
   addComment(itemId: string, body: string): Promise<CommentEntry>;
+  /** Campaigns — used to resolve a content item's campaignId to a name. */
+  listCampaigns(): Promise<Campaign[]>;
 }

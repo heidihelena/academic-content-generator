@@ -23,9 +23,12 @@ type SortKey = 'title' | 'channel' | 'status' | 'scheduledAt';
 export function ContentTable({
   items,
   onOpen,
+  campaigns,
 }: {
   items: ContentItemWithVariants[];
   onOpen: (variantId: string) => void;
+  /** campaignId → display name; falls back to the id when absent. */
+  campaigns?: Map<string, string>;
 }) {
   const [sort, setSort] = useState<SortKey>('title');
   const [dir, setDir] = useState<1 | -1>(1);
@@ -75,7 +78,9 @@ export function ContentTable({
               <td className="py-1.5 pr-3 font-mono text-slate-400">{variant.channel} · {variant.format}</td>
               <td className="py-1.5 pr-3 uppercase tracking-wide text-slate-500">{variant.status}</td>
               <td className="py-1.5 pr-3 text-slate-400">{item.audience}</td>
-              <td className="py-1.5 pr-3 text-slate-400">{item.campaignId ?? '—'}</td>
+              <td className="py-1.5 pr-3 text-slate-400">
+                {item.campaignId ? campaigns?.get(item.campaignId) ?? item.campaignId : '—'}
+              </td>
               <td className="py-1.5 pr-3 text-slate-400">{item.ownerId ?? '—'}</td>
               <td className="py-1.5 pr-3 text-slate-400">
                 {variant.scheduledAt ? new Date(variant.scheduledAt).toLocaleDateString() : '—'}

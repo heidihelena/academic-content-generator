@@ -23,6 +23,14 @@ export function ContentItems() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [mode, setMode] = useState<'list' | 'board' | 'table'>('list');
+  const [campaigns, setCampaigns] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    contentClient
+      .listCampaigns()
+      .then((cs) => setCampaigns(new Map(cs.map((c) => [c.id, c.title]))))
+      .catch(() => setCampaigns(new Map()));
+  }, []);
 
   const load = () => {
     setLoading(true);
@@ -108,13 +116,14 @@ export function ContentItems() {
 
       {mode === 'board' && <ContentBoard items={items} onOpen={setOpenId} />}
 
-      {mode === 'table' && <ContentTable items={items} onOpen={setOpenId} />}
+      {mode === 'table' && <ContentTable items={items} onOpen={setOpenId} campaigns={campaigns} />}
 
       {mode === 'list' && items.map((item) => (
         <section key={item.id} aria-label={item.title} className="card space-y-3 p-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-200">{item.title}</h2>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {item.campaignId && <Chip>📁 {campaigns.get(item.campaignId) ?? item.campaignId}</Chip>}
               <Chip>{item.pillar}</Chip>
               <Chip>{item.audience}</Chip>
               <Chip>evidence: {item.evidenceLevel}</Chip>
