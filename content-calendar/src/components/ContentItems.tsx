@@ -7,6 +7,7 @@ import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
+import { downloadContentIcs } from '../lib/ics';
 
 /**
  * Content view: one idea (ContentItem) with its many channel/format variants.
@@ -68,20 +69,29 @@ export function ContentItems() {
             One idea, many variants. Click a variant to edit, review and export it in the side panel.
           </p>
         </div>
-        <div className="ml-auto inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
-          {(['list', 'board'] as const).map((m) => (
-            <button
-              key={m}
-              role="tab"
-              aria-selected={mode === m}
-              onClick={() => setMode(m)}
-              className={`rounded-md px-2.5 py-1 text-xs capitalize ${
-                mode === m ? 'bg-surface-700 text-slate-100' : 'text-slate-400'
-              }`}
-            >
-              {m}
-            </button>
-          ))}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            className="btn-secondary py-1 text-xs"
+            onClick={async () => downloadContentIcs(await contentClient.calendarFeed())}
+            title="Export scheduled content as an .ics calendar"
+          >
+            Export .ics
+          </button>
+          <div className="inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
+            {(['list', 'board'] as const).map((m) => (
+              <button
+                key={m}
+                role="tab"
+                aria-selected={mode === m}
+                onClick={() => setMode(m)}
+                className={`rounded-md px-2.5 py-1 text-xs capitalize ${
+                  mode === m ? 'bg-surface-700 text-slate-100' : 'text-slate-400'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
