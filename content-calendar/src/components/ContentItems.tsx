@@ -4,6 +4,7 @@ import { VARIANT_CHANNELS, VARIANT_FORMATS, exportBlockers } from '../content/co
 import { contentClient } from '../content/contentClient';
 import { VariantDrawer } from './VariantDrawer';
 import { ScheduledAgenda } from './ScheduledAgenda';
+import { ContentBoard } from './ContentBoard';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
 
@@ -18,6 +19,7 @@ export function ContentItems() {
   const [error, setError] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [refresh, setRefresh] = useState(0);
+  const [mode, setMode] = useState<'list' | 'board'>('list');
 
   const load = () => {
     setLoading(true);
@@ -66,11 +68,28 @@ export function ContentItems() {
             One idea, many variants. Click a variant to edit, review and export it in the side panel.
           </p>
         </div>
+        <div className="ml-auto inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
+          {(['list', 'board'] as const).map((m) => (
+            <button
+              key={m}
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`rounded-md px-2.5 py-1 text-xs capitalize ${
+                mode === m ? 'bg-surface-700 text-slate-100' : 'text-slate-400'
+              }`}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </header>
 
       <ScheduledAgenda refreshKey={refresh} onSelect={setOpenId} />
 
-      {items.map((item) => (
+      {mode === 'board' && <ContentBoard items={items} onOpen={setOpenId} />}
+
+      {mode === 'list' && items.map((item) => (
         <section key={item.id} aria-label={item.title} className="card space-y-3 p-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-200">{item.title}</h2>
