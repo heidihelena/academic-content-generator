@@ -29,6 +29,7 @@ import { ShortsModule } from './shorts/shorts.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { PublishLogModule } from './publish-log/publish-log.module';
+import { InsightsModule } from './insights/insights.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { PublishLogModule } from './publish-log/publish-log.module';
     ContentPlanModule,
     ContentModule,
     PublishLogModule,
+    InsightsModule,
     ReuseModule,
     TimingModule,
     EngagementModule,
