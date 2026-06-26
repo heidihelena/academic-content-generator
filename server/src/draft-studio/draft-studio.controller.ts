@@ -1,5 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { Audience, ContentChannel } from '../domain/academic';
+import { RateLimited } from '../rate-limit/rate-limited.decorator';
 import { DraftStudioRequest, DraftStudioService } from './draft-studio.service';
 
 interface HookRequest {
@@ -8,6 +9,7 @@ interface HookRequest {
   audience: Audience;
 }
 
+@RateLimited()
 @Controller('draft-studio')
 export class DraftStudioController {
   constructor(private readonly studio: DraftStudioService) {}

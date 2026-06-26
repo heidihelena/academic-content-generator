@@ -1,7 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { RateLimited } from '../rate-limit/rate-limited.decorator';
 import { TalkPackageRequest } from './talk-package.types';
 import { TalkPackageService } from './talk-package.service';
 
+@RateLimited()
 @Controller('talk-package')
 export class TalkPackageController {
   constructor(private readonly talkPackage: TalkPackageService) {}

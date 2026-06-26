@@ -78,6 +78,11 @@ export interface AppConfig {
      *  accounts plug into. */
     defaultUserId: string;
   };
+  rateLimit: {
+    /** Off by default; per-user limiting of expensive LLM endpoints when on. */
+    enabled: boolean;
+    perMinute: number;
+  };
 }
 
 /** Parse `AUTH_TOKENS` ("alice:tokA,bob:tokB") into a `{ userId: token }` map. */
@@ -160,5 +165,13 @@ export default (): AppConfig => ({
     token: process.env.AUTH_TOKEN,
     tokens: parseAuthTokens(process.env.AUTH_TOKENS),
     defaultUserId: process.env.AUTH_DEFAULT_USER_ID ?? 'local',
+  },
+  rateLimit: {
+    /** Off by default (local-first). When on, the expensive LLM-backed
+     *  generative endpoints are limited per user (the noisy-neighbor / AI-cost
+     *  control OWASP recommends for multi-tenant production). */
+    enabled: process.env.RATE_LIMIT_ENABLED === 'true',
+    /** Allowed requests per user per minute on rate-limited routes. */
+    perMinute: parseInt(process.env.RATE_LIMIT_PER_MIN ?? '30', 10),
   },
 });
