@@ -99,6 +99,15 @@ export interface Campaign {
   title: string;
 }
 
+/** A pre-publish checklist entry on a content item (mirrors the backend). */
+export interface ChecklistEntry {
+  id: string;
+  itemId: string;
+  label: string;
+  done: boolean;
+  createdAt: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -197,4 +206,9 @@ export interface ContentClient {
   addComment(itemId: string, body: string): Promise<CommentEntry>;
   /** Campaigns — used to resolve a content item's campaignId to a name. */
   listCampaigns(): Promise<Campaign[]>;
+  /** Pre-publish checklist on a content item. */
+  listChecklist(itemId: string): Promise<ChecklistEntry[]>;
+  addChecklistItem(itemId: string, label: string): Promise<ChecklistEntry>;
+  setChecklistDone(itemId: string, checkId: string, done: boolean): Promise<ChecklistEntry>;
+  removeChecklistItem(itemId: string, checkId: string): Promise<void>;
 }

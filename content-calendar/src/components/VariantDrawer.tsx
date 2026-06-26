@@ -8,6 +8,7 @@ import { Spinner } from './ui/Spinner';
 import { PublishAssistant } from './PublishAssistant';
 import { StatusTimeline } from './StatusTimeline';
 import { CommentsSection } from './CommentsSection';
+import { ChecklistSection } from './ChecklistSection';
 
 /** Tomorrow 09:00 local — a sensible default schedule slot. */
 function tomorrowMorning(): string {
@@ -227,6 +228,9 @@ export function VariantDrawer({
 
         {/* Lifecycle history (approval-workflow audit trail). */}
         <StatusTimeline variant={variant} />
+
+        {/* Pre-publish QA checklist on the parent item. */}
+        <ChecklistSection itemId={item.id} />
 
         {/* Collaboration thread on the parent item. */}
         <CommentsSection itemId={item.id} />
