@@ -58,6 +58,22 @@ export interface ContentItemWithVariants extends ContentItem {
   variants: ContentVariant[];
 }
 
+/** A record that a variant was published by hand (mirrors the backend PublishLog). */
+export interface PublishLogEntry {
+  id: string;
+  variantId: string;
+  channel: string;
+  publishedUrl?: string;
+  publishedAt: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface RecordPublishInput {
+  publishedUrl?: string;
+  notes?: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -146,4 +162,7 @@ export interface ContentClient {
   markReviewed(id: string): Promise<ContentVariant>;
   schedule(id: string, scheduledAt: string): Promise<ContentVariant>;
   publish(id: string): Promise<ContentVariant>;
+  /** Manual-publish assistant: list / record where a variant went live. */
+  listPublishLog(variantId: string): Promise<PublishLogEntry[]>;
+  recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry>;
 }
