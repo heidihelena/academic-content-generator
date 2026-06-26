@@ -219,6 +219,30 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).post('/api/content-variants/cv_nope/publish-log').send({}).expect(404);
   });
 
+  it('serves derived editorial insights', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'Insight idea',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+
+    const res = await request(http).get('/api/insights').expect(200);
+    expect(res.body).toHaveProperty('weekOf');
+    expect(res.body.counts).toEqual(
+      expect.objectContaining({ items: expect.any(Number), variants: expect.any(Number) }),
+    );
+    // The new idea has no variant → it should surface as "ideas-without-draft".
+    const ideasNoDraft = res.body.insights.find(
+      (i: { key: string }) => i.key === 'ideas-without-draft',
+    );
+    expect(ideasNoDraft.findings.map((f: { itemId: string }) => f.itemId)).toContain(item.body.id);
+  });
+
   it('reports health with active backend modes (no secrets)', async () => {
     const res = await request(http).get('/api/health').expect(200);
     expect(res.body.status).toBe('ok');
