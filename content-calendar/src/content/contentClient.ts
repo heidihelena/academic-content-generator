@@ -1,6 +1,7 @@
 import { ApiClient } from '../lib/api';
 import type {
   CalendarEntry,
+  Campaign,
   CommentEntry,
   ContentClient,
   ContentItemWithVariants,
@@ -311,6 +312,14 @@ export class LocalContentClient implements ContentClient {
     return entry;
   }
 
+  async listCampaigns(): Promise<Campaign[]> {
+    // The campaignIds the sample content references, given readable names.
+    return [
+      { id: 'cmp_heat', title: 'Urban Heat' },
+      { id: 'cmp_sleep', title: 'Sleep & Memory' },
+    ];
+  }
+
   private publishLogs: PublishLogEntry[] = [];
 
   async listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
@@ -401,6 +410,9 @@ export class ApiContentClient implements ContentClient {
   addComment(itemId: string, body: string): Promise<CommentEntry> {
     return this.api.post<CommentEntry>(`/content-items/${itemId}/comments`, { body });
   }
+  listCampaigns(): Promise<Campaign[]> {
+    return this.api.get<Campaign[]>('/campaigns');
+  }
 }
 
 function createDefault(): ContentClient {
@@ -435,4 +447,5 @@ export const contentClient = {
   listStatusHistory: (variantId: string) => active.listStatusHistory(variantId),
   listComments: (itemId: string) => active.listComments(itemId),
   addComment: (itemId: string, body: string) => active.addComment(itemId, body),
+  listCampaigns: () => active.listCampaigns(),
 };
