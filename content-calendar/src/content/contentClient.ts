@@ -3,11 +3,13 @@ import type {
   CalendarEntry,
   ContentClient,
   ContentItemWithVariants,
+  ContentStatus,
   ContentVariant,
   NewVariantInput,
   PublishLogEntry,
   RecordPublishInput,
   SafetyFinding,
+  StatusChangeEntry,
   TimingSuggestion,
 } from './contentTypes';
 
@@ -153,9 +155,21 @@ export const SAMPLE_ITEMS: ContentItemWithVariants[] = [
 export class LocalContentClient implements ContentClient {
   readonly name = 'local';
   private items: ContentItemWithVariants[];
+  private history: StatusChangeEntry[] = [];
 
   constructor(seed: ContentItemWithVariants[] = SAMPLE_ITEMS) {
     this.items = seed.map((i) => ({ ...i, variants: i.variants.map((v) => ({ ...v })) }));
+  }
+
+  private record(variantId: string, from: ContentStatus | undefined, to: ContentStatus): void {
+    if (from === to) return;
+    this.history.push({
+      id: `sc_${Math.random().toString(36).slice(2, 10)}`,
+      variantId,
+      from,
+      to,
+      at: new Date().toISOString(),
+    });
   }
 
   async listItems(): Promise<ContentItemWithVariants[]> {
@@ -218,6 +232,7 @@ export class LocalContentClient implements ContentClient {
       status: 'draft',
     };
     item.variants.push(variant);
+    this.record(variant.id, undefined, 'draft');
     return { ...variant };
   }
 
@@ -253,6 +268,7 @@ export class LocalContentClient implements ContentClient {
 
   async schedule(id: string, scheduledAt: string): Promise<ContentVariant> {
     const { variant } = this.locate(id);
+    this.record(id, variant.status, 'scheduled');
     variant.status = 'scheduled';
     variant.scheduledAt = scheduledAt;
     return { ...variant };
@@ -262,9 +278,16 @@ export class LocalContentClient implements ContentClient {
     const { variant } = this.locate(id);
     if (!variant.safetyReview?.cleared) throw new Error('Cannot export: blocking safety findings.');
     if (!variant.humanReviewedAt) throw new Error('Cannot export: not marked human-reviewed.');
+    this.record(id, variant.status, 'exported');
     variant.status = 'exported';
     variant.exportedAt = new Date().toISOString();
     return { ...variant };
+  }
+
+  async listStatusHistory(variantId: string): Promise<StatusChangeEntry[]> {
+    return this.history
+      .filter((c) => c.variantId === variantId)
+      .sort((a, b) => a.at.localeCompare(b.at));
   }
 
   private publishLogs: PublishLogEntry[] = [];
@@ -348,6 +371,9 @@ export class ApiContentClient implements ContentClient {
   recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry> {
     return this.api.post<PublishLogEntry>(`/content-variants/${variantId}/publish-log`, input);
   }
+  listStatusHistory(variantId: string): Promise<StatusChangeEntry[]> {
+    return this.api.get<StatusChangeEntry[]>(`/content-variants/${variantId}/status-history`);
+  }
 }
 
 function createDefault(): ContentClient {
@@ -379,4 +405,5 @@ export const contentClient = {
   listPublishLog: (variantId: string) => active.listPublishLog(variantId),
   recordPublish: (variantId: string, input: RecordPublishInput) =>
     active.recordPublish(variantId, input),
+  listStatusHistory: (variantId: string) => active.listStatusHistory(variantId),
 };
