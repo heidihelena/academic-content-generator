@@ -43,6 +43,16 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
     await request(http).get('/api/health').expect(200);
   });
 
+  it('resolves /api/me to the token owner with authEnabled=true', async () => {
+    const res = await request(http)
+      .get('/api/me')
+      .set('Authorization', 'Bearer alice-token')
+      .expect(200);
+    expect(res.body).toEqual({ userId: 'alice', authEnabled: true });
+    // …and 401 without a token (it's behind the guard).
+    await request(http).get('/api/me').expect(401);
+  });
+
   it('rejects a protected route without a token', async () => {
     await request(http).get('/api/accounts').expect(401);
   });

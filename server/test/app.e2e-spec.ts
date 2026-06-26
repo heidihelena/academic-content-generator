@@ -370,6 +370,11 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(ideasNoDraft.findings.map((f: { itemId: string }) => f.itemId)).toContain(item.body.id);
   });
 
+  it('reports the local identity from /api/me when auth is off', async () => {
+    const res = await request(http).get('/api/me').expect(200);
+    expect(res.body).toEqual({ userId: 'local', authEnabled: false });
+  });
+
   it('reports health with active backend modes (no secrets)', async () => {
     const res = await request(http).get('/api/health').expect(200);
     expect(res.body.status).toBe('ok');
