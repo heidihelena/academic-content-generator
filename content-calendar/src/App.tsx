@@ -14,6 +14,7 @@ import type { StudioSeed } from './studio/studioTypes';
 import { AbstractToThread } from './components/AbstractToThread';
 import { TalkPackageStudio } from './components/TalkPackageStudio';
 import { ContentItems } from './components/ContentItems';
+import { InsightsPanel } from './components/InsightsPanel';
 import { VideoToShorts } from './components/VideoToShorts';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
@@ -77,7 +78,8 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
                 </div>
               )}
               {view === 'content' && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-3xl space-y-5">
+                  <InsightsPanel />
                   <ContentItems />
                 </div>
               )}
