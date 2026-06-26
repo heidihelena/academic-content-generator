@@ -32,6 +32,7 @@ import { PublishLogModule } from './publish-log/publish-log.module';
 import { InsightsModule } from './insights/insights.module';
 import { CommentsModule } from './comments/comments.module';
 import { ChecklistModule } from './checklist/checklist.module';
+import { AssetsModule } from './assets/assets.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ChecklistModule } from './checklist/checklist.module';
     InsightsModule,
     CommentsModule,
     ChecklistModule,
+    AssetsModule,
     ReuseModule,
     TimingModule,
     EngagementModule,

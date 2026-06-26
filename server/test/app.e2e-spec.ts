@@ -284,6 +284,41 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).get('/api/content-items/ci_nope/checklist').expect(404);
   });
 
+  it('attaches and lists media assets on a content item', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'With media',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+    const itemId = item.body.id;
+
+    const asset = await request(http)
+      .post(`/api/content-items/${itemId}/assets`)
+      .send({ url: 'https://cdn/x.png', type: 'image', label: 'Cover' })
+      .expect(201);
+    expect(asset.body.type).toBe('image');
+
+    const list = await request(http).get(`/api/content-items/${itemId}/assets`).expect(200);
+    expect(list.body).toHaveLength(1);
+
+    await request(http)
+      .delete(`/api/content-items/${itemId}/assets/${asset.body.id}`)
+      .expect(200);
+    expect((await request(http).get(`/api/content-items/${itemId}/assets`).expect(200)).body).toHaveLength(0);
+
+    // Invalid type rejected; missing item 404.
+    await request(http)
+      .post(`/api/content-items/${itemId}/assets`)
+      .send({ url: 'https://cdn/x.png', type: 'gif' })
+      .expect(400);
+    await request(http).get('/api/content-items/ci_nope/assets').expect(404);
+  });
+
   it('records variant status history through the lifecycle', async () => {
     const item = await request(http)
       .post('/api/content-items')

@@ -254,6 +254,25 @@ export interface ChecklistItem {
   createdAt: string;
 }
 
+/** What kind of media an {@link Asset} is. */
+export const ASSET_TYPES = ['image', 'video'] as const;
+export type AssetType = (typeof ASSET_TYPES)[number];
+
+/**
+ * A media attachment on a {@link ContentItem} — the image/video that ships with
+ * the content (a carousel cover, a figure, a clip). Stores a reference (the URL
+ * returned by the media upload) plus a label; keyed by `itemId`, visible to the
+ * item's owner.
+ */
+export interface Asset {
+  id: string;
+  itemId: string;
+  url: string;
+  type: AssetType;
+  label?: string;
+  createdAt: string;
+}
+
 /**
  * One step in a {@link ContentVariant}'s lifecycle — the approval-workflow audit
  * trail. Recorded whenever a variant's status changes (created, reviewed,
