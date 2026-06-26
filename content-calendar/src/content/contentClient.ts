@@ -2,6 +2,7 @@ import { ApiClient } from '../lib/api';
 import type {
   CalendarEntry,
   Campaign,
+  ChecklistEntry,
   CommentEntry,
   ContentClient,
   ContentItemWithVariants,
@@ -320,6 +321,38 @@ export class LocalContentClient implements ContentClient {
     ];
   }
 
+  private checklist: ChecklistEntry[] = [];
+
+  async listChecklist(itemId: string): Promise<ChecklistEntry[]> {
+    return this.checklist
+      .filter((c) => c.itemId === itemId)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async addChecklistItem(itemId: string, label: string): Promise<ChecklistEntry> {
+    if (!this.items.some((i) => i.id === itemId)) throw new Error('Item not found.');
+    const entry: ChecklistEntry = {
+      id: `ck_${Math.random().toString(36).slice(2, 10)}`,
+      itemId,
+      label: label.trim(),
+      done: false,
+      createdAt: new Date().toISOString(),
+    };
+    this.checklist.push(entry);
+    return entry;
+  }
+
+  async setChecklistDone(itemId: string, checkId: string, done: boolean): Promise<ChecklistEntry> {
+    const entry = this.checklist.find((c) => c.id === checkId && c.itemId === itemId);
+    if (!entry) throw new Error('Checklist item not found.');
+    entry.done = done;
+    return { ...entry };
+  }
+
+  async removeChecklistItem(itemId: string, checkId: string): Promise<void> {
+    this.checklist = this.checklist.filter((c) => !(c.id === checkId && c.itemId === itemId));
+  }
+
   private publishLogs: PublishLogEntry[] = [];
 
   async listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
@@ -413,6 +446,18 @@ export class ApiContentClient implements ContentClient {
   listCampaigns(): Promise<Campaign[]> {
     return this.api.get<Campaign[]>('/campaigns');
   }
+  listChecklist(itemId: string): Promise<ChecklistEntry[]> {
+    return this.api.get<ChecklistEntry[]>(`/content-items/${itemId}/checklist`);
+  }
+  addChecklistItem(itemId: string, label: string): Promise<ChecklistEntry> {
+    return this.api.post<ChecklistEntry>(`/content-items/${itemId}/checklist`, { label });
+  }
+  setChecklistDone(itemId: string, checkId: string, done: boolean): Promise<ChecklistEntry> {
+    return this.api.patch<ChecklistEntry>(`/content-items/${itemId}/checklist/${checkId}`, { done });
+  }
+  async removeChecklistItem(itemId: string, checkId: string): Promise<void> {
+    await this.api.delete(`/content-items/${itemId}/checklist/${checkId}`);
+  }
 }
 
 function createDefault(): ContentClient {
@@ -448,4 +493,10 @@ export const contentClient = {
   listComments: (itemId: string) => active.listComments(itemId),
   addComment: (itemId: string, body: string) => active.addComment(itemId, body),
   listCampaigns: () => active.listCampaigns(),
+  listChecklist: (itemId: string) => active.listChecklist(itemId),
+  addChecklistItem: (itemId: string, label: string) => active.addChecklistItem(itemId, label),
+  setChecklistDone: (itemId: string, checkId: string, done: boolean) =>
+    active.setChecklistDone(itemId, checkId, done),
+  removeChecklistItem: (itemId: string, checkId: string) =>
+    active.removeChecklistItem(itemId, checkId),
 };
