@@ -1,6 +1,7 @@
 import { ApiClient } from '../lib/api';
 import type {
   CalendarEntry,
+  CommentEntry,
   ContentClient,
   ContentItemWithVariants,
   ContentStatus,
@@ -290,6 +291,26 @@ export class LocalContentClient implements ContentClient {
       .sort((a, b) => a.at.localeCompare(b.at));
   }
 
+  private comments: CommentEntry[] = [];
+
+  async listComments(itemId: string): Promise<CommentEntry[]> {
+    return this.comments
+      .filter((c) => c.itemId === itemId)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async addComment(itemId: string, body: string): Promise<CommentEntry> {
+    if (!this.items.some((i) => i.id === itemId)) throw new Error('Item not found.');
+    const entry: CommentEntry = {
+      id: `cm_${Math.random().toString(36).slice(2, 10)}`,
+      itemId,
+      body: body.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    this.comments.push(entry);
+    return entry;
+  }
+
   private publishLogs: PublishLogEntry[] = [];
 
   async listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
@@ -374,6 +395,12 @@ export class ApiContentClient implements ContentClient {
   listStatusHistory(variantId: string): Promise<StatusChangeEntry[]> {
     return this.api.get<StatusChangeEntry[]>(`/content-variants/${variantId}/status-history`);
   }
+  listComments(itemId: string): Promise<CommentEntry[]> {
+    return this.api.get<CommentEntry[]>(`/content-items/${itemId}/comments`);
+  }
+  addComment(itemId: string, body: string): Promise<CommentEntry> {
+    return this.api.post<CommentEntry>(`/content-items/${itemId}/comments`, { body });
+  }
 }
 
 function createDefault(): ContentClient {
@@ -406,4 +433,6 @@ export const contentClient = {
   recordPublish: (variantId: string, input: RecordPublishInput) =>
     active.recordPublish(variantId, input),
   listStatusHistory: (variantId: string) => active.listStatusHistory(variantId),
+  listComments: (itemId: string) => active.listComments(itemId),
+  addComment: (itemId: string, body: string) => active.addComment(itemId, body),
 };
