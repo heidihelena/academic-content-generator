@@ -187,6 +187,38 @@ describe('Content Calendar API (e2e, memory driver)', () => {
       .expect(400);
   });
 
+  it('records and lists a manual publish (PublishLog)', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'Publish me',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+    const variant = await request(http)
+      .post(`/api/content-items/${item.body.id}/variants`)
+      .send({ channel: 'linkedin', format: 'post', body: 'Hello' })
+      .expect(201);
+
+    const logged = await request(http)
+      .post(`/api/content-variants/${variant.body.id}/publish-log`)
+      .send({ publishedUrl: 'https://linkedin.com/p/42', notes: 'posted by hand' })
+      .expect(201);
+    expect(logged.body.channel).toBe('linkedin');
+    expect(logged.body.publishedUrl).toBe('https://linkedin.com/p/42');
+
+    const list = await request(http)
+      .get(`/api/content-variants/${variant.body.id}/publish-log`)
+      .expect(200);
+    expect(list.body).toHaveLength(1);
+
+    // Logging against a missing variant is a 404.
+    await request(http).post('/api/content-variants/cv_nope/publish-log').send({}).expect(404);
+  });
+
   it('reports health with active backend modes (no secrets)', async () => {
     const res = await request(http).get('/api/health').expect(200);
     expect(res.body.status).toBe('ok');

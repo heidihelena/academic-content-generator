@@ -28,6 +28,7 @@ import { RenderModule } from './render/render.module';
 import { ShortsModule } from './shorts/shorts.module';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
+import { PublishLogModule } from './publish-log/publish-log.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { AuthModule } from './auth/auth.module';
     CampaignsModule,
     ContentPlanModule,
     ContentModule,
+    PublishLogModule,
     ReuseModule,
     TimingModule,
     EngagementModule,

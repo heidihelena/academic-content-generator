@@ -211,6 +211,24 @@ export interface ContentVariant {
 }
 
 /**
+ * A record that a {@link ContentVariant} was actually published — the manual-
+ * publish assistant's audit trail. After exporting a reviewed variant and posting
+ * it by hand (copy → paste into LinkedIn/Bluesky/…), you log *where it went live*
+ * (the public URL) and any notes. Many per variant (e.g. cross-posted, edited and
+ * re-posted), so it's its own collection keyed by `variantId`.
+ */
+export interface PublishLog {
+  id: string;
+  variantId: string;
+  channel: ContentChannel;
+  /** Public URL of the live post (optional — not every channel yields one). */
+  publishedUrl?: string;
+  publishedAt: string;
+  notes?: string;
+  createdAt: string;
+}
+
+/**
  * Why a variant cannot be exported yet — the explicit gate the UI surfaces so a
  * user can see *why* a text isn't shippable. Empty array ⇒ cleared for export.
  * A variant is exportable when its medical-safety review is cleared (no blocking
