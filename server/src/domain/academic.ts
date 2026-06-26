@@ -229,6 +229,19 @@ export interface PublishLog {
 }
 
 /**
+ * A note/comment on a {@link ContentItem} — the collaboration thread an editorial
+ * OS needs (review notes, hand-off context, decisions). Keyed by `itemId`;
+ * `author` is the request identity when known. Visible to the item's owner.
+ */
+export interface Comment {
+  id: string;
+  itemId: string;
+  author?: string;
+  body: string;
+  createdAt: string;
+}
+
+/**
  * One step in a {@link ContentVariant}'s lifecycle — the approval-workflow audit
  * trail. Recorded whenever a variant's status changes (created, reviewed,
  * scheduled, exported), so the history of who-moved-what-when is reconstructable.

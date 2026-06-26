@@ -30,6 +30,7 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { PublishLogModule } from './publish-log/publish-log.module';
 import { InsightsModule } from './insights/insights.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { InsightsModule } from './insights/insights.module';
     ContentModule,
     PublishLogModule,
     InsightsModule,
+    CommentsModule,
     ReuseModule,
     TimingModule,
     EngagementModule,

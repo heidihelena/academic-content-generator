@@ -219,6 +219,32 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).post('/api/content-variants/cv_nope/publish-log').send({}).expect(404);
   });
 
+  it('adds and lists comments on a content item', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'Commentable',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+
+    const added = await request(http)
+      .post(`/api/content-items/${item.body.id}/comments`)
+      .send({ body: 'Needs a citation for the second claim.' })
+      .expect(201);
+    expect(added.body.body).toBe('Needs a citation for the second claim.');
+
+    const list = await request(http).get(`/api/content-items/${item.body.id}/comments`).expect(200);
+    expect(list.body).toHaveLength(1);
+
+    // Empty body is rejected; missing item is a 404.
+    await request(http).post(`/api/content-items/${item.body.id}/comments`).send({ body: '' }).expect(400);
+    await request(http).get('/api/content-items/ci_nope/comments').expect(404);
+  });
+
   it('records variant status history through the lifecycle', async () => {
     const item = await request(http)
       .post('/api/content-items')
