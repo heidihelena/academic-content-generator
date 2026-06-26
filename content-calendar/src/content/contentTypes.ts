@@ -93,10 +93,15 @@ export interface CommentEntry {
   createdAt: string;
 }
 
-/** A campaign (mirrors the backend Campaign) — enough to resolve a name. */
+/** A campaign (mirrors the backend Campaign). */
 export interface Campaign {
   id: string;
   title: string;
+  goal?: string;
+  audience?: Audience;
+  /** Inclusive ISO date (YYYY-MM-DD) range. */
+  startDate?: string;
+  endDate?: string;
 }
 
 /** A pre-publish checklist entry on a content item (mirrors the backend). */

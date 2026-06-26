@@ -13,6 +13,7 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   inbox: { title: 'Source Inbox', subtitle: 'Your papers, notes, links and Obsidian vault in one place' },
   studio: { title: 'Draft Studio', subtitle: 'Compose, review and export reviewed, audience-specific content' },
   content: { title: 'Content', subtitle: 'One idea, many variants — schedule and publish each' },
+  campaigns: { title: 'Campaigns', subtitle: 'Group your content into themed series and track each one' },
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
   accounts: { title: 'Connected Accounts', subtitle: 'Manage your scholarly and social network connections' },
