@@ -8,6 +8,7 @@ import { ContentBoard } from './ContentBoard';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
 import { ErrorState, LoadingState } from './ui/States';
 import { downloadContentIcs } from '../lib/ics';
+import { downloadContentCsv } from '../lib/csv';
 
 /**
  * Content view: one idea (ContentItem) with its many channel/format variants.
@@ -70,6 +71,13 @@ export function ContentItems() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            className="btn-secondary py-1 text-xs"
+            onClick={() => downloadContentCsv(items)}
+            title="Export the content plan as a .csv spreadsheet"
+          >
+            Export .csv
+          </button>
           <button
             className="btn-secondary py-1 text-xs"
             onClick={async () => downloadContentIcs(await contentClient.calendarFeed())}
