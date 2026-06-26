@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ContentModule } from '../content/content.module';
 import { createDurableStore } from '../persistence/durable-store';
 import { StatusChange } from '../domain/academic';
 import { StatusHistoryController } from './status-history.controller';
@@ -13,7 +14,7 @@ import { StatusHistoryService } from './status-history.service';
 
 /** Variant approval-workflow audit trail (StatusChange log). */
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, forwardRef(() => ContentModule)],
   providers: [
     StatusHistoryService,
     {

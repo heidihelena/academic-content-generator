@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ContentItem, ContentVariant } from '../domain/academic';
 import { createDurableStore } from '../persistence/durable-store';
@@ -22,7 +22,7 @@ import { ContentService } from './content.service';
 
 /** ContentItem + ContentVariant model (one idea → many channel/format variants). */
 @Module({
-  imports: [ConfigModule, SafetyModule, TimingModule, StatusHistoryModule],
+  imports: [ConfigModule, SafetyModule, TimingModule, forwardRef(() => StatusHistoryModule)],
   providers: [
     ContentService,
     ContentReviewService,

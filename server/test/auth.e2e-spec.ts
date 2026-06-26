@@ -119,5 +119,15 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
       .get(`/api/content-variants/${vid}`)
       .set('Authorization', 'Bearer alice-token')
       .expect(200);
+
+    // The variant's status-history is scoped the same way.
+    await request(http)
+      .get(`/api/content-variants/${vid}/status-history`)
+      .set('Authorization', 'Bearer bob-token')
+      .expect(404);
+    await request(http)
+      .get(`/api/content-variants/${vid}/status-history`)
+      .set('Authorization', 'Bearer alice-token')
+      .expect(200);
   });
 });
