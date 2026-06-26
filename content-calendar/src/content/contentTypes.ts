@@ -74,6 +74,16 @@ export interface RecordPublishInput {
   notes?: string;
 }
 
+/** One step in a variant's lifecycle (mirrors the backend StatusChange). */
+export interface StatusChangeEntry {
+  id: string;
+  variantId: string;
+  from?: ContentStatus;
+  to: ContentStatus;
+  actor?: string;
+  at: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -165,4 +175,6 @@ export interface ContentClient {
   /** Manual-publish assistant: list / record where a variant went live. */
   listPublishLog(variantId: string): Promise<PublishLogEntry[]>;
   recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry>;
+  /** The variant's lifecycle transitions (approval-workflow audit trail). */
+  listStatusHistory(variantId: string): Promise<StatusChangeEntry[]>;
 }
