@@ -84,6 +84,15 @@ export interface StatusChangeEntry {
   at: string;
 }
 
+/** A note/comment on a content item (mirrors the backend Comment). */
+export interface CommentEntry {
+  id: string;
+  itemId: string;
+  author?: string;
+  body: string;
+  createdAt: string;
+}
+
 /**
  * Why a variant can't be exported yet — mirrors the backend `exportBlockers`.
  * Empty array ⇒ cleared for export.
@@ -177,4 +186,7 @@ export interface ContentClient {
   recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry>;
   /** The variant's lifecycle transitions (approval-workflow audit trail). */
   listStatusHistory(variantId: string): Promise<StatusChangeEntry[]>;
+  /** Notes/comments on a content item. */
+  listComments(itemId: string): Promise<CommentEntry[]>;
+  addComment(itemId: string, body: string): Promise<CommentEntry>;
 }
