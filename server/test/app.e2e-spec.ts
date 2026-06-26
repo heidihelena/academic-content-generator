@@ -245,6 +245,45 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).get('/api/content-items/ci_nope/comments').expect(404);
   });
 
+  it('manages a content item checklist (add → toggle → list → delete)', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'Checklisted',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+    const itemId = item.body.id;
+
+    const entry = await request(http)
+      .post(`/api/content-items/${itemId}/checklist`)
+      .send({ label: 'Add alt text' })
+      .expect(201);
+    expect(entry.body.done).toBe(false);
+
+    const toggled = await request(http)
+      .patch(`/api/content-items/${itemId}/checklist/${entry.body.id}`)
+      .send({ done: true })
+      .expect(200);
+    expect(toggled.body.done).toBe(true);
+
+    const list = await request(http).get(`/api/content-items/${itemId}/checklist`).expect(200);
+    expect(list.body).toHaveLength(1);
+
+    await request(http)
+      .delete(`/api/content-items/${itemId}/checklist/${entry.body.id}`)
+      .expect(200);
+    const empty = await request(http).get(`/api/content-items/${itemId}/checklist`).expect(200);
+    expect(empty.body).toHaveLength(0);
+
+    // Empty label rejected; missing item 404.
+    await request(http).post(`/api/content-items/${itemId}/checklist`).send({ label: '' }).expect(400);
+    await request(http).get('/api/content-items/ci_nope/checklist').expect(404);
+  });
+
   it('records variant status history through the lifecycle', async () => {
     const item = await request(http)
       .post('/api/content-items')

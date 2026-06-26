@@ -242,6 +242,19 @@ export interface Comment {
 }
 
 /**
+ * A pre-publish checklist entry on a {@link ContentItem} — the editorial QA gate
+ * a person ticks off (e.g. "added alt text", "tagged co-authors", "fact-checked").
+ * Keyed by `itemId`; visible to the item's owner.
+ */
+export interface ChecklistItem {
+  id: string;
+  itemId: string;
+  label: string;
+  done: boolean;
+  createdAt: string;
+}
+
+/**
  * One step in a {@link ContentVariant}'s lifecycle — the approval-workflow audit
  * trail. Recorded whenever a variant's status changes (created, reviewed,
  * scheduled, exported), so the history of who-moved-what-when is reconstructable.
