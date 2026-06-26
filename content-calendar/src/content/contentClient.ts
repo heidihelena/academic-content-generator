@@ -316,8 +316,22 @@ export class LocalContentClient implements ContentClient {
   async listCampaigns(): Promise<Campaign[]> {
     // The campaignIds the sample content references, given readable names.
     return [
-      { id: 'cmp_heat', title: 'Urban Heat' },
-      { id: 'cmp_sleep', title: 'Sleep & Memory' },
+      {
+        id: 'cmp_heat',
+        title: 'Urban Heat',
+        goal: 'Communicate the canopy–temperature findings to city planners.',
+        audience: 'public',
+        startDate: '2026-06-01',
+        endDate: '2026-07-15',
+      },
+      {
+        id: 'cmp_sleep',
+        title: 'Sleep & Memory',
+        goal: 'Explain the consolidation results to students.',
+        audience: 'students',
+        startDate: '2026-06-10',
+        endDate: '2026-08-01',
+      },
     ];
   }
 
