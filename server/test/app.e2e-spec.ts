@@ -219,6 +219,33 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).post('/api/content-variants/cv_nope/publish-log').send({}).expect(404);
   });
 
+  it('records variant status history through the lifecycle', async () => {
+    const item = await request(http)
+      .post('/api/content-items')
+      .send({
+        title: 'History idea',
+        audience: 'peers',
+        pillar: 'research-finding',
+        evidenceLevel: 'observational',
+        claimRisk: 'low',
+      })
+      .expect(201);
+    const variant = await request(http)
+      .post(`/api/content-items/${item.body.id}/variants`)
+      .send({ channel: 'linkedin', format: 'post', body: 'Hello' })
+      .expect(201);
+
+    await request(http)
+      .post(`/api/content-variants/${variant.body.id}/schedule`)
+      .send({ scheduledAt: '2030-01-01T09:00:00.000Z' })
+      .expect(201);
+
+    const history = await request(http)
+      .get(`/api/content-variants/${variant.body.id}/status-history`)
+      .expect(200);
+    expect(history.body.map((c: { to: string }) => c.to)).toEqual(['draft', 'scheduled']);
+  });
+
   it('serves derived editorial insights', async () => {
     const item = await request(http)
       .post('/api/content-items')

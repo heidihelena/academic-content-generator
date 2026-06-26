@@ -4,6 +4,7 @@ import { ContentItem, ContentVariant } from '../domain/academic';
 import { createDurableStore } from '../persistence/durable-store';
 import { SafetyModule } from '../safety/safety.module';
 import { TimingModule } from '../timing/timing.module';
+import { StatusHistoryModule } from '../status-history/status-history.module';
 import { CalendarController } from './calendar.controller';
 import { ContentReviewService } from './content-review.service';
 import { ContentItemsController, ContentVariantsController } from './content.controller';
@@ -21,7 +22,7 @@ import { ContentService } from './content.service';
 
 /** ContentItem + ContentVariant model (one idea → many channel/format variants). */
 @Module({
-  imports: [ConfigModule, SafetyModule, TimingModule],
+  imports: [ConfigModule, SafetyModule, TimingModule, StatusHistoryModule],
   providers: [
     ContentService,
     ContentReviewService,
