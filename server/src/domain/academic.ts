@@ -229,6 +229,22 @@ export interface PublishLog {
 }
 
 /**
+ * One step in a {@link ContentVariant}'s lifecycle — the approval-workflow audit
+ * trail. Recorded whenever a variant's status changes (created, reviewed,
+ * scheduled, exported), so the history of who-moved-what-when is reconstructable.
+ * `from` is absent for the initial creation.
+ */
+export interface StatusChange {
+  id: string;
+  variantId: string;
+  from?: ContentStatus;
+  to: ContentStatus;
+  /** The user who made the change (the request identity), when known. */
+  actor?: string;
+  at: string;
+}
+
+/**
  * Why a variant cannot be exported yet — the explicit gate the UI surfaces so a
  * user can see *why* a text isn't shippable. Empty array ⇒ cleared for export.
  * A variant is exportable when its medical-safety review is cleared (no blocking

@@ -27,6 +27,7 @@ import {
   ContentItemsRepository,
   ContentVariantsRepository,
 } from './content.repository';
+import { StatusHistoryService } from '../status-history/status-history.service';
 
 export interface CreateContentItemInput {
   title: string;
@@ -80,6 +81,7 @@ export class ContentService {
     @Inject(CONTENT_ITEMS_REPOSITORY) private readonly items: ContentItemsRepository,
     @Inject(CONTENT_VARIANTS_REPOSITORY) private readonly variants: ContentVariantsRepository,
     @Optional() private readonly timing?: TimingService,
+    @Optional() private readonly statusHistory?: StatusHistoryService,
   ) {}
 
   // --- items -------------------------------------------------------------
@@ -236,7 +238,7 @@ export class ContentService {
     if (typeof input.body !== 'string') throw new BadRequestException('body is required');
 
     const iso = now.toISOString();
-    return this.variants.upsert({
+    const created = await this.variants.upsert({
       id: `cv_${randomUUID()}`,
       contentItemId,
       channel: input.channel,
@@ -250,6 +252,8 @@ export class ContentService {
       createdAt: iso,
       updatedAt: iso,
     });
+    await this.statusHistory?.record(created.id, undefined, created.status, scope, now);
+    return created;
   }
 
   async updateVariant(
@@ -262,7 +266,9 @@ export class ContentService {
       this.assertEnum('status', patch.status, CONTENT_STATUSES);
       if (patch.status === 'exported') this.assertCleared(existing);
     }
-    return this.variants.upsert({ ...existing, ...patch, updatedAt: now.toISOString() });
+    const updated = await this.variants.upsert({ ...existing, ...patch, updatedAt: now.toISOString() });
+    if (patch.status) await this.statusHistory?.record(id, existing.status, updated.status, undefined, now);
+    return updated;
   }
 
   /** Schedule a variant with a date — the last step before export. */
@@ -271,12 +277,14 @@ export class ContentService {
       throw new BadRequestException('scheduledAt must be a valid ISO date');
     }
     const existing = await this.getVariant(id);
-    return this.variants.upsert({
+    const scheduled = await this.variants.upsert({
       ...existing,
       status: 'scheduled',
       scheduledAt,
       updatedAt: now.toISOString(),
     });
+    await this.statusHistory?.record(id, existing.status, 'scheduled', undefined, now);
+    return scheduled;
   }
 
   /** Export a variant — gated by its safety review (patient-safe: blocks are fatal). */
@@ -290,6 +298,7 @@ export class ContentService {
       exportedAt: iso,
       updatedAt: iso,
     });
+    await this.statusHistory?.record(id, existing.status, 'exported', undefined, now);
     await this.recordTimingOutcome(exported, iso, now);
     return exported;
   }
