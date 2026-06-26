@@ -185,4 +185,30 @@ describe('ContentService — owner scoping (multi-user)', () => {
     await service.addVariant(bobItem.id, { channel: 'linkedin', format: 'post', body: 'x' }, undefined, 'bob');
     expect(await service.listVariants(bobItem.id, 'bob')).toHaveLength(1);
   });
+
+  it('scopes variant-by-id reads and mutations via the parent item owner', async () => {
+    const service = setup();
+    const bobItem = await service.createItem(itemInput, undefined, 'bob');
+    const v = await service.addVariant(
+      bobItem.id,
+      { channel: 'linkedin', format: 'post', body: 'x' },
+      undefined,
+      'bob',
+    );
+
+    // Alice can't see or touch Bob's variant — 404, not 403.
+    await expect(service.getVariant(v.id, 'alice')).rejects.toBeInstanceOf(NotFoundException);
+    await expect(service.updateVariant(v.id, { body: 'hijack' }, undefined, 'alice')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(service.scheduleVariant(v.id, '2030-01-01T09:00:00.000Z', undefined, 'alice')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+    await expect(service.removeVariant(v.id, 'alice')).rejects.toBeInstanceOf(NotFoundException);
+
+    // Bob still has full access.
+    expect((await service.getVariant(v.id, 'bob')).id).toBe(v.id);
+    // Unscoped internal callers are unrestricted (back-compat).
+    expect((await service.getVariant(v.id)).id).toBe(v.id);
+  });
 });

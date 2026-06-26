@@ -17,26 +17,26 @@ export class ContentReviewService {
   ) {}
 
   /** Medical-overclaiming review (audience-aware, patient-safe escalation). */
-  async runSafetyReview(variantId: string, now: Date = new Date()): Promise<ContentVariant> {
-    const variant = await this.content.getVariant(variantId);
-    const item = await this.content.getItem(variant.contentItemId);
+  async runSafetyReview(variantId: string, now: Date = new Date(), scope?: string): Promise<ContentVariant> {
+    const variant = await this.content.getVariant(variantId, scope);
+    const item = await this.content.getItem(variant.contentItemId, scope);
     const safetyReview = this.safety.review(variant.body, now, item.audience);
-    return this.content.updateVariant(variantId, { safetyReview }, now);
+    return this.content.updateVariant(variantId, { safetyReview }, now, scope);
   }
 
   /** Citation-support review: which claims still need a supporting citation. */
-  async runCitationReview(variantId: string, now: Date = new Date()): Promise<ContentVariant> {
-    const variant = await this.content.getVariant(variantId);
+  async runCitationReview(variantId: string, now: Date = new Date(), scope?: string): Promise<ContentVariant> {
+    const variant = await this.content.getVariant(variantId, scope);
     const citationReview: ReviewState = {
       claims: detectClaims(variant.body),
       findings: [],
       reviewedAt: now.toISOString(),
       cleared: claimsNeedingCitation(variant.body).length === 0,
     };
-    return this.content.updateVariant(variantId, { citationReview }, now);
+    return this.content.updateVariant(variantId, { citationReview }, now, scope);
   }
 
-  markReviewed(variantId: string, now: Date = new Date()): Promise<ContentVariant> {
-    return this.content.markReviewed(variantId, now);
+  markReviewed(variantId: string, now: Date = new Date(), scope?: string): Promise<ContentVariant> {
+    return this.content.markReviewed(variantId, now, scope);
   }
 }

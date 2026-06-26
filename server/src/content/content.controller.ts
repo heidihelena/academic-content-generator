@@ -69,47 +69,55 @@ export class ContentVariantsController {
 
   /** POST /api/content-variants/:id/review/safety — run the medical-safety review. */
   @Post(':id/review/safety')
-  runSafetyReview(@Param('id') id: string) {
-    return this.review.runSafetyReview(id);
+  runSafetyReview(@CurrentUserId() userId: string, @Param('id') id: string) {
+    return this.review.runSafetyReview(id, undefined, userId);
   }
 
   /** POST /api/content-variants/:id/review/citation — run the citation review. */
   @Post(':id/review/citation')
-  runCitationReview(@Param('id') id: string) {
-    return this.review.runCitationReview(id);
+  runCitationReview(@CurrentUserId() userId: string, @Param('id') id: string) {
+    return this.review.runCitationReview(id, undefined, userId);
   }
 
   /** POST /api/content-variants/:id/mark-reviewed — human sign-off. */
   @Post(':id/mark-reviewed')
-  markReviewed(@Param('id') id: string) {
-    return this.review.markReviewed(id);
+  markReviewed(@CurrentUserId() userId: string, @Param('id') id: string) {
+    return this.review.markReviewed(id, undefined, userId);
   }
 
   @Get(':id')
-  get(@Param('id') id: string) {
-    return this.content.getVariant(id);
+  get(@CurrentUserId() userId: string, @Param('id') id: string) {
+    return this.content.getVariant(id, userId);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() patch: Parameters<ContentService['updateVariant']>[1]) {
-    return this.content.updateVariant(id, patch);
+  update(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Body() patch: Parameters<ContentService['updateVariant']>[1],
+  ) {
+    return this.content.updateVariant(id, patch, undefined, userId);
   }
 
   /** POST /api/content-variants/:id/schedule — set a date and move to `scheduled`. */
   @Post(':id/schedule')
-  schedule(@Param('id') id: string, @Body('scheduledAt') scheduledAt: string) {
-    return this.content.scheduleVariant(id, scheduledAt);
+  schedule(
+    @CurrentUserId() userId: string,
+    @Param('id') id: string,
+    @Body('scheduledAt') scheduledAt: string,
+  ) {
+    return this.content.scheduleVariant(id, scheduledAt, undefined, userId);
   }
 
   /** POST /api/content-variants/:id/publish — export the variant (gated by safety review). */
   @Post(':id/publish')
-  publish(@Param('id') id: string) {
-    return this.content.exportVariant(id);
+  publish(@CurrentUserId() userId: string, @Param('id') id: string) {
+    return this.content.exportVariant(id, undefined, userId);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    await this.content.removeVariant(id);
+  async remove(@CurrentUserId() userId: string, @Param('id') id: string) {
+    await this.content.removeVariant(id, userId);
     return { ok: true };
   }
 }
