@@ -5,6 +5,7 @@ import { contentClient } from '../content/contentClient';
 import { Drawer } from './ui/Drawer';
 import { CheckIcon, AlertIcon, BookIcon } from './icons';
 import { Spinner } from './ui/Spinner';
+import { PublishAssistant } from './PublishAssistant';
 
 /** Tomorrow 09:00 local — a sensible default schedule slot. */
 function tomorrowMorning(): string {
@@ -218,6 +219,9 @@ export function VariantDrawer({
             </button>
           </div>
         </div>
+
+        {/* Manual-publish assistant — available once the variant is exported. */}
+        {variant.status === 'exported' && <PublishAssistant variant={variant} />}
 
         {error && <p className="text-xs text-status-overdue">{error}</p>}
       </div>

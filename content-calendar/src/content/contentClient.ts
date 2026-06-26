@@ -5,6 +5,8 @@ import type {
   ContentItemWithVariants,
   ContentVariant,
   NewVariantInput,
+  PublishLogEntry,
+  RecordPublishInput,
   SafetyFinding,
   TimingSuggestion,
 } from './contentTypes';
@@ -264,6 +266,30 @@ export class LocalContentClient implements ContentClient {
     variant.exportedAt = new Date().toISOString();
     return { ...variant };
   }
+
+  private publishLogs: PublishLogEntry[] = [];
+
+  async listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
+    return this.publishLogs
+      .filter((l) => l.variantId === variantId)
+      .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+  }
+
+  async recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry> {
+    const { variant } = this.locate(variantId); // throws if missing (mirrors the 404)
+    const iso = new Date().toISOString();
+    const entry: PublishLogEntry = {
+      id: `pl_${Math.random().toString(36).slice(2, 10)}`,
+      variantId,
+      channel: variant.channel,
+      publishedUrl: input.publishedUrl?.trim() || undefined,
+      publishedAt: iso,
+      notes: input.notes?.trim() || undefined,
+      createdAt: iso,
+    };
+    this.publishLogs.push(entry);
+    return entry;
+  }
 }
 
 export class ApiContentClient implements ContentClient {
@@ -316,6 +342,12 @@ export class ApiContentClient implements ContentClient {
   publish(id: string): Promise<ContentVariant> {
     return this.api.post<ContentVariant>(`/content-variants/${id}/publish`);
   }
+  listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
+    return this.api.get<PublishLogEntry[]>(`/content-variants/${variantId}/publish-log`);
+  }
+  recordPublish(variantId: string, input: RecordPublishInput): Promise<PublishLogEntry> {
+    return this.api.post<PublishLogEntry>(`/content-variants/${variantId}/publish-log`, input);
+  }
 }
 
 function createDefault(): ContentClient {
@@ -344,4 +376,7 @@ export const contentClient = {
   markReviewed: (id: string) => active.markReviewed(id),
   schedule: (id: string, scheduledAt: string) => active.schedule(id, scheduledAt),
   publish: (id: string) => active.publish(id),
+  listPublishLog: (variantId: string) => active.listPublishLog(variantId),
+  recordPublish: (variantId: string, input: RecordPublishInput) =>
+    active.recordPublish(variantId, input),
 };
