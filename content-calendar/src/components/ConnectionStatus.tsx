@@ -45,7 +45,13 @@ export function ConnectionStatus() {
       ` · embeddings: ${b.embeddings} · storage: ${b.storage}`
     : `Connected to ${status.baseUrl}`;
 
-  return <Badge color="green" label="API · connected" title={title} />;
+  // When auth is enforced, surface who's signed in; otherwise just "connected".
+  const label =
+    status.user?.authEnabled && status.user.userId
+      ? `API · ${status.user.userId}`
+      : 'API · connected';
+
+  return <Badge color="green" label={label} title={title} />;
 }
 
 const COLORS = {

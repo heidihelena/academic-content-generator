@@ -40,6 +40,17 @@ describe('ConnectionStatus', () => {
     expect(badge).toHaveAttribute('title', expect.stringContaining('(ollama)'));
   });
 
+  it('shows the signed-in user when auth is enforced', async () => {
+    resolveWith({
+      mode: 'api',
+      online: true,
+      baseUrl: 'http://localhost:3000/api',
+      user: { userId: 'alice', authEnabled: true },
+    });
+    render(<ConnectionStatus />);
+    expect(await screen.findByText('API · alice')).toBeInTheDocument();
+  });
+
   it('shows "API · offline" when the backend is unreachable', async () => {
     resolveWith({ mode: 'api', online: false, baseUrl: 'http://localhost:3000/api' });
     render(<ConnectionStatus />);

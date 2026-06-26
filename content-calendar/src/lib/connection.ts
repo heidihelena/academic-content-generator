@@ -19,6 +19,8 @@ export interface ConnectionStatus {
   baseUrl?: string;
   /** Active backend modes from the health probe (API mode, when online). */
   backend?: HealthReport['config'];
+  /** The authenticated identity (API mode, when online). */
+  user?: { userId: string; authEnabled: boolean };
 }
 
 export function getApiBaseUrl(): string | undefined {
@@ -41,7 +43,10 @@ export async function checkConnection(client?: ApiClient): Promise<ConnectionSta
   const api = client ?? new ApiClient(baseUrl);
   try {
     const report = await api.health();
-    return { mode: 'api', online: true, baseUrl, backend: report.config };
+    // Identity is best-effort: a 401 (auth on, no token) shouldn't make the
+    // connection read as offline — the backend is reachable.
+    const user = await api.me().catch(() => undefined);
+    return { mode: 'api', online: true, baseUrl, backend: report.config, user };
   } catch {
     return { mode: 'api', online: false, baseUrl };
   }

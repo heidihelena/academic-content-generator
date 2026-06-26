@@ -18,6 +18,12 @@ export interface HealthReport {
   };
 }
 
+/** The backend's `/api/me` response — the authenticated identity. */
+export interface MeResponse {
+  userId: string;
+  authEnabled: boolean;
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -68,6 +74,11 @@ export class ApiClient {
   /** Liveness/readiness probe — GET /health on the backend. */
   health(): Promise<HealthReport> {
     return this.request<HealthReport>('/health');
+  }
+
+  /** The authenticated identity — GET /me on the backend. */
+  me(): Promise<MeResponse> {
+    return this.request<MeResponse>('/me');
   }
   post<T>(path: string, data?: unknown): Promise<T> {
     return this.request<T>(path, { method: 'POST', body: data ? JSON.stringify(data) : undefined });
