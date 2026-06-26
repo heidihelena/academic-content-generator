@@ -1,5 +1,6 @@
 import { ApiClient } from '../lib/api';
 import type {
+  AssetEntry,
   CalendarEntry,
   Campaign,
   ChecklistEntry,
@@ -367,6 +368,35 @@ export class LocalContentClient implements ContentClient {
     this.checklist = this.checklist.filter((c) => !(c.id === checkId && c.itemId === itemId));
   }
 
+  private assets: AssetEntry[] = [];
+
+  async listAssets(itemId: string): Promise<AssetEntry[]> {
+    return this.assets
+      .filter((a) => a.itemId === itemId)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  }
+
+  async attachAsset(
+    itemId: string,
+    input: { url: string; type: 'image' | 'video'; label?: string },
+  ): Promise<AssetEntry> {
+    if (!this.items.some((i) => i.id === itemId)) throw new Error('Item not found.');
+    const entry: AssetEntry = {
+      id: `as_${Math.random().toString(36).slice(2, 10)}`,
+      itemId,
+      url: input.url.trim(),
+      type: input.type,
+      label: input.label?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+    this.assets.push(entry);
+    return entry;
+  }
+
+  async removeAsset(itemId: string, assetId: string): Promise<void> {
+    this.assets = this.assets.filter((a) => !(a.id === assetId && a.itemId === itemId));
+  }
+
   private publishLogs: PublishLogEntry[] = [];
 
   async listPublishLog(variantId: string): Promise<PublishLogEntry[]> {
@@ -472,6 +502,18 @@ export class ApiContentClient implements ContentClient {
   async removeChecklistItem(itemId: string, checkId: string): Promise<void> {
     await this.api.delete(`/content-items/${itemId}/checklist/${checkId}`);
   }
+  listAssets(itemId: string): Promise<AssetEntry[]> {
+    return this.api.get<AssetEntry[]>(`/content-items/${itemId}/assets`);
+  }
+  attachAsset(
+    itemId: string,
+    input: { url: string; type: 'image' | 'video'; label?: string },
+  ): Promise<AssetEntry> {
+    return this.api.post<AssetEntry>(`/content-items/${itemId}/assets`, input);
+  }
+  async removeAsset(itemId: string, assetId: string): Promise<void> {
+    await this.api.delete(`/content-items/${itemId}/assets/${assetId}`);
+  }
 }
 
 function createDefault(): ContentClient {
@@ -513,4 +555,8 @@ export const contentClient = {
     active.setChecklistDone(itemId, checkId, done),
   removeChecklistItem: (itemId: string, checkId: string) =>
     active.removeChecklistItem(itemId, checkId),
+  listAssets: (itemId: string) => active.listAssets(itemId),
+  attachAsset: (itemId: string, input: { url: string; type: 'image' | 'video'; label?: string }) =>
+    active.attachAsset(itemId, input),
+  removeAsset: (itemId: string, assetId: string) => active.removeAsset(itemId, assetId),
 };
