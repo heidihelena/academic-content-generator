@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'fs';
 import { dirname } from 'path';
+import { Logger } from '@nestjs/common';
 
 export interface Identified {
   id: string;
@@ -28,19 +29,37 @@ export interface CollectionStore<T extends Identified> {
  */
 export class JsonFileStore<T extends Identified> implements CollectionStore<T> {
   private readonly byId = new Map<string, T>();
+  private readonly logger = new Logger(JsonFileStore.name);
 
   constructor(private readonly path: string) {
     this.load();
   }
 
   private load(): void {
+    if (!existsSync(this.path)) return; // first run — start empty, no file yet
+    let raw: string;
     try {
-      if (!existsSync(this.path)) return;
-      const raw = readFileSync(this.path, 'utf8');
-      if (!raw.trim()) return;
+      raw = readFileSync(this.path, 'utf8');
+    } catch (err) {
+      this.logger.warn(`Could not read ${this.path}; starting empty. ${String(err)}`);
+      return;
+    }
+    if (!raw.trim()) return;
+    try {
       for (const item of JSON.parse(raw) as T[]) this.byId.set(item.id, item);
-    } catch {
-      // Start empty on a missing/corrupt/unreadable file rather than crash.
+    } catch (err) {
+      // The file has content but isn't valid JSON. Preserve it — a later save()
+      // would otherwise overwrite real data with an empty collection — and surface
+      // the problem instead of silently starting empty.
+      const backup = `${this.path}.corrupt`;
+      try {
+        renameSync(this.path, backup);
+        this.logger.error(`${this.path} is corrupt; moved it to ${backup} and started empty. ${String(err)}`);
+      } catch (mvErr) {
+        this.logger.error(
+          `${this.path} is corrupt and could not be backed up; starting empty. ${String(err)} / ${String(mvErr)}`,
+        );
+      }
     }
   }
 
