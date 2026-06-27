@@ -9,12 +9,16 @@ import {
   ContentPillar,
   ContentVariant,
   EvidenceLevel,
+  ReviewState,
   SourceMaterial,
   VariantFormat,
+  isCleared,
 } from '../domain/academic';
 import { ContentService } from '../content/content.service';
 import { MEDICAL_DISCLAIMER, isPatientFacing } from '../safety/patient-safe';
 import { SafetyService } from '../safety/safety.service';
+import { citationFinding } from '../safety/citation-finding';
+import { CITATION_VERIFIER, CitationVerifier } from '../safety/citation-verifier.types';
 import { SourcesService } from '../sources/sources.service';
 import { ComposeRequest, DRAFT_COMPOSER, DraftComposer } from './composer.types';
 
@@ -59,6 +63,7 @@ export class DraftStudioService {
     private readonly safety: SafetyService,
     private readonly content: ContentService,
     @Inject(DRAFT_COMPOSER) private readonly composer: DraftComposer,
+    @Inject(CITATION_VERIFIER) private readonly citationVerifier: CitationVerifier,
   ) {}
 
   async create(
@@ -73,6 +78,7 @@ export class DraftStudioService {
     );
     const body = this.ensureDisclaimer(composed, req.audience);
     const safetyReview = this.safety.review(body, now, req.audience);
+    await this.verifyAgainstSource(safetyReview, source);
 
     const item = await this.content.createItem(
       {
@@ -145,5 +151,28 @@ export class DraftStudioService {
       return `${body}\n\n${MEDICAL_DISCLAIMER}`;
     }
     return body;
+  }
+
+  /**
+   * Research norm: content is produced by *citing and modifying* a source. For
+   * each empirical claim that leans on the attached source (i.e. carries no
+   * inline citation of its own), check the modified claim still reflects that
+   * source and fold the result into the review — a contradiction blocks export,
+   * an unsupported claim warns, an un-checkable one is only info (a tool gap
+   * never blocks). `supported` adds nothing: we surface problems, we never
+   * stamp a citation "verified". No-op when the source carries no text to
+   * check against.
+   */
+  private async verifyAgainstSource(review: ReviewState, source: SourceMaterial): Promise<void> {
+    const sourceText = (source.abstract || source.body || '').trim();
+    if (!sourceText) return;
+
+    const claims = review.claims.filter((c) => c.needsCitation);
+    for (const claim of claims) {
+      const verification = await this.citationVerifier.verify({ claim: claim.text, sourceText });
+      const finding = citationFinding(verification, claim.text);
+      if (finding) review.findings.push(finding);
+    }
+    review.cleared = isCleared(review.findings);
   }
 }
