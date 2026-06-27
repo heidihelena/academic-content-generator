@@ -9,16 +9,24 @@ import { InMemorySourcesRepository } from '../sources/sources.repository';
 import { SourcesService } from '../sources/sources.service';
 import { DraftStudioService } from './draft-studio.service';
 import { LocalDraftComposer } from './local.composer';
+import { LocalCitationVerifier } from '../safety/citation-verifier.local';
+import { CitationVerifier } from '../safety/citation-verifier.types';
 
 const emptyVault = { listNotes: async () => [], getNote: async () => null } as never;
 
-function setup() {
+function setup(verifier: CitationVerifier = new LocalCitationVerifier()) {
   const sources = new SourcesService(new InMemorySourcesRepository(), emptyVault);
   const content = new ContentService(
     new InMemoryContentItemsRepository(),
     new InMemoryContentVariantsRepository(),
   );
-  const service = new DraftStudioService(sources, new SafetyService(), content, new LocalDraftComposer());
+  const service = new DraftStudioService(
+    sources,
+    new SafetyService(),
+    content,
+    new LocalDraftComposer(),
+    verifier,
+  );
   return { sources, content, service };
 }
 
@@ -105,6 +113,45 @@ describe('DraftStudioService', () => {
     );
     expect(variant.safetyReview?.cleared).toBe(false);
     expect(variant.safetyReview?.findings.length).toBeGreaterThan(0);
+  });
+
+  it('folds a citation-support contradiction into the review and blocks export', async () => {
+    // A claim the verifier judges to contradict its cited source must block —
+    // the same export gate the medical reviewers use.
+    const contradicts: CitationVerifier = {
+      name: 'local',
+      verify: async () => ({ support: 'contradicted', verifier: 'local', polarityCue: 'did not' }),
+    };
+    const { sources, service } = setup(contradicts);
+    const src = await sources.create({
+      kind: 'paper',
+      title: 'Coffee and alertness',
+      // Embeds an empirical claim (n=120) with no inline citation → needsCitation.
+      abstract: 'Coffee reduced fatigue in a trial (n=120).',
+    });
+    const { variant } = await service.create(
+      { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
+      fixed,
+    );
+
+    expect(variant.safetyReview?.cleared).toBe(false);
+    expect(
+      variant.safetyReview?.findings.some((f) => f.category === 'citation-unsupported'),
+    ).toBe(true);
+  });
+
+  it('leaves the review cleared when the source supports the claim (no false block)', async () => {
+    const { sources, service } = setup(); // real local verifier
+    const src = await sources.create({
+      kind: 'paper',
+      title: 'Coffee and alertness',
+      abstract: 'Coffee reduced fatigue in a trial (n=120).',
+    });
+    const { variant } = await service.create(
+      { sourceId: src.id, channel: 'linkedin', audience: 'peers' },
+      fixed,
+    );
+    expect(variant.safetyReview?.cleared).toBe(true);
   });
 
   it('validates channel and audience before loading the source', async () => {
