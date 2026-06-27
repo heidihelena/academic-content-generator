@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import type { Post } from '../../domain/types';
@@ -77,5 +77,18 @@ describe('file persistence driver', () => {
 
     const reloaded = new FilePostsRepository(new FileStoreService());
     expect((await reloaded.list()).map((p) => p.id)).toEqual(['p2']);
+  });
+
+  it('preserves a corrupt snapshot as .corrupt instead of overwriting it', async () => {
+    writeFileSync(storePath, '{"posts":[{"id":"p1" truncated mid-write…');
+    const store = new FileStoreService();
+    expect([...store.posts.keys()]).toEqual([]); // starts empty…
+
+    // …but the original bytes are kept for recovery, not silently destroyed.
+    expect(readFileSync(`${storePath}.corrupt`, 'utf8')).toBe('{"posts":[{"id":"p1" truncated mid-write…');
+
+    // …and the fresh store's first write doesn't clobber the backup.
+    await new FilePostsRepository(store).upsert(makePost('p9'));
+    expect(readFileSync(`${storePath}.corrupt`, 'utf8')).toBe('{"posts":[{"id":"p1" truncated mid-write…');
   });
 });
