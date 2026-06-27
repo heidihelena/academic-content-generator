@@ -1,6 +1,6 @@
 # Medical Safety Policy
 
-The policy the ForskAI safety reviewers implement. It governs what ForskAI will
+The policy the forskai safety reviewers implement. It governs what forskai will
 and will not help produce, especially for patient- and public-facing content.
 
 Implemented by:
@@ -9,7 +9,7 @@ Implemented by:
 - [`server/src/safety/patient-safe.ts`](../server/src/safety/patient-safe.ts) — patient-safe mode (#34)
 - [`server/src/safety/safety.service.ts`](../server/src/safety/safety.service.ts) — combines them into a `ReviewState`
 
-> ForskAI is an authoring aid, not a medical device. It does not provide medical
+> forskai is an authoring aid, not a medical device. It does not provide medical
 > advice and its automated checks are heuristic — they assist human judgement,
 > they do not replace it.
 

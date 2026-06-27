@@ -4,7 +4,7 @@ import { SourcesModule } from '../sources/sources.module';
 import { IdeaLabController } from './idea-lab.controller';
 import { IdeaLabService } from './idea-lab.service';
 
-/** Academic Idea Lab (ForskAI Version 1, issue #29). */
+/** Academic Idea Lab (forskai Version 1, issue #29). */
 @Module({
   imports: [AiModule, SourcesModule],
   providers: [IdeaLabService],

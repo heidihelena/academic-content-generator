@@ -12,7 +12,7 @@ import { BookIcon, PlugIcon, SparkleIcon } from './icons';
  */
 const MAC_PATHS = {
   vault: '~/Library/Mobile Documents/iCloud~md~obsidian/Documents/<Vault>',
-  sqlite: '~/Library/Mobile Documents/com~apple~CloudDocs/ForskAI/content.sqlite',
+  sqlite: '~/Library/Mobile Documents/com~apple~CloudDocs/forskai/content.sqlite',
 } as const;
 
 const PROVIDER_LABELS: Array<{ key: keyof ConnectionsReport['providers']; label: string; hint: string }> = [
@@ -121,7 +121,7 @@ function InputsCard({ inputs }: { inputs: ConnectionsReport['inputs'] }) {
         <code className="block break-all text-slate-300">{MAC_PATHS.sqlite}</code>
         {sqlite && (
           <p className="text-amber-400">
-            ⚠︎ SQLite in iCloud can corrupt if two Macs open it at once — keep ForskAI
+            ⚠︎ SQLite in iCloud can corrupt if two Macs open it at once — keep forskai
             running on one Mac at a time.
           </p>
         )}

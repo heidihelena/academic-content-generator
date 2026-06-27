@@ -1,5 +1,5 @@
 /**
- * Academic content domain model (ForskAI Content Hub).
+ * Academic content domain model (forskai Content Hub).
  *
  * These schemas describe the academic workflow — source material in, reviewed
  * audience-specific content out — and are the contract the Source Inbox, Idea

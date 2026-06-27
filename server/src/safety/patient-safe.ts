@@ -3,7 +3,7 @@ import { Audience, SafetyFinding } from '../domain/academic';
 /**
  * Patient-safe explainer mode (issue #34).
  *
- * For patient- and public-facing content, ForskAI applies stricter handling: a
+ * For patient- and public-facing content, forskai applies stricter handling: a
  * standard non-advice disclaimer is added to the draft, and advisory findings
  * that matter most to lay readers are escalated so they gate export.
  */

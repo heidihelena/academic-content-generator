@@ -10,7 +10,7 @@ import { DRAFT_COMPOSER, type DraftComposer } from './composer.types';
 import { LocalDraftComposer } from './local.composer';
 import { LlmDraftComposer } from './llm.composer';
 
-/** Draft Studio workflow (ForskAI Version 1, issue #35). */
+/** Draft Studio workflow (forskai Version 1, issue #35). */
 @Module({
   imports: [ContentModule, SafetyModule, SourcesModule, ConfigModule],
   providers: [
