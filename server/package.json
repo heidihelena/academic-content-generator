@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/main.js",
     "start:dev": "ts-node src/main.ts",
+    "verify:bluesky": "ts-node scripts/verify-bluesky.ts",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
