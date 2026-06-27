@@ -40,19 +40,40 @@ export class FileStoreService {
   }
 
   private load(): void {
+    if (!existsSync(this.path)) return; // first run — no snapshot yet
+    let raw: string;
     try {
-      if (!existsSync(this.path)) return;
-      const raw = readFileSync(this.path, 'utf8');
-      if (!raw.trim()) return;
-      const snap = JSON.parse(raw) as Partial<Snapshot>;
-      for (const p of snap.posts ?? []) this.posts.set(p.id, p);
-      for (const a of snap.accounts ?? []) this.accounts.set(a.platform, a);
-      for (const t of snap.tokens ?? []) this.tokens.set(t.platform, t);
-      for (const v of snap.vectors ?? []) this.vectors.set(v.chunk.id, v);
-      this.logger.log(`Loaded store from ${this.path}`);
+      raw = readFileSync(this.path, 'utf8');
     } catch (err) {
-      this.logger.error(`Failed to read ${this.path}: ${err instanceof Error ? err.message : err}`);
+      this.logger.warn(`Could not read ${this.path}; starting empty. ${String(err)}`);
+      return;
     }
+    if (!raw.trim()) return;
+
+    let snap: Partial<Snapshot>;
+    try {
+      snap = JSON.parse(raw) as Partial<Snapshot>;
+    } catch (err) {
+      // Corrupt snapshot: preserve it rather than start empty — a later save()
+      // would otherwise overwrite real data (posts, accounts, OAuth tokens) with
+      // an empty snapshot, silently signing the user out and losing their work.
+      const backup = `${this.path}.corrupt`;
+      try {
+        renameSync(this.path, backup);
+        this.logger.error(`${this.path} is corrupt; moved it to ${backup} and started empty. ${String(err)}`);
+      } catch (mvErr) {
+        this.logger.error(
+          `${this.path} is corrupt and could not be backed up; starting empty. ${String(err)} / ${String(mvErr)}`,
+        );
+      }
+      return;
+    }
+
+    for (const p of snap.posts ?? []) this.posts.set(p.id, p);
+    for (const a of snap.accounts ?? []) this.accounts.set(a.platform, a);
+    for (const t of snap.tokens ?? []) this.tokens.set(t.platform, t);
+    for (const v of snap.vectors ?? []) this.vectors.set(v.chunk.id, v);
+    this.logger.log(`Loaded store from ${this.path}`);
   }
 
   /** Write the full snapshot to disk (temp file + atomic rename). */
