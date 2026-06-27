@@ -56,6 +56,9 @@ export const SAFETY_CATEGORIES = [
   'dosage',
   'unproven-treatment',
   'identifiable-patient',
+  // the cited source does not (clearly) support the claim — from the citation-support
+  // verifier (CITATION_VERIFIER), distinct from the citation-*needed* detector.
+  'citation-unsupported',
 ] as const;
 export type SafetyCategory = (typeof SAFETY_CATEGORIES)[number];
 

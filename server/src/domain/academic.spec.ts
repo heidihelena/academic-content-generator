@@ -53,6 +53,7 @@ describe('academic enums', () => {
       'dosage',
       'unproven-treatment',
       'identifiable-patient',
+      'citation-unsupported',
     ]);
   });
 
