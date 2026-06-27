@@ -24,7 +24,6 @@ export class PgService implements OnModuleInit {
     const connectionString = this.config.get<string>('persistence.databaseUrl');
     if (!connectionString) throw new Error('DATABASE_URL is required for the neon driver');
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Pool } = require('pg');
     // Neon (and most hosted Postgres) require TLS — detected via `sslmode=require`
     // in the URL. Local/docker Postgres typically has no TLS, so disable it there.

@@ -29,7 +29,6 @@ export class S3Storage implements StorageService {
 
     const key = `${randomUUID()}${extname(file.originalName)}`;
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
     const client = new S3Client({ region });
     await client.send(

@@ -24,7 +24,6 @@ export class SqliteService implements OnModuleInit {
     const path = this.config.get<string>('persistence.sqlitePath')!;
     mkdirSync(dirname(path), { recursive: true });
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const Database = require('better-sqlite3');
     this.database = new Database(path);
     this.database.pragma('journal_mode = WAL');
@@ -32,7 +31,6 @@ export class SqliteService implements OnModuleInit {
     // sqlite-vec adds the vec0 virtual table for fast k-NN. Optional — the
     // VectorStore falls back to JS cosine when it's unavailable.
     try {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require('sqlite-vec').load(this.database);
       this.logger.log('sqlite-vec extension loaded');
     } catch {

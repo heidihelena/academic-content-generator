@@ -25,7 +25,6 @@ function openDatabase(path: string): { prepare(sql: string): Statement; pragma(s
   const cached = connections.get(path);
   if (cached) return cached as never;
   mkdirSync(dirname(path), { recursive: true });
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const Database = require('better-sqlite3');
   const db = new Database(path);
   db.pragma('journal_mode = WAL');

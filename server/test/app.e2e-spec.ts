@@ -14,7 +14,6 @@ process.env.VAULT_WATCH = 'false';
 const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-uploads-'));
 process.env.UPLOADS_DIR = UPLOADS_DIR;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import { AppModule } from '../src/app.module';
 
 describe('Content Calendar API (e2e, memory driver)', () => {

@@ -13,7 +13,7 @@ export interface ClipRecipe {
 }
 
 function quote(arg: string): string {
-  return /[^A-Za-z0-9@%+=:,.\/_-]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg;
+  return /[^A-Za-z0-9@%+=:,./_-]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg;
 }
 
 export interface ClipRecipeInput {

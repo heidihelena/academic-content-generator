@@ -14,7 +14,6 @@ process.env.RATE_LIMIT_PER_MIN = '2';
 const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-rl-uploads-'));
 process.env.UPLOADS_DIR = UPLOADS_DIR;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import { AppModule } from '../src/app.module';
 
 const idea = { niche: 'urban heat', audience: 'planners', tone: 'professional', platform: 'linkedin' };
