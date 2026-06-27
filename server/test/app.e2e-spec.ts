@@ -370,6 +370,17 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(ideasNoDraft.findings.map((f: { itemId: string }) => f.itemId)).toContain(item.body.id);
   });
 
+  it('serves a secret-safe connections snapshot', async () => {
+    const res = await request(http).get('/api/connections').expect(200);
+    expect(res.body.providers.llm).toHaveProperty('active');
+    expect(res.body.providers.voice).toHaveProperty('live');
+    expect(Array.isArray(res.body.social)).toBe(true);
+    expect(res.body.inputs).toHaveProperty('vaultPath');
+    // 'app-password'/'access-token' are connect-method labels, not secrets; the
+    // report carries no key/secret *values* (asserted in the unit spec).
+    expect(JSON.stringify(res.body)).not.toMatch(/apiKey|sk-|secret/i);
+  });
+
   it('reports the local identity from /api/me when auth is off', async () => {
     const res = await request(http).get('/api/me').expect(200);
     expect(res.body).toEqual({ userId: 'local', authEnabled: false });
