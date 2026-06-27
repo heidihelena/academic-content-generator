@@ -4,6 +4,9 @@
   "description": "Desktop wrapper for the forskAI content calendar — runs the whole app locally in a native window, opened from an icon.",
   "private": true,
   "author": "forskAI",
+  "engines": {
+    "node": ">=20"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/heidihelena/heidihelena.git"
