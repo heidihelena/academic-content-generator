@@ -1,8 +1,8 @@
-# ForskAI Content Hub
+# forskai Content Hub
 
 An academic content operating system for researchers, clinicians and science communicators.
 
-ForskAI turns papers, notes, lectures and research ideas into reviewed, audience-specific content for LinkedIn, Threads, Instagram, newsletters and teaching materials.
+forskai turns papers, notes, lectures and research ideas into reviewed, audience-specific content for LinkedIn, Threads, Instagram, newsletters and teaching materials.
 
 It combines:
 - a searchable academic source vault
@@ -16,7 +16,7 @@ It combines:
 
 The default mode is local-first and mock-based. Real platform credentials, LLM providers and vector databases can be enabled by configuration.
 
-> **Why this repo exists.** ForskAI serves three goals at once: (1) building an
+> **Why this repo exists.** forskai serves three goals at once: (1) building an
 > individual expert brand, (2) research-group communication, and (3) safe
 > popularization of patient- and public-facing science. See
 > [`docs/PRODUCT_DIRECTION.md`](docs/PRODUCT_DIRECTION.md) for the roadmap and
@@ -27,7 +27,7 @@ The default mode is local-first and mock-based. Real platform credentials, LLM p
 | Doc | What it covers |
 | --- | --- |
 | [`docs/CONTENT_TAXONOMY.md`](docs/CONTENT_TAXONOMY.md) | The controlled vocabulary: source kinds, channels, audiences, content status, safety severities/categories. |
-| [`docs/MEDICAL_SAFETY_POLICY.md`](docs/MEDICAL_SAFETY_POLICY.md) | What ForskAI will/won't produce for patient-facing content; the severity model and what blocks export. |
+| [`docs/MEDICAL_SAFETY_POLICY.md`](docs/MEDICAL_SAFETY_POLICY.md) | What forskai will/won't produce for patient-facing content; the severity model and what blocks export. |
 | [`docs/PRIVACY_MODEL.md`](docs/PRIVACY_MODEL.md) | The local-first/mock default and what each opt-in integration sends, and where. |
 | [`docs/PRODUCT_DIRECTION.md`](docs/PRODUCT_DIRECTION.md) | Product roadmap and direction. |
 

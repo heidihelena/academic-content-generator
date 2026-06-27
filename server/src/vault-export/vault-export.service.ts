@@ -11,7 +11,7 @@ import {
   variantNoteBasename,
 } from './content-note';
 
-const EXPORT_ROOT = 'ForskAI';
+const EXPORT_ROOT = 'forskai';
 
 /**
  * Exports content to the Obsidian vault as a linked map-of-content — a one-way

@@ -1,6 +1,6 @@
 # Content Taxonomy
 
-The controlled vocabulary ForskAI uses across prompts, filters, APIs and the UI.
+The controlled vocabulary forskai uses across prompts, filters, APIs and the UI.
 These values are the single source of truth in
 [`server/src/domain/academic.ts`](../server/src/domain/academic.ts) — each list
 is a `const` array with a derived TypeScript union, so the allowed values exist

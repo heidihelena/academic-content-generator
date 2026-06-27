@@ -14,7 +14,7 @@ const TITLE_MAX = 88; // keep within the builder's legibility lint
 
 /**
  * Renders a Vahtian carousel deck from a source — the agent-drivable bridge
- * between ForskAI content and the carousel builder. Composes a shared
+ * between forskai content and the carousel builder. Composes a shared
  * {@link ContentPlan} (so it stays consistent with the talk/shorts renderers),
  * then runs the slide text through the shared safety review so overclaims
  * surface (the carousel makes brand claims, where the "no overclaim" rule

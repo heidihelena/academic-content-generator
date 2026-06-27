@@ -44,7 +44,7 @@ describe('VaultExportService', () => {
 
     const { paths, hub } = await exporter.exportContentItem(it.id);
     expect(paths).toHaveLength(3); // 2 variants + the item hub
-    expect(hub.startsWith(join('ForskAI', 'cmp_x'))).toBe(true);
+    expect(hub.startsWith(join('forskai', 'cmp_x'))).toBe(true);
 
     const hubText = await readFile(join(dir, hub), 'utf8');
     expect(hubText).toContain('forskai: content-item');
@@ -68,9 +68,9 @@ describe('VaultExportService', () => {
     // 2 items × (1 variant + 1 hub) + 1 index = 5
     expect(paths).toHaveLength(5);
 
-    const files = await readdir(join(dir, 'ForskAI', 'cmp_9'));
+    const files = await readdir(join(dir, 'forskai', 'cmp_9'));
     expect(files).toContain('_index.md');
-    const index = await readFile(join(dir, 'ForskAI', 'cmp_9', '_index.md'), 'utf8');
+    const index = await readFile(join(dir, 'forskai', 'cmp_9', '_index.md'), 'utf8');
     expect(index).toContain('2 idea(s)');
     expect((index.match(/- \[\[/g) ?? [])).toHaveLength(2);
   });

@@ -11,7 +11,7 @@ import {
 } from './campaigns.repository';
 import { CampaignsService } from './campaigns.service';
 
-/** Campaign planner (ForskAI, issue #36). */
+/** Campaign planner (forskai, issue #36). */
 @Module({
   imports: [ConfigModule],
   providers: [

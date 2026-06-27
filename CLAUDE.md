@@ -4,7 +4,7 @@ Guidance for working in this repository.
 
 ## What this is
 
-**ForskAI Content Hub** — an academic content operating system that turns
+**forskai Content Hub** — an academic content operating system that turns
 papers, notes and lectures into reviewed, audience-specific content. Two
 workspaces:
 

@@ -4,7 +4,7 @@ import { SafetyModule } from '../safety/safety.module';
 import { CarouselController } from './carousel.controller';
 import { CarouselService } from './carousel.service';
 
-/** Carousel deck generator (ForskAI → Vahtian carousel builder). */
+/** Carousel deck generator (forskai → Vahtian carousel builder). */
 @Module({
   imports: [ContentPlanModule, SafetyModule],
   providers: [CarouselService],

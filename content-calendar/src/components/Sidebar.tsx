@@ -30,7 +30,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
           ✦
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-slate-100">ForskAI</p>
+          <p className="text-sm font-semibold text-slate-100">forskai</p>
           <p className="text-[11px] text-slate-500">Share your research</p>
         </div>
       </div>

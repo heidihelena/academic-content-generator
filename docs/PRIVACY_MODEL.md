@@ -1,6 +1,6 @@
 # Local-First Privacy Model
 
-ForskAI is **local-first and mock-based by default**: nothing leaves your machine
+forskai is **local-first and mock-based by default**: nothing leaves your machine
 until you opt in by setting configuration. This matters because the source vault
 can hold unpublished, embargoed or sensitive research.
 
@@ -69,7 +69,7 @@ The source vault is read from `VAULT_PATH` (default `./vault`); set
 ## Running fully offline
 
 Leave every trigger above unset (the defaults). With `PERSISTENCE_DRIVER=memory`,
-the mock generator, mock embeddings and mock integrations, ForskAI makes **no
+the mock generator, mock embeddings and mock integrations, forskai makes **no
 outbound network calls** and stores nothing off-process.
 
 ## Guidance for sensitive material
