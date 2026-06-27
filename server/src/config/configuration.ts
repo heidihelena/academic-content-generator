@@ -11,6 +11,9 @@ export type LlmProvider = 'anthropic' | 'ollama';
 export type VoiceProvider = 'mock' | 'elevenlabs';
 export type VideoProvider = 'mock' | 'heygen';
 export type StorageDriver = 'local' | 's3';
+/** Citation-support verifier: a dependency-free local heuristic, or the CiteVahti
+ *  CLI (which checks whether a cited source actually supports the claim). */
+export type CitationVerifierProvider = 'local' | 'citevahti';
 
 /** Per-platform OAuth app credentials. When absent, the platform falls back to
  *  the mock integration so the demo still works. */
@@ -100,6 +103,19 @@ export interface AppConfig {
     /** Off by default; per-user limiting of expensive LLM endpoints when on. */
     enabled: boolean;
     perMinute: number;
+  };
+  safety: {
+    /** Citation-*support* verification (distinct from the no-keys citation-*needed*
+     *  detector, which always runs). `local` is a dependency-free lexical heuristic;
+     *  `citevahti` shells out to the CiteVahti CLI for a stronger check. Mock-first:
+     *  defaults to `local` so the app runs with no external tool. */
+    citationVerifier: {
+      provider: CitationVerifierProvider;
+      /** Path/name of the CiteVahti executable when `provider==='citevahti'`. */
+      citevahtiBin: string;
+      /** Hard timeout (ms) for a single CLI verification — it must never hang export. */
+      timeoutMs: number;
+    };
   };
 }
 
@@ -205,5 +221,13 @@ export default (): AppConfig => ({
     enabled: process.env.RATE_LIMIT_ENABLED === 'true',
     /** Allowed requests per user per minute on rate-limited routes. */
     perMinute: parseInt(process.env.RATE_LIMIT_PER_MIN ?? '30', 10),
+  },
+  safety: {
+    citationVerifier: {
+      provider:
+        (process.env.CITATION_VERIFIER as CitationVerifierProvider) ?? 'local',
+      citevahtiBin: process.env.CITEVAHTI_BIN ?? 'citevahti',
+      timeoutMs: parseInt(process.env.CITATION_VERIFIER_TIMEOUT_MS ?? '8000', 10),
+    },
   },
 });
