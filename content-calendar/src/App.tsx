@@ -16,6 +16,7 @@ import { TalkPackageStudio } from './components/TalkPackageStudio';
 import { ContentItems } from './components/ContentItems';
 import { InsightsPanel } from './components/InsightsPanel';
 import { CampaignsView } from './components/CampaignsView';
+import { ConnectionsView } from './components/ConnectionsView';
 import { VideoToShorts } from './components/VideoToShorts';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
@@ -87,6 +88,11 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
               {view === 'campaigns' && (
                 <div className="mx-auto max-w-3xl">
                   <CampaignsView />
+                </div>
+              )}
+              {view === 'connections' && (
+                <div className="mx-auto max-w-3xl">
+                  <ConnectionsView />
                 </div>
               )}
               {view === 'ideas' && (
