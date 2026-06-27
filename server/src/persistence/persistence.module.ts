@@ -1,11 +1,13 @@
-import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { DynamicModule, Module, Provider, Type } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
   ACCOUNTS_REPOSITORY,
   POSTS_REPOSITORY,
   TOKEN_STORE,
+  TokenStore,
   VECTOR_STORE,
 } from './repository.interfaces';
+import { maybeEncryptTokenStore } from './encrypted-token-store';
 import {
   MemoryAccountsRepository,
   MemoryPostsRepository,
@@ -35,6 +37,23 @@ import {
 } from './file/file.repositories';
 
 /**
+ * Provide TOKEN_STORE as a durable driver's store wrapped in encryption-at-rest
+ * when TOKEN_ENCRYPTION_KEY is set (swap-by-config). Registers the concrete
+ * store as its own provider so Nest injects its deps, then a factory wraps it.
+ */
+function encryptedTokenStore(concrete: Type<TokenStore>): Provider[] {
+  return [
+    concrete,
+    {
+      provide: TOKEN_STORE,
+      inject: [concrete, ConfigService],
+      useFactory: (inner: TokenStore, config: ConfigService) =>
+        maybeEncryptTokenStore(inner, config.get<string>('security.tokenEncryptionKey')),
+    },
+  ];
+}
+
+/**
  * Wires the repository interfaces to a concrete driver chosen by
  * PERSISTENCE_DRIVER. Only the selected driver's connection service is
  * registered, so the SQLite/Postgres modules never load unless requested.
@@ -50,7 +69,7 @@ export class PersistenceModule {
         SqliteService,
         { provide: POSTS_REPOSITORY, useClass: SqlitePostsRepository },
         { provide: ACCOUNTS_REPOSITORY, useClass: SqliteAccountsRepository },
-        { provide: TOKEN_STORE, useClass: SqliteTokenStore },
+        ...encryptedTokenStore(SqliteTokenStore),
         { provide: VECTOR_STORE, useClass: SqliteVectorStore },
       ];
     } else if (driver === 'file') {
@@ -58,7 +77,7 @@ export class PersistenceModule {
         FileStoreService,
         { provide: POSTS_REPOSITORY, useClass: FilePostsRepository },
         { provide: ACCOUNTS_REPOSITORY, useClass: FileAccountsRepository },
-        { provide: TOKEN_STORE, useClass: FileTokenStore },
+        ...encryptedTokenStore(FileTokenStore),
         { provide: VECTOR_STORE, useClass: FileVectorStore },
       ];
     } else if (driver === 'neon') {
@@ -66,7 +85,7 @@ export class PersistenceModule {
         PgService,
         { provide: POSTS_REPOSITORY, useClass: PgPostsRepository },
         { provide: ACCOUNTS_REPOSITORY, useClass: PgAccountsRepository },
-        { provide: TOKEN_STORE, useClass: PgTokenStore },
+        ...encryptedTokenStore(PgTokenStore),
         { provide: VECTOR_STORE, useClass: PgVectorStore },
       ];
     } else {

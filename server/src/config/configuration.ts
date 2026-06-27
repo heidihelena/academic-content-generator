@@ -122,6 +122,12 @@ export interface AppConfig {
       timeoutMs: number;
     };
   };
+  security: {
+    /** When set, the durable TokenStore encrypts provider access/refresh tokens
+     *  at rest (AES-256-GCM); unset → plaintext at rest with a startup warning.
+     *  Not used by the in-memory driver, which never writes tokens to disk. */
+    tokenEncryptionKey?: string;
+  };
 }
 
 /** Parse `AUTH_TOKENS` ("alice:tokA,bob:tokB") into a `{ userId: token }` map. */
@@ -240,6 +246,9 @@ export default (): AppConfig => {
       citevahtiBin: process.env.CITEVAHTI_BIN ?? 'citevahti',
       timeoutMs: parseInt(process.env.CITATION_VERIFIER_TIMEOUT_MS ?? '8000', 10),
     },
+  },
+  security: {
+    tokenEncryptionKey: process.env.TOKEN_ENCRYPTION_KEY,
   },
   };
 };
