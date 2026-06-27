@@ -54,7 +54,7 @@ export function buildClipArgs(spec: ClipSpec): string[] {
 
 /** Shell-quote an argument unless it's made only of shell-safe characters. */
 function quote(arg: string): string {
-  return /[^A-Za-z0-9@%+=:,.\/_-]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg;
+  return /[^A-Za-z0-9@%+=:,./_-]/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg;
 }
 
 /** Printable ffmpeg command line for the recipe shown to the user. */

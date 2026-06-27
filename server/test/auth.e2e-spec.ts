@@ -16,7 +16,6 @@ process.env.AUTH_TOKENS = 'alice:alice-token,bob:bob-token';
 const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-auth-uploads-'));
 process.env.UPLOADS_DIR = UPLOADS_DIR;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import { AppModule } from '../src/app.module';
 
 describe('Auth (e2e, AUTH_ENABLED=true)', () => {

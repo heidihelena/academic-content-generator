@@ -12,7 +12,6 @@ interface Row {
 // it isn't installed rather than failing the build.
 let available = true;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('better-sqlite3');
 } catch {
   available = false;
