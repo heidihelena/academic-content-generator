@@ -24,6 +24,41 @@ export interface MeResponse {
   authEnabled: boolean;
 }
 
+/** How a publishing destination is connected. */
+export type ConnectMethod = 'oauth' | 'app-password' | 'access-token' | 'api-key';
+
+/** A content-generation backend's mode and whether it's live (real key present). */
+export interface ProviderStatus {
+  active: string;
+  live: boolean;
+}
+
+/** A publishing destination and whether its credentials are configured. */
+export interface SocialStatus {
+  platform: string;
+  method: ConnectMethod;
+  configured: boolean;
+}
+
+/**
+ * The backend's `/api/connections` report — a secret-safe snapshot of every
+ * connection for the Connections panel. Modes and booleans only, never secrets.
+ */
+export interface ConnectionsReport {
+  inputs: {
+    vaultPath: string;
+    persistenceDriver: string;
+    sqlitePath: string;
+  };
+  providers: {
+    llm: ProviderStatus;
+    voice: ProviderStatus;
+    video: ProviderStatus;
+    embeddings: ProviderStatus;
+  };
+  social: SocialStatus[];
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -79,6 +114,11 @@ export class ApiClient {
   /** The authenticated identity — GET /me on the backend. */
   me(): Promise<MeResponse> {
     return this.request<MeResponse>('/me');
+  }
+
+  /** Secret-safe connection status — GET /connections on the backend. */
+  connections(): Promise<ConnectionsReport> {
+    return this.request<ConnectionsReport>('/connections');
   }
   post<T>(path: string, data?: unknown): Promise<T> {
     return this.request<T>(path, { method: 'POST', body: data ? JSON.stringify(data) : undefined });

@@ -17,6 +17,7 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
   accounts: { title: 'Connected Accounts', subtitle: 'Manage your scholarly and social network connections' },
+  connections: { title: 'Connections', subtitle: 'Wire up your inputs, content generators and publishing destinations' },
 };
 
 interface HeaderProps {
