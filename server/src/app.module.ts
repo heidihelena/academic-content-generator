@@ -30,6 +30,7 @@ import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { RateLimitModule } from './rate-limit/rate-limit.module';
 import { ConnectionsModule } from './connections/connections.module';
+import { SettingsModule } from './settings/settings.module';
 import { PublishLogModule } from './publish-log/publish-log.module';
 import { InsightsModule } from './insights/insights.module';
 import { CommentsModule } from './comments/comments.module';
@@ -51,6 +52,7 @@ import { AssetsModule } from './assets/assets.module';
     // Feature modules.
     HealthModule,
     ConnectionsModule,
+    SettingsModule,
     PostsModule,
     AccountsModule,
     SchedulerModule,
