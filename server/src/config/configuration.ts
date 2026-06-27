@@ -8,6 +8,8 @@ export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
 export type LlmProvider = 'anthropic' | 'ollama';
+export type VoiceProvider = 'mock' | 'elevenlabs';
+export type VideoProvider = 'mock' | 'heygen';
 export type StorageDriver = 'local' | 's3';
 
 /** Per-platform OAuth app credentials. When absent, the platform falls back to
@@ -61,6 +63,22 @@ export interface AppConfig {
     /** Ollama (local LLM) connection, used when `provider==='ollama'`. */
     ollamaBaseUrl: string;
     ollamaModel: string;
+  };
+  /** Media generation: voice-over (ElevenLabs) and avatar video (HeyGen).
+   *  Mock by default; a real provider activates when its key is set. */
+  media: {
+    voice: {
+      provider: VoiceProvider;
+      elevenLabsApiKey?: string;
+      elevenLabsVoiceId: string;
+      elevenLabsModel: string;
+    };
+    video: {
+      provider: VideoProvider;
+      heygenApiKey?: string;
+      heygenAvatarId?: string;
+      heygenVoiceId?: string;
+    };
   };
   auth: {
     /** Off by default (local-first): the API is open and every request is the
@@ -159,6 +177,20 @@ export default (): AppConfig => ({
     anthropicModel: process.env.ANTHROPIC_MODEL ?? 'claude-opus-4-8',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
     ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.1',
+  },
+  media: {
+    voice: {
+      provider: (process.env.VOICE_PROVIDER as VoiceProvider) ?? 'mock',
+      elevenLabsApiKey: process.env.ELEVENLABS_API_KEY,
+      elevenLabsVoiceId: process.env.ELEVENLABS_VOICE_ID ?? 'JBFqnCBsd6RMkjVDRZzb',
+      elevenLabsModel: process.env.ELEVENLABS_MODEL ?? 'eleven_multilingual_v2',
+    },
+    video: {
+      provider: (process.env.VIDEO_PROVIDER as VideoProvider) ?? 'mock',
+      heygenApiKey: process.env.HEYGEN_API_KEY,
+      heygenAvatarId: process.env.HEYGEN_AVATAR_ID,
+      heygenVoiceId: process.env.HEYGEN_VOICE_ID,
+    },
   },
   auth: {
     enabled: process.env.AUTH_ENABLED === 'true',
