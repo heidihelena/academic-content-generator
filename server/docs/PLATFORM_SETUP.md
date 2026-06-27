@@ -47,6 +47,21 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
   `com.atproto.repo.createRecord` of an `app.bsky.feed.post`. Links in the copy
   are made clickable via richtext **facets** (UTF-8 byte offsets). Posts are
   capped at 300 characters — the in-app thread composer splits longer copy first.
+- **Verify end-to-end:** run the verification script on your Mac — it
+  authenticates, publishes a tiny test post and deletes it again, using the same
+  code path as production. The app password is read from the env and never
+  printed, so it stays on your machine:
+
+  ```bash
+  cd server
+  BLUESKY_IDENTIFIER=vahtian.bsky.social \
+  BLUESKY_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx \
+  npm run verify:bluesky
+  ```
+
+  Flags: `--auth-only` (check the credentials, post nothing) · `--keep` (leave
+  the test post up). A `403 Host not in allowlist` means you're on a network
+  that blocks `bsky.social` — run it from your local machine instead.
 
 ---
 
