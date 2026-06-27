@@ -139,4 +139,48 @@ describe('Auth (e2e, AUTH_ENABLED=true)', () => {
       .set('Authorization', 'Bearer alice-token')
       .expect(200);
   });
+
+  it('scopes every item/variant sub-resource and the calendar feed per user', async () => {
+    const hdr = (token: string) => `Bearer ${token}`;
+    const idea = {
+      title: 'Alice scoped resources',
+      audience: 'peers',
+      pillar: 'research-finding',
+      evidenceLevel: 'observational',
+      claimRisk: 'low',
+    };
+    // Alice creates an item + variant and populates every sub-resource.
+    const item = await request(http)
+      .post('/api/content-items')
+      .set('Authorization', hdr('alice-token'))
+      .send(idea)
+      .expect(201);
+    const id = item.body.id;
+    const variant = await request(http)
+      .post(`/api/content-items/${id}/variants`)
+      .set('Authorization', hdr('alice-token'))
+      .send({ channel: 'linkedin', format: 'post', body: 'Hi' })
+      .expect(201);
+    const vid = variant.body.id;
+
+    await request(http).post(`/api/content-items/${id}/comments`).set('Authorization', hdr('alice-token')).send({ body: 'note' }).expect(201);
+    await request(http).post(`/api/content-items/${id}/checklist`).set('Authorization', hdr('alice-token')).send({ label: 'check refs' }).expect(201);
+    await request(http).post(`/api/content-items/${id}/assets`).set('Authorization', hdr('alice-token')).send({ url: 'https://cdn/x.png', type: 'image', label: 'Cover' }).expect(201);
+    await request(http).post(`/api/content-variants/${vid}/publish-log`).set('Authorization', hdr('alice-token')).send({ publishedUrl: 'https://bsky.app/p/1' }).expect(201);
+    await request(http).post(`/api/content-variants/${vid}/schedule`).set('Authorization', hdr('alice-token')).send({ scheduledAt: '2030-05-01T09:00:00.000Z' }).expect(201);
+
+    // Bob can't read any of Alice's item sub-resources — 404, not 403; Alice can.
+    for (const p of ['comments', 'checklist', 'assets']) {
+      await request(http).get(`/api/content-items/${id}/${p}`).set('Authorization', hdr('bob-token')).expect(404);
+      await request(http).get(`/api/content-items/${id}/${p}`).set('Authorization', hdr('alice-token')).expect(200);
+    }
+    await request(http).get(`/api/content-variants/${vid}/publish-log`).set('Authorization', hdr('bob-token')).expect(404);
+    await request(http).get(`/api/content-variants/${vid}/publish-log`).set('Authorization', hdr('alice-token')).expect(200);
+
+    // The calendar feed never surfaces another user's scheduled variant.
+    const aliceCal = await request(http).get('/api/calendar/content').set('Authorization', hdr('alice-token')).expect(200);
+    expect(aliceCal.body.map((e: { variantId: string }) => e.variantId)).toContain(vid);
+    const bobCal = await request(http).get('/api/calendar/content').set('Authorization', hdr('bob-token')).expect(200);
+    expect(bobCal.body.map((e: { variantId: string }) => e.variantId)).not.toContain(vid);
+  });
 });
