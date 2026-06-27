@@ -3,7 +3,12 @@
  *
  * Every replaceable backend (persistence, embeddings, AI generator) is selected
  * here, so swapping mock → real is a config change, not a code change.
+ *
+ * Resolution order for the panel-managed local paths: an explicit env var wins,
+ * then the writable local settings file (`~/forskai/settings.json`, see
+ * `settings/local-settings.ts`), then the built-in default.
  */
+import { readLocalSettings } from '../settings/local-settings';
 export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
@@ -133,12 +138,18 @@ function parseAuthTokens(raw?: string): Record<string, string> {
   return map;
 }
 
-export default (): AppConfig => ({
+export default (): AppConfig => {
+  // Panel-managed local paths, used as a fallback under any explicit env var.
+  const local = readLocalSettings();
+  return {
   port: parseInt(process.env.PORT ?? '3000', 10),
   frontendUrl: process.env.FRONTEND_URL,
   persistence: {
-    driver: (process.env.PERSISTENCE_DRIVER as PersistenceDriver) ?? 'memory',
-    sqlitePath: process.env.SQLITE_PATH ?? './data/content-calendar.sqlite',
+    driver:
+      (process.env.PERSISTENCE_DRIVER as PersistenceDriver) ??
+      (local.persistenceDriver as PersistenceDriver) ??
+      'memory',
+    sqlitePath: process.env.SQLITE_PATH ?? local.sqlitePath ?? './data/content-calendar.sqlite',
     databaseUrl: process.env.DATABASE_URL,
   },
   integrations: {
@@ -166,7 +177,7 @@ export default (): AppConfig => ({
     },
   },
   vault: {
-    path: process.env.VAULT_PATH ?? './vault',
+    path: process.env.VAULT_PATH ?? local.vaultPath ?? './vault',
     watch: process.env.VAULT_WATCH === 'true',
   },
   storage: {
@@ -230,4 +241,5 @@ export default (): AppConfig => ({
       timeoutMs: parseInt(process.env.CITATION_VERIFIER_TIMEOUT_MS ?? '8000', 10),
     },
   },
-});
+  };
+};

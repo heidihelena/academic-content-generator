@@ -386,6 +386,27 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     expect(res.body).toEqual({ userId: 'local', authEnabled: false });
   });
 
+  it('round-trips writable local settings and drops secret fields', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'forskai-e2e-settings-'));
+    const prev = process.env.FORSKAI_SETTINGS_PATH;
+    process.env.FORSKAI_SETTINGS_PATH = join(dir, 'settings.json');
+    try {
+      const put = await request(http)
+        .put('/api/settings')
+        .send({ vaultPath: '/icloud/Vault', persistenceDriver: 'sqlite', anthropicApiKey: 'sk-SECRET' })
+        .expect(200);
+      expect(put.body).toEqual({ vaultPath: '/icloud/Vault', persistenceDriver: 'sqlite' });
+
+      const get = await request(http).get('/api/settings').expect(200);
+      expect(get.body).toEqual({ vaultPath: '/icloud/Vault', persistenceDriver: 'sqlite' });
+      expect(JSON.stringify(get.body)).not.toMatch(/SECRET/);
+    } finally {
+      if (prev === undefined) delete process.env.FORSKAI_SETTINGS_PATH;
+      else process.env.FORSKAI_SETTINGS_PATH = prev;
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('reports health with active backend modes (no secrets)', async () => {
     const res = await request(http).get('/api/health').expect(200);
     expect(res.body.status).toBe('ok');
