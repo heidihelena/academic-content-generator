@@ -195,7 +195,7 @@ export class ContentService {
    * Calendar feed: every variant with a scheduled date, joined to its item for
    * display context, sorted by time. Powers the calendar view.
    */
-  async scheduledFeed(): Promise<CalendarEntry[]> {
+  async scheduledFeed(scope?: string): Promise<CalendarEntry[]> {
     const variants = (await this.variants.list()).filter((v) => v.scheduledAt);
     const itemCache = new Map<string, ContentItem | null>();
     const entries: CalendarEntry[] = [];
@@ -203,7 +203,9 @@ export class ContentService {
       if (!itemCache.has(v.contentItemId)) {
         itemCache.set(v.contentItemId, await this.items.findById(v.contentItemId));
       }
-      const item = itemCache.get(v.contentItemId);
+      const item = itemCache.get(v.contentItemId) ?? null;
+      // Owner scoping: never surface another user's scheduled content in the feed.
+      if (item && !this.canAccess(item, scope)) continue;
       entries.push({
         variantId: v.id,
         itemId: v.contentItemId,

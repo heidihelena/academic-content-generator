@@ -43,4 +43,21 @@ describe('ContentService.scheduledFeed', () => {
     await service.addVariant(it.id, { channel: 'linkedin', format: 'post', body: 'a' });
     expect(await service.scheduledFeed()).toEqual([]);
   });
+
+  it('scopes the feed to the owner — never leaks another user\'s scheduled content', async () => {
+    const service = setup();
+    // Two users each schedule one variant.
+    const aliceItem = await service.createItem(item({ title: 'Alice paper' }), new Date(), 'alice');
+    const aliceVar = await service.addVariant(aliceItem.id, { channel: 'linkedin', format: 'post', body: 'a' });
+    await service.scheduleVariant(aliceVar.id, '2030-03-01T09:00:00.000Z');
+
+    const bobItem = await service.createItem(item({ title: 'Bob paper' }), new Date(), 'bob');
+    const bobVar = await service.addVariant(bobItem.id, { channel: 'bluesky', format: 'thread', body: 'b' });
+    await service.scheduleVariant(bobVar.id, '2030-03-02T09:00:00.000Z');
+
+    // Each user sees only their own; an unscoped call (local-first default) sees both.
+    expect((await service.scheduledFeed('alice')).map((e) => e.title)).toEqual(['Alice paper']);
+    expect((await service.scheduledFeed('bob')).map((e) => e.title)).toEqual(['Bob paper']);
+    expect((await service.scheduledFeed()).map((e) => e.title)).toEqual(['Alice paper', 'Bob paper']);
+  });
 });
