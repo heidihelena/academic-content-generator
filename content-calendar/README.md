@@ -1,28 +1,38 @@
-# vahtian · Content Calendar
+# forskai · Content Hub (dashboard)
 
-A production-quality, dark-mode **social media content calendar dashboard** for the
-vahtian.com social media team. Plan a week of content across **Instagram, LinkedIn
-and Threads**, edit and drag posts to reschedule, manage connected accounts,
-review analytics, and generate post ideas with an AI assistant.
+The React dashboard for **forskai Content Hub** — an academic content operating
+system that turns papers, notes and lectures into reviewed, audience-specific
+content. This is the frontend; the academic domain and APIs live in [`../server`](../server).
 
 > Built with React + TypeScript + Vite + Tailwind + Zustand, and tested with
-> Vitest + React Testing Library.
+> Vitest + React Testing Library. **Local-first:** it runs end-to-end with
+> sample data and no backend, and upgrades to the live API by one env var.
 
 ---
 
-## Features
+## The workflow
 
-| Area | What it does |
+The hub mirrors the backend's academic pipeline:
+
+```
+Source Inbox → Idea Lab → Draft Studio → Safety + Citation review → Content (variants) → Schedule / Export
+```
+
+| View | What it does |
 | --- | --- |
-| **Weekly calendar** | 7-day Monday-start view, per-day post cards, week navigation, today highlighting |
-| **Drag & drop** | Drag any post to another day to reschedule (time-of-day preserved) |
-| **Post editor** | Platform picker, caption with live character count + per-platform limit enforcement, schedule date/time, status, media placeholders, and a live per-platform preview |
-| **Filters** | Filter the calendar by platform (Instagram / LinkedIn / Threads) and by status |
-| **Statuses** | `draft` · `scheduled` · `published` · `failed`, color-coded throughout |
-| **Connected accounts** | Connect / disconnect / retry with status, handles, follower counts and platform icons (mock OAuth) |
-| **Analytics** | Posts per week, breakdown by platform, scheduled vs published, best posting days (mock engagement) |
-| **Generate Ideas (AI)** | Enter niche / audience / tone / platform → get 5 structured ideas (topic, hook, platform fit, recommended format); one click turns an idea into a draft |
-| **UX states** | Loading, empty and error states across every async surface |
+| **Source Inbox** | Manual sources + live Obsidian vault notes — the input material |
+| **Generate Ideas** | 5 audience-specific ideas from a source; abstract→thread, talk packages, video→shorts |
+| **Draft Studio** | Compose a draft for a channel + audience, run the medical-safety + citation reviews, export |
+| **Content** | One `ContentItem` → many `ContentVariant`s; edit → review → mark reviewed → schedule → publish each |
+| **Pipeline / List / Calendar** | The work-in-progress board, a sortable table, and the scheduled-content calendar |
+| **Campaigns** | Group content into themed series with a status rollup |
+| **Connections** | Local-run setup: Obsidian/SQLite paths, content-generator status (live vs mock), and publishing destinations |
+| **Accounts** | Connect / verify / disconnect social accounts (Bluesky & Mastodon by credential; others via OAuth) |
+| **Analytics** | Reach across networks, scheduled vs published, timing suggestions |
+
+Safety is first-class: variants carry a **medical-safety** review and a
+**citation** review (citation-needed + citation-support), and a variant can't be
+exported until its blocking findings are resolved and it's marked human-reviewed.
 
 ---
 
@@ -45,7 +55,7 @@ npm run typecheck    # type-check only
 ```
 
 > **No real API keys required.** The app ships with realistic sample data and
-> mock integrations so it runs end-to-end out of the box.
+> mock/local implementations, so every flow works offline and in tests.
 
 ### Local mode vs. API mode
 
@@ -53,8 +63,8 @@ The dashboard runs against either backend, chosen by one env var:
 
 | Mode | When | Data |
 | --- | --- | --- |
-| **Local** (default) | `VITE_API_URL` unset | Sample data + `localStorage`, mock integrations, client-side AI |
-| **API** | `VITE_API_URL` set | Posts/accounts/AI come from the NestJS server (`server/`) |
+| **Local** (default) | `VITE_API_URL` unset | Sample data + `localStorage`, local safety/citation review, client-side idea generation |
+| **API** | `VITE_API_URL` set | Sources, content, reviews, accounts and AI come from the NestJS server (`server/`), with local fallback |
 
 ```bash
 # Terminal 1 — backend (see ../server/README.md)
@@ -65,93 +75,57 @@ echo "VITE_API_URL=http://localhost:3000/api" > .env.local
 npm run dev
 ```
 
-The selection lives in `src/lib/dataSource.ts` (`LocalDataSource` vs
-`ApiDataSource`) and `src/main.tsx` (AI generator). The store depends only on the
-`DataSource` interface, so nothing in the UI changes between modes.
+> Prefer the packaged **desktop app** ([`../desktop`](../desktop)) for a real
+> local run — it bundles the server and UI into one window, no terminals.
 
 ---
 
 ## Architecture
 
-The codebase is organized around the **four-agent split** described in the brief.
-Each agent owns a clear slice of the tree, and the layers talk to each other only
-through typed interfaces — so any mock can be swapped for a real implementation
-without touching the UI.
+The UI depends only on typed client facades, so a mock can be swapped for the
+real API without touching components.
 
 ```
 src/
-├── types/             # Architecture & Data Agent — domain models (single source of truth)
-├── lib/               #   platforms, date utils, pure scheduling, ids, persistence
-├── data/              #   realistic sample data (generated relative to "now")
-├── store/             #   Zustand store (state management + persistence wiring)
-├── integrations/      #   social platform integration layer (PlatformIntegration interface + mock)
-├── analytics/         #   pure analytics calculations
-│
-├── ai/                # AI Feature Agent — Generate Ideas
-│   ├── types.ts       #   IdeaGenerator interface, request/response types
-│   ├── prompt.ts      #   system + user prompt construction (reused by a real LLM)
-│   ├── mockIdeaGenerator.ts  # deterministic offline generator
-│   └── ideaService.ts #   swappable facade (setIdeaGenerator)
-│
-├── components/        # UI & Design Agent — all React components
-│   ├── WeeklyCalendar, PostCard, PostEditorModal, PostPreview
-│   ├── Filters, PlatformBadge, ConnectedAccounts, Analytics, GenerateIdeas
-│   ├── Sidebar, Header, icons
-│   ├── charts/        #   dependency-free SVG bar + donut charts
-│   └── ui/            #   reusable primitives: Modal, Spinner, States (empty/loading/error)
-│
-└── App.tsx            # app shell, navigation, store initialization
+├── content/      # contentClient — the ContentItem/ContentVariant hub model
+│                 #   (LocalContentClient mock vs ApiContentClient; setContentClient for tests)
+├── studio/       # local Draft Studio engine — compose + safety/citation review, offline
+├── sources/      # Source Inbox client (manual sources + vault notes)
+├── lib/          # api client, connection/settings/dataSource seams, platforms, date utils
+├── store/        # Zustand store (the older Post calendar path + connected accounts)
+├── analytics/    # pure analytics calculations
+├── components/   # all React views (see the table above) + ui/ primitives, charts/
+├── data/         # realistic sample data (generated relative to "now")
+└── App.tsx       # app shell, navigation, store initialization
 
-tests/                 # Testing Agent — unit + component tests (Vitest + RTL)
+tests/            # unit + component tests (Vitest + RTL)
 ```
 
-### Data flow
+> **Migration note.** Two content models currently coexist: the newer
+> `ContentItem → ContentVariant` hub (`src/content/`, the strategic model) and
+> the older `Post` calendar (`src/store/`). New work targets the hub model; the
+> Post path remains until the calendar views are migrated onto scheduled variants.
 
-```
-UI components ──▶ Zustand store ──▶ PersistenceAdapter (localStorage mock)
-                      │
-                      ├──▶ PlatformIntegration (mock OAuth / publish)
-                      └──▶ pure logic: scheduling, analytics, dateUtils
-```
+### Client seams
 
-The store is the only stateful surface. It depends on the `PersistenceAdapter`
-and `PlatformIntegration` **interfaces**, not concrete classes, which keeps the
-whole app testable and backend-agnostic.
+| Seam | File | Local vs API |
+| --- | --- | --- |
+| Content (items, variants, reviews, campaigns, publish log) | `src/content/contentClient.ts` | `LocalContentClient` ↔ `ApiContentClient` |
+| Posts / accounts (calendar) | `src/lib/dataSource.ts` | `LocalDataSource` ↔ `ApiDataSource` |
+| Connections snapshot | `src/lib/connections.ts` | all-mock default ↔ `GET /api/connections` |
+| Writable local settings | `src/lib/settings.ts` | API-mode only (`GET/PUT /api/settings`) |
 
----
-
-## Swapping in real services
-
-Every integration point is marked in code with a
-`// --- REAL API INTEGRATION POINT ---` comment. The key seams:
-
-1. **Persistence** — `src/lib/persistence.ts`
-   Implement `PersistenceAdapter` against your REST/GraphQL backend and pass it
-   to the store. Nothing else changes.
-
-2. **Social platforms** — `src/integrations/`
-   Implement `PlatformIntegration` per platform (real OAuth handshake, profile
-   fetch, media upload, publish) and register it in `registry.ts`. Suggested
-   APIs: Instagram Graph API, LinkedIn Marketing API, Threads API.
-
-3. **AI idea generation** — `src/ai/ideaService.ts`
-   The prompt (`src/ai/prompt.ts`) is already production-shaped. Implement an
-   `IdeaGenerator` that sends `buildIdeaMessages(request)` to your LLM with JSON
-   output mode, then call `setIdeaGenerator(new LlmIdeaGenerator())` at startup.
+Each switches on `VITE_API_URL`, so nothing in the UI changes between modes.
 
 ---
 
 ## Testing
 
-The Testing Agent suite covers the core product logic and UI:
-
-- **Pure logic** — date math, drag-and-drop rescheduling, analytics calculations,
-  AI idea generation + prompt construction.
-- **Store** — initialization, filtering, post CRUD, reschedule, and connected
-  account state transitions (connect / error / disconnect).
-- **Components** — calendar rendering, platform/status filtering, empty states,
-  week navigation, drag-and-drop reschedule, the post editor (character limits,
-  save, delete, preview), connected-accounts UI, and the Generate Ideas flow.
+Vitest + React Testing Library cover the real workflows: the content hub
+(items → variants → review → schedule → publish), the Draft Studio engine and
+its safety/citation reviews, the Connections panel and settings form, the
+calendar/board/list views, connected accounts (verify-and-connect), and the
+idea-generation flows.
 
 ```bash
 npm test
@@ -161,12 +135,10 @@ npm test
 
 ## Tech choices & rationale
 
-- **Zustand** for state — minimal boilerplate, easy to test, no providers.
+- **Local-first, swap-by-config.** Every boundary (content, posts, connections,
+  settings, AI) has a local mock and an API adapter chosen by `VITE_API_URL`, so
+  the demo becomes a real product incrementally.
+- **Zustand** for the calendar store — minimal boilerplate, easy to test.
 - **No charting / icon / DnD dependencies** — charts and icons are hand-built
-  SVG and drag-and-drop uses native HTML5 events with a **pure** reschedule
-  function (`src/lib/scheduling.ts`). This keeps the bundle small, installs
-  reliable, and the logic trivially unit-testable.
-- **Interfaces at every boundary** — persistence, platform integrations and the
-  AI generator are all swappable, so the mock demo can become a real product
-  incrementally.
-```
+  SVG; drag-and-drop uses native HTML5 events with a pure reschedule function.
+  Small bundle, reliable installs, trivially unit-testable logic.
