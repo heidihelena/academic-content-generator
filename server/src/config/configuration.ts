@@ -9,7 +9,7 @@
  * `settings/local-settings.ts`), then the built-in default.
  */
 import { readLocalSettings } from '../settings/local-settings';
-export type PersistenceDriver = 'memory' | 'sqlite' | 'neon';
+export type PersistenceDriver = 'memory' | 'file' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
 export type LlmProvider = 'anthropic' | 'ollama';
