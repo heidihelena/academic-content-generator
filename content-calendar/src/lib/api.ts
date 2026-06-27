@@ -24,6 +24,17 @@ export interface MeResponse {
   authEnabled: boolean;
 }
 
+/**
+ * Writable local settings (`/api/settings`) — the local-Mac paths the Connections
+ * panel persists to `~/forskai/settings.json` without hand-editing `.env`.
+ * Non-secret only: keys/tokens are never stored here (the backend drops them).
+ */
+export interface LocalSettings {
+  vaultPath?: string;
+  persistenceDriver?: string;
+  sqlitePath?: string;
+}
+
 /** How a publishing destination is connected. */
 export type ConnectMethod = 'oauth' | 'app-password' | 'access-token' | 'api-key';
 
@@ -119,6 +130,19 @@ export class ApiClient {
   /** Secret-safe connection status — GET /connections on the backend. */
   connections(): Promise<ConnectionsReport> {
     return this.request<ConnectionsReport>('/connections');
+  }
+
+  /** The saved writable local settings — GET /settings on the backend. */
+  settings(): Promise<LocalSettings> {
+    return this.request<LocalSettings>('/settings');
+  }
+
+  /** Persist local settings (merge) — PUT /settings on the backend. */
+  saveSettings(patch: LocalSettings): Promise<LocalSettings> {
+    return this.request<LocalSettings>('/settings', {
+      method: 'PUT',
+      body: JSON.stringify(patch),
+    });
   }
   post<T>(path: string, data?: unknown): Promise<T> {
     return this.request<T>(path, { method: 'POST', body: data ? JSON.stringify(data) : undefined });
