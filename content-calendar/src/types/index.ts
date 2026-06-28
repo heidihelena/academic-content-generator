@@ -77,6 +77,14 @@ export interface Post {
   /** Posts in one thread share a threadId; threadIndex is the 0-based order. */
   threadId?: string;
   threadIndex?: number;
+  /** Platform-native id of the published post (set by a live publish). */
+  remoteId?: string;
+  /** Public URL of the published post (set by a live publish). */
+  permalink?: string;
+  /** When the post was published (ISO 8601). */
+  publishedAt?: string;
+  /** Human-readable detail when `status === 'failed'` (e.g. why publish failed). */
+  statusDetail?: string;
   createdAt: string;
   updatedAt: string;
 }

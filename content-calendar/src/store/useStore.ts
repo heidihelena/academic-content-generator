@@ -52,6 +52,10 @@ export interface StoreState {
 
   accountBusy: Partial<Record<Platform, boolean>>;
   accountError: Partial<Record<Platform, string | undefined>>;
+  /** Id of the post currently being live-published (drives the button spinner). */
+  publishingId: string | null;
+  /** Reason the most recent live publish failed (cleared on the next attempt). */
+  publishError: string | null;
   /** Error from the initial data load (API mode). */
   loadError?: string;
 
@@ -98,6 +102,8 @@ export interface StoreState {
     base: { platform: Platform; audience?: string; videoUrl?: string },
   ) => void;
   deletePost: (postId: string) => void;
+  /** Live-publish a post to its platform now; resolves true when published. */
+  publishPost: (postId: string) => Promise<boolean>;
   reschedulePost: (postId: string, targetDay: Date) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
   setPostStatus: (postId: string, status: PostStatus) => void;
@@ -144,6 +150,8 @@ export const useStore = create<StoreState>((set, get) => ({
   permissions: { canCreate: true, canEdit: true, canDelete: true, canPublish: true, canBulk: true },
   accountBusy: {},
   accountError: {},
+  publishingId: null,
+  publishError: null,
 
   initialize: () => {
     // Offline/local: hydrate synchronously so the first render has data.
@@ -382,6 +390,23 @@ export const useStore = create<StoreState>((set, get) => ({
       editingPostId: null,
     });
     void dataSource.deletePost(postId).catch((err) => console.error('deletePost failed', err));
+  },
+
+  publishPost: async (postId) => {
+    set({ publishingId: postId, publishError: null });
+    try {
+      const updated = await dataSource.publishPost(postId);
+      const failed = updated.status === 'failed';
+      set((s) => ({
+        posts: s.posts.map((p) => (p.id === postId ? { ...p, ...updated } : p)),
+        publishingId: null,
+        publishError: failed ? (updated.statusDetail ?? 'Publish failed.') : null,
+      }));
+      return !failed;
+    } catch (err) {
+      set({ publishingId: null, publishError: err instanceof Error ? err.message : 'Publish failed.' });
+      return false;
+    }
   },
 
   setPostStatus: (postId, status) => {

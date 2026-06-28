@@ -39,6 +39,9 @@ export interface DataSource {
   /** Verify user-supplied credentials and connect (Bluesky / Mastodon). */
   verifyAccount(platform: Platform, creds: PlatformCredentials): Promise<ConnectedAccount>;
   disconnectAccount(platform: Platform): Promise<ConnectedAccount>;
+  /** Publish a post immediately to its platform; resolves to the updated post
+   *  (`published` with a permalink, or `failed` with a reason). */
+  publishPost(id: string): Promise<Post>;
   /** Upload a media file and return an attachment with a usable URL. */
   uploadMedia(file: File): Promise<MediaAttachment>;
 }
@@ -123,6 +126,30 @@ export class LocalDataSource implements DataSource {
     this.save();
     return account;
   }
+  async publishPost(id: string): Promise<Post> {
+    this.ensure();
+    const post = this.posts.find((p) => p.id === id);
+    if (!post) throw new Error('Post not found');
+    const now = new Date().toISOString();
+    // Mirror the backend's guard: publishing needs a connected account. Offline
+    // we can't reach a real platform, so a "connected" (mock) account yields a
+    // demo permalink; otherwise the post fails with the same reason the API gives.
+    const connected = this.accounts.find((a) => a.platform === post.platform)?.status === 'connected';
+    const updated: Post = connected
+      ? {
+          ...post,
+          status: 'published',
+          publishedAt: now,
+          remoteId: createId('remote'),
+          permalink: `https://example.local/${post.platform}/${post.id}`,
+          statusDetail: undefined,
+          updatedAt: now,
+        }
+      : { ...post, status: 'failed', statusDetail: `No connected ${post.platform} account`, updatedAt: now };
+    this.posts = this.posts.map((p) => (p.id === id ? updated : p));
+    this.save();
+    return updated;
+  }
   async uploadMedia(file: File): Promise<MediaAttachment> {
     // Offline: use an object URL for preview. Note this URL is not publicly
     // reachable, so it can't be used for real platform publishing — that needs
@@ -173,6 +200,11 @@ export class ApiDataSource implements DataSource {
   }
   disconnectAccount(platform: Platform): Promise<ConnectedAccount> {
     return this.api.post<ConnectedAccount>(`/accounts/${platform}/disconnect`);
+  }
+  publishPost(id: string): Promise<Post> {
+    // The backend posts via the platform integration and returns the updated
+    // post (published + permalink, or failed + statusDetail).
+    return this.api.post<Post>(`/posts/${id}/publish`);
   }
   uploadMedia(file: File): Promise<MediaAttachment> {
     return this.api.upload<MediaAttachment>('/media/upload', file);
