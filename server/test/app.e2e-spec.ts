@@ -37,7 +37,7 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     const res = await request(http).get('/api/accounts').expect(200);
     expect(res.body.every((a: any) => a.status === 'disconnected')).toBe(true);
     const platforms = res.body.map((a: any) => a.platform).sort();
-    expect(platforms).toEqual(['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads'].sort());
+    expect(platforms).toEqual(['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads', 'x'].sort());
   });
 
   it('supports the post CRUD lifecycle', async () => {

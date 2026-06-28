@@ -41,6 +41,14 @@ export const PLATFORM_META: Record<Platform, PlatformMeta> = {
     color: '#a855f7',
     handlePrefix: '@',
   },
+  x: {
+    id: 'x',
+    name: 'X',
+    // Free-tier post limit; X Premium allows longer, but 280 is the safe default.
+    characterLimit: 280,
+    color: '#111827',
+    handlePrefix: '@',
+  },
   youtube: {
     id: 'youtube',
     name: 'YouTube',
@@ -55,7 +63,7 @@ export const PLATFORM_META: Record<Platform, PlatformMeta> = {
  * Ordered list of platforms for rendering filters, tabs, etc. Scholarly
  * networks lead, since they're where the academic audience is.
  */
-export const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'linkedin', 'instagram', 'threads', 'youtube'];
+export const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'linkedin', 'instagram', 'threads', 'x', 'youtube'];
 
 export function getPlatformMeta(platform: Platform): PlatformMeta {
   return PLATFORM_META[platform];

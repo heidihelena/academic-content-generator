@@ -68,6 +68,7 @@ function formatForPlatform(platform: IdeaRequest['platform'], index: number): Co
     instagram: ['carousel', 'reel', 'single image', 'story', 'carousel'],
     linkedin: ['text post', 'carousel', 'poll', 'single image', 'text post'],
     threads: ['text post', 'poll', 'single image', 'text post', 'video'],
+    x: ['text post', 'poll', 'single image', 'text post', 'video'],
     youtube: ['video', 'reel', 'video', 'single image', 'video'],
   };
   const list = byPlatform[platform];

@@ -198,11 +198,18 @@ export const YouTubeGlyph = (p: IconProps) => (
   </svg>
 );
 
+export const XGlyph = (p: IconProps) => (
+  <svg {...base(p)} fill="currentColor" stroke="none">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.656l-5.214-6.817-5.966 6.817H1.683l7.73-8.835L1.254 2.25h6.826l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+  </svg>
+);
+
 export const PLATFORM_GLYPHS: Record<Platform, (p: IconProps) => JSX.Element> = {
   bluesky: BlueskyGlyph,
   mastodon: MastodonGlyph,
   instagram: InstagramGlyph,
   linkedin: LinkedInGlyph,
   threads: ThreadsGlyph,
+  x: XGlyph,
   youtube: YouTubeGlyph,
 };

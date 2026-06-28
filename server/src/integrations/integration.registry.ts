@@ -31,6 +31,14 @@ export class IntegrationRegistry {
       instagram: this.buildInstagram(config),
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),
+      // X (Twitter) ships mock-only for now: the v2 API needs a paid developer
+      // app + OAuth2 PKCE. Listed so academics who do use it can plan/preview
+      // here; a real client can drop in like the others later.
+      x: new MockIntegration('x', {
+        handle: '@vahtian',
+        displayName: 'vahtian',
+        followers: 1980,
+      }),
       // YouTube ships mock-only: Shorts are planned in-app and exported/uploaded
       // manually (the Data API upload flow needs OAuth + quota review).
       youtube: new MockIntegration('youtube', {

@@ -19,7 +19,7 @@ export interface ReachFinding {
 }
 
 /** Platforms that demote posts containing outbound links (push the link to a reply). */
-const LINK_DEMOTED: Platform[] = ['linkedin', 'instagram', 'threads', 'youtube'];
+const LINK_DEMOTED: Platform[] = ['linkedin', 'instagram', 'threads', 'x', 'youtube'];
 
 /** Soft hashtag ceilings before it reads as spammy / gets demoted. */
 const HASHTAG_LIMIT: Record<Platform, number> = {
@@ -28,6 +28,7 @@ const HASHTAG_LIMIT: Record<Platform, number> = {
   linkedin: 5,
   instagram: 10,
   threads: 5,
+  x: 2,
   youtube: 5,
 };
 
