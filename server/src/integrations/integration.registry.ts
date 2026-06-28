@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Platform } from '../domain/types';
+import { TOKEN_STORE, type TokenStore } from '../persistence/repository.interfaces';
 import type { PlatformIntegration } from './integration.types';
 import { MockIntegration } from './mock.integration';
 import { InstagramIntegration } from './instagram.integration';
@@ -20,7 +21,10 @@ export class IntegrationRegistry {
   private readonly logger = new Logger(IntegrationRegistry.name);
   private readonly integrations: Record<Platform, PlatformIntegration>;
 
-  constructor(config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    @Inject(TOKEN_STORE) private readonly tokens: TokenStore,
+  ) {
     this.integrations = {
       bluesky: this.buildBluesky(config),
       mastodon: this.buildMastodon(config),
@@ -39,6 +43,40 @@ export class IntegrationRegistry {
 
   get(platform: Platform): PlatformIntegration {
     return this.integrations[platform];
+  }
+
+  /**
+   * The integration to *publish* a connected account with. When a platform is
+   * env-configured we use that real client. Otherwise, if the account was
+   * connected in-app (a session token is stored), we build a real client that
+   * publishes with that token — so an in-app connect actually posts instead of
+   * silently hitting the mock. Falls back to the configured client.
+   *
+   * Bluesky publishes purely from the stored token (DID + session JWT), so it
+   * needs no env app password. (Mastodon also needs its instance URL, which is
+   * only available when env-configured.)
+   */
+  async forPublish(platform: Platform): Promise<PlatformIntegration> {
+    const configured = this.integrations[platform];
+    if (!(configured instanceof MockIntegration)) return configured;
+    if (!(await this.tokens.get(platform))) return configured;
+    const real = this.realFromToken(platform);
+    if (real) {
+      this.logger.log(`${platform}: publishing the in-app-connected account with its stored token`);
+      return real;
+    }
+    return configured;
+  }
+
+  /** A real client that can publish using only a stored token, or null if the
+   *  platform also needs configuration the token doesn't carry. */
+  private realFromToken(platform: Platform): PlatformIntegration | null {
+    if (platform === 'bluesky') {
+      const service =
+        this.config.get<string>('integrations.bluesky.service') ?? 'https://bsky.social';
+      return new BlueskyIntegration(service, '', '');
+    }
+    return null;
   }
 
   private buildInstagram(config: ConfigService): PlatformIntegration {

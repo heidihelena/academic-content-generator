@@ -87,9 +87,8 @@ export class PostsService {
     }
     try {
       const reply = await this.resolveReply(post);
-      const result = await this.integrations
-        .get(post.platform)
-        .publish(post, token, reply ? { reply } : undefined);
+      const integration = await this.integrations.forPublish(post.platform);
+      const result = await integration.publish(post, token, reply ? { reply } : undefined);
       return this.posts.upsert({
         ...post,
         status: 'published',
