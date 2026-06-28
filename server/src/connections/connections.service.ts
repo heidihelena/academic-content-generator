@@ -90,6 +90,7 @@ export class ConnectionsService {
         { platform: 'linkedin', method: 'oauth', configured: has('integrations.linkedin.clientId') },
         { platform: 'instagram', method: 'oauth', configured: has('integrations.instagram.clientId') },
         { platform: 'threads', method: 'oauth', configured: has('integrations.threads.clientId') },
+        { platform: 'x', method: 'oauth', configured: has('integrations.x.clientId') },
       ],
     };
   }

@@ -40,6 +40,11 @@ const integrations: Record<Platform, PlatformIntegration> = {
     // Demonstrates the error/retry path in the connected-accounts UI.
     failConnect: true,
   }),
+  x: new MockPlatformIntegration('x', {
+    handle: '@vahtian',
+    displayName: 'vahtian',
+    followers: 1980,
+  }),
   youtube: new MockPlatformIntegration('youtube', {
     handle: '@heidi-does-science',
     displayName: 'Heidi does science',

@@ -49,7 +49,7 @@ describe('AccountsService.onModuleInit', () => {
     expect(byPlatform.bluesky).toBe('disconnected');
     expect(byPlatform.mastodon).toBe('disconnected');
     expect(seeded.map((a) => a.platform).sort()).toEqual(
-      ['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads'].sort(),
+      ['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads', 'x'].sort(),
     );
   });
 });
