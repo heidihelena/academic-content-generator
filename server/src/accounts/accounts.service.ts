@@ -11,7 +11,11 @@ import type { ConnectParams, PlatformIntegration } from '../integrations/integra
 import { BlueskyIntegration } from '../integrations/bluesky.integration';
 import { MastodonIntegration } from '../integrations/mastodon.integration';
 
-const PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads'];
+// Seed a row for every supported destination so the Accounts UI always shows a
+// Connect control. Bluesky + Mastodon come first: they connect with an in-app
+// app password / access token (no OAuth app needed), so they work on a fresh
+// local install — the others connect via an OAuth redirect.
+const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'instagram', 'linkedin', 'threads'];
 
 /** Credentials a user can supply in-app for the token/app-password platforms. */
 export interface PlatformCredentials {
