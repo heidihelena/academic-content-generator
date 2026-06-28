@@ -8,6 +8,7 @@ import { InstagramIntegration } from './instagram.integration';
 import { ThreadsIntegration } from './threads.integration';
 import { LinkedInIntegration } from './linkedin.integration';
 import { BlueskyIntegration } from './bluesky.integration';
+import { XIntegration } from './x.integration';
 import { MastodonIntegration } from './mastodon.integration';
 
 /**
@@ -31,14 +32,7 @@ export class IntegrationRegistry {
       instagram: this.buildInstagram(config),
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),
-      // X (Twitter) ships mock-only for now: the v2 API needs a paid developer
-      // app + OAuth2 PKCE. Listed so academics who do use it can plan/preview
-      // here; a real client can drop in like the others later.
-      x: new MockIntegration('x', {
-        handle: '@vahtian',
-        displayName: 'vahtian',
-        followers: 1980,
-      }),
+      x: this.buildX(config),
       // YouTube ships mock-only: Shorts are planned in-app and exported/uploaded
       // manually (the Data API upload flow needs OAuth + quota review).
       youtube: new MockIntegration('youtube', {
@@ -105,6 +99,17 @@ export class IntegrationRegistry {
       return new ThreadsIntegration(id, secret);
     }
     return new MockIntegration('threads', { handle: '@vahtian', displayName: 'vahtian', followers: 4210 });
+  }
+
+  private buildX(config: ConfigService): PlatformIntegration {
+    const id = config.get<string>('integrations.x.clientId');
+    const secret = config.get<string>('integrations.x.clientSecret');
+    if (id && secret) {
+      this.logger.log('X: using real X v2 API integration (OAuth2 PKCE)');
+      return new XIntegration(id, secret);
+    }
+    // Mock until a paid X developer app is configured (X_CLIENT_ID/SECRET).
+    return new MockIntegration('x', { handle: '@vahtian', displayName: 'vahtian', followers: 1980 });
   }
 
   private buildLinkedIn(config: ConfigService): PlatformIntegration {

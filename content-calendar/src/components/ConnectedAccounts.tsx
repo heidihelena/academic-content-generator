@@ -80,6 +80,11 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
           {isError && account.statusDetail && (
             <p className="mt-0.5 truncate text-[11px] text-status-failed">{account.statusDetail}</p>
           )}
+          {platform === 'x' && !isConnected && (
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              Requires a paid X developer app (OAuth 2.0, <code>tweet.write</code>).
+            </p>
+          )}
         </div>
 
         <div className="shrink-0">

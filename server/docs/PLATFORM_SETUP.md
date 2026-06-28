@@ -119,6 +119,27 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
 
 ---
 
+## X / Twitter (v2 API, OAuth 2.0 PKCE)
+
+> ⚠️ **Requires a PAID X developer app.** Posting needs an app on a **paid access
+> tier (Basic or higher)** with **OAuth 2.0** enabled and the **`tweet.write`**
+> scope. The free tier is read-limited and **cannot post**. Until configured, X is
+> listed and connectable in the UI but runs on the mock — nothing is sent.
+
+- **App:** create at developer.x.com, enable **OAuth 2.0** (User authentication
+  settings), set the callback to `…/api/accounts/oauth/callback`, and copy the
+  **Client ID** + **Client Secret** into `X_CLIENT_ID` / `X_CLIENT_SECRET`.
+- **Scopes:** `tweet.read`, `tweet.write`, `users.read`, `offline.access`
+  (the last gives a refresh token).
+- **Auth:** Authorization Code with **PKCE** (S256). The server generates the
+  `code_verifier`/`code_challenge` per OAuth `state` and exchanges the code with
+  HTTP Basic auth (`client_id:client_secret`).
+- **Publishing:** `POST /2/tweets` with `{ "text": … }` and a Bearer user token;
+  280-char default limit. Permalink: `https://x.com/i/web/status/{id}`.
+- **Code:** `src/integrations/x.integration.ts`.
+
+---
+
 ## Notes
 
 - All clients implement the same `PlatformIntegration` interface

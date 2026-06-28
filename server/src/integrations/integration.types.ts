@@ -35,6 +35,8 @@ export interface ConnectParams {
   code?: string;
   /** The redirect URI used to start the flow — token exchange must match it. */
   redirectUri?: string;
+  /** PKCE code_verifier, sent on token exchange for providers that require it (X). */
+  codeVerifier?: string;
 }
 
 /**
@@ -56,7 +58,7 @@ export interface PlatformIntegration {
    * //   https://www.linkedin.com/oauth/v2/authorization?...&state=...
    * // ----------------------------------------------------------------------
    */
-  authorizeUrl(redirectUri: string, state: string): string;
+  authorizeUrl(redirectUri: string, state: string, codeChallenge?: string): string;
 
   /**
    * Completes the OAuth handshake and returns the account + tokens.
