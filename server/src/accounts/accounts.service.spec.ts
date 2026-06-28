@@ -34,6 +34,26 @@ function okIntegration(platform: Platform): PlatformIntegration {
   } as unknown as PlatformIntegration;
 }
 
+describe('AccountsService.onModuleInit', () => {
+  it('seeds a disconnected row for every destination, including Bluesky + Mastodon', async () => {
+    const accounts = new MemoryAccountsRepository();
+    const tokens = new MemoryTokenStore();
+    const service = new TestAccountsService(accounts, tokens, (p) => okIntegration(p));
+
+    await service.onModuleInit();
+    const seeded = await service.list();
+    const byPlatform = Object.fromEntries(seeded.map((a) => [a.platform, a.status]));
+
+    // The credential platforms must be present so the Accounts UI shows their
+    // Connect form on a fresh local install (regression: they were omitted).
+    expect(byPlatform.bluesky).toBe('disconnected');
+    expect(byPlatform.mastodon).toBe('disconnected');
+    expect(seeded.map((a) => a.platform).sort()).toEqual(
+      ['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads'].sort(),
+    );
+  });
+});
+
 describe('AccountsService.verify', () => {
   it('connects and persists token + account on valid credentials', async () => {
     const accounts = new MemoryAccountsRepository();

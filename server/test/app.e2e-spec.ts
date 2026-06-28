@@ -33,10 +33,11 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     rmSync(UPLOADS_DIR, { recursive: true, force: true });
   });
 
-  it('seeds three disconnected accounts', async () => {
+  it('seeds a disconnected row for every destination, incl. Bluesky + Mastodon', async () => {
     const res = await request(http).get('/api/accounts').expect(200);
-    expect(res.body).toHaveLength(3);
     expect(res.body.every((a: any) => a.status === 'disconnected')).toBe(true);
+    const platforms = res.body.map((a: any) => a.platform).sort();
+    expect(platforms).toEqual(['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads'].sort());
   });
 
   it('supports the post CRUD lifecycle', async () => {
