@@ -4,6 +4,7 @@ import App from '../src/App';
 import { useStore, __setPersistence } from '../src/store/useStore';
 import { MemoryPersistence } from '../src/lib/persistence';
 import { LocalSourcesClient, setSourcesClient } from '../src/sources/sourcesClient';
+import { LocalVaultClient, setVaultClient } from '../src/vault/vaultClient';
 import type { Source } from '../src/sources/sourcesTypes';
 
 const SEED: Source[] = [
@@ -29,6 +30,12 @@ function reset() {
   vi.useRealTimers();
   __setPersistence(new MemoryPersistence());
   setSourcesClient(new LocalSourcesClient(SEED));
+  setVaultClient(
+    new LocalVaultClient([
+      { id: 'vault_heat', source: 'urban-heat/notes.md', title: 'Canopy and heat', content: 'street trees shade pavement and cool blocks' },
+      { id: 'vault_sleep2', source: 'neuro/sleep.md', title: 'Sleep', content: 'slow-wave sleep aids memory' },
+    ]),
+  );
   useStore.setState({
     posts: [],
     accounts: [],
@@ -82,5 +89,26 @@ describe('Source Inbox', () => {
     ).toContain('cooler streets');
     // Forward is enabled because the source filled both fields.
     expect(screen.getByRole('button', { name: /Generate draft/i })).toBeEnabled();
+  });
+
+  it('searches the vault by meaning and drafts from a passage', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    fireEvent.click(screen.getByRole('button', { name: /Search vault/i }));
+    const vaultInput = screen.getByLabelText('Search your vault');
+    fireEvent.change(vaultInput, { target: { value: 'trees pavement' } });
+    fireEvent.click(within(vaultInput.closest('form')!).getByRole('button', { name: 'Search' }));
+
+    const hits = await screen.findByTestId('vault-hits');
+    const items = within(hits).getAllByRole('listitem');
+    expect(items.length).toBe(1);
+    expect(within(hits).getByText('Canopy and heat')).toBeInTheDocument();
+
+    fireEvent.click(within(hits).getByRole('button', { name: /Draft in Studio/i }));
+    expect((screen.getByLabelText('Source title') as HTMLInputElement).value).toBe('Canopy and heat');
+    expect(
+      (screen.getByLabelText('Source material (abstract / notes)') as HTMLTextAreaElement).value,
+    ).toContain('street trees shade pavement');
   });
 });
