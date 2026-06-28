@@ -13,6 +13,7 @@ import {
   generateIdeasFromSource,
   type AcademicIdea,
 } from '../idea-lab/ideaLabClient';
+import { generateCarousel, type CarouselResult } from '../carousel/carouselClient';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
 import { Spinner } from './ui/Spinner';
 import { ErrorState } from './ui/States';
@@ -52,6 +53,12 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
   const [ideas, setIdeas] = useState<AcademicIdea[]>([]);
   const [ideasBusy, setIdeasBusy] = useState(false);
   const [ideasError, setIdeasError] = useState<string | null>(null);
+
+  // Carousel — a deck + safety review, expanded inline under the active source.
+  const [deckSourceId, setDeckSourceId] = useState<string | null>(null);
+  const [deck, setDeck] = useState<CarouselResult | null>(null);
+  const [deckBusy, setDeckBusy] = useState(false);
+  const [deckError, setDeckError] = useState<string | null>(null);
 
   const load = async (q: string) => {
     setLoading(true);
@@ -132,6 +139,42 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
     } finally {
       setIdeasBusy(false);
     }
+  };
+
+  const makeCarousel = async (source: Source) => {
+    if (deckSourceId === source.id && !deckBusy) {
+      setDeckSourceId(null);
+      setDeck(null);
+      return;
+    }
+    setDeckSourceId(source.id);
+    setDeck(null);
+    setDeckError(null);
+    setDeckBusy(true);
+    try {
+      setDeck(
+        await generateCarousel({
+          id: source.id,
+          title: source.title,
+          material: sourceMaterial(source),
+        }),
+      );
+    } catch (err) {
+      setDeckError(err instanceof Error ? err.message : 'Failed to build a carousel.');
+    } finally {
+      setDeckBusy(false);
+    }
+  };
+
+  const downloadDeck = (title: string) => {
+    if (!deck) return;
+    const blob = new Blob([JSON.stringify(deck.deck, null, 2)], { type: 'application/json' });
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = `${title.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'deck'}.json`;
+    a.click();
+    URL.revokeObjectURL(href);
   };
 
   const addSource = async (e: React.FormEvent) => {
@@ -362,6 +405,13 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                   >
                     <SparkleIcon width={13} height={13} /> Spark ideas
                   </button>
+                  <button
+                    className="btn-secondary py-1.5 text-xs"
+                    onClick={() => makeCarousel(s)}
+                    aria-expanded={deckSourceId === s.id}
+                  >
+                    <LinkIcon width={13} height={13} /> Make carousel
+                  </button>
                 </div>
               </div>
 
@@ -403,6 +453,52 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                       ))}
                     </ul>
                   )}
+                </div>
+              )}
+
+              {deckSourceId === s.id && (
+                <div className="rounded-lg border border-brand-500/30 bg-brand-500/5 p-3">
+                  {deckBusy ? (
+                    <Spinner />
+                  ) : deckError ? (
+                    <ErrorState title="Couldn't build a carousel" message={deckError} onRetry={() => makeCarousel(s)} />
+                  ) : deck ? (
+                    <div className="space-y-3" data-testid="carousel-deck">
+                      <div
+                        className={`rounded-md px-3 py-2 text-xs ${
+                          deck.review.cleared
+                            ? 'bg-emerald-500/10 text-emerald-300'
+                            : 'bg-rose-500/10 text-rose-300'
+                        }`}
+                      >
+                        {deck.review.cleared
+                          ? '✓ Safety review cleared — no blocking findings in the slide text.'
+                          : `⚠ Safety review blocked: ${deck.review.findings
+                              .filter((f) => f.severity === 'block')
+                              .map((f) => f.message)
+                              .join('; ')}`}
+                      </div>
+                      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-3" data-testid="deck-slides">
+                        {deck.deck.slides.map((slide, i) => (
+                          <li
+                            key={i}
+                            className="rounded-md border border-surface-700 bg-surface-800/60 p-2"
+                          >
+                            <span className="text-[10px] uppercase text-brand-400">
+                              {slide.kicker || slide.type}
+                            </span>
+                            <p className="mt-0.5 line-clamp-3 text-xs font-medium text-slate-200">{slide.title}</p>
+                          </li>
+                        ))}
+                      </ol>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] text-slate-500">{deck.deck.slides.length} slides · {deck.deck.theme}</p>
+                        <button className="btn-secondary py-1 text-xs" onClick={() => downloadDeck(s.title)}>
+                          Download deck JSON
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               )}
             </li>

@@ -6,6 +6,7 @@ import { MemoryPersistence } from '../src/lib/persistence';
 import { LocalSourcesClient, setSourcesClient } from '../src/sources/sourcesClient';
 import { LocalVaultClient, setVaultClient } from '../src/vault/vaultClient';
 import { LocalIdeaLabClient, setIdeaLabClient } from '../src/idea-lab/ideaLabClient';
+import { LocalCarouselClient, setCarouselClient } from '../src/carousel/carouselClient';
 import type { Source } from '../src/sources/sourcesTypes';
 
 const SEED: Source[] = [
@@ -38,6 +39,7 @@ function reset() {
     ]),
   );
   setIdeaLabClient(new LocalIdeaLabClient());
+  setCarouselClient(new LocalCarouselClient());
   useStore.setState({
     posts: [],
     accounts: [],
@@ -132,5 +134,20 @@ describe('Source Inbox', () => {
     expect((screen.getByLabelText('Source title') as HTMLInputElement).value).toMatch(
       /Street trees and urban heat/,
     );
+  });
+
+  it('makes a carousel deck from a source with a safety-review banner', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Make carousel/i }));
+
+    const deck = await screen.findByTestId('carousel-deck');
+    // cover + at least a CTA render as slide cards; cleared text appears.
+    const slides = within(within(deck).getByTestId('deck-slides')).getAllByRole('listitem');
+    expect(slides.length).toBeGreaterThanOrEqual(2);
+    expect(within(deck).getByText(/Safety review cleared/i)).toBeInTheDocument();
+    expect(within(deck).getByRole('button', { name: /Download deck JSON/i })).toBeInTheDocument();
   });
 });
