@@ -7,10 +7,12 @@ import type { AccessToken } from '../domain/types';
 function makeService(publishImpl?: () => Promise<{ remoteId: string; permalink: string }>) {
   const posts = new MemoryPostsRepository();
   const tokens = new MemoryTokenStore();
+  const integration = {
+    publish: publishImpl ?? (async () => ({ remoteId: 'remote_1', permalink: 'https://x/p/1' })),
+  };
   const registry = {
-    get: () => ({
-      publish: publishImpl ?? (async () => ({ remoteId: 'remote_1', permalink: 'https://x/p/1' })),
-    }),
+    get: () => integration,
+    forPublish: async () => integration,
   } as unknown as IntegrationRegistry;
   return { service: new PostsService(posts, tokens, registry), tokens };
 }
@@ -81,14 +83,16 @@ describe('PostsService', () => {
     let n = 0;
     const posts = new MemoryPostsRepository();
     const tokens = new MemoryTokenStore();
+    const integration = {
+      publish: async (p: { body: string }, _t: unknown, opts: unknown) => {
+        n += 1;
+        calls.push({ body: p.body, opts });
+        return { remoteId: `uri${n}`, remoteCid: `cid${n}`, permalink: `https://x/${n}` };
+      },
+    };
     const registry = {
-      get: () => ({
-        publish: async (p: { body: string }, _t: unknown, opts: unknown) => {
-          n += 1;
-          calls.push({ body: p.body, opts });
-          return { remoteId: `uri${n}`, remoteCid: `cid${n}`, permalink: `https://x/${n}` };
-        },
-      }),
+      get: () => integration,
+      forPublish: async () => integration,
     } as unknown as IntegrationRegistry;
     const service = new PostsService(posts, tokens, registry);
     await tokens.set({ platform: 'bluesky', accessToken: 't', expiresAt: Date.now() + 1e6, scopes: [] });
