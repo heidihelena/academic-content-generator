@@ -5,6 +5,7 @@ import { useStore, __setPersistence } from '../src/store/useStore';
 import { MemoryPersistence } from '../src/lib/persistence';
 import { LocalSourcesClient, setSourcesClient } from '../src/sources/sourcesClient';
 import { LocalVaultClient, setVaultClient } from '../src/vault/vaultClient';
+import { LocalIdeaLabClient, setIdeaLabClient } from '../src/idea-lab/ideaLabClient';
 import type { Source } from '../src/sources/sourcesTypes';
 
 const SEED: Source[] = [
@@ -36,6 +37,7 @@ function reset() {
       { id: 'vault_sleep2', source: 'neuro/sleep.md', title: 'Sleep', content: 'slow-wave sleep aids memory' },
     ]),
   );
+  setIdeaLabClient(new LocalIdeaLabClient());
   useStore.setState({
     posts: [],
     accounts: [],
@@ -110,5 +112,25 @@ describe('Source Inbox', () => {
     expect(
       (screen.getByLabelText('Source material (abstract / notes)') as HTMLTextAreaElement).value,
     ).toContain('street trees shade pavement');
+  });
+
+  it('sparks five source-grounded ideas and drafts from one', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Spark ideas/i }));
+
+    const ideaList = await screen.findByTestId('idea-list');
+    const ideaItems = within(ideaList).getAllByRole('listitem');
+    expect(ideaItems.length).toBe(5);
+
+    // Each idea is grounded in the source title.
+    expect(within(ideaList).getAllByText(/Street trees and urban heat/).length).toBe(5);
+
+    fireEvent.click(within(ideaItems[0]).getByRole('button', { name: /Draft this/i }));
+    expect((screen.getByLabelText('Source title') as HTMLInputElement).value).toMatch(
+      /Street trees and urban heat/,
+    );
   });
 });

@@ -9,6 +9,10 @@ import {
 } from '../sources/sourcesTypes';
 import type { StudioSeed } from '../studio/studioTypes';
 import { ingestVault, searchVault, type VaultHit } from '../vault/vaultClient';
+import {
+  generateIdeasFromSource,
+  type AcademicIdea,
+} from '../idea-lab/ideaLabClient';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
 import { Spinner } from './ui/Spinner';
 import { ErrorState } from './ui/States';
@@ -42,6 +46,12 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
   const [vaultBusy, setVaultBusy] = useState(false);
   const [vaultError, setVaultError] = useState<string | null>(null);
   const [vaultNotice, setVaultNotice] = useState<string | null>(null);
+
+  // Idea Lab — 5 source-grounded ideas, expanded inline under the active source.
+  const [ideasSourceId, setIdeasSourceId] = useState<string | null>(null);
+  const [ideas, setIdeas] = useState<AcademicIdea[]>([]);
+  const [ideasBusy, setIdeasBusy] = useState(false);
+  const [ideasError, setIdeasError] = useState<string | null>(null);
 
   const load = async (q: string) => {
     setLoading(true);
@@ -96,6 +106,31 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
       setVaultError(err instanceof Error ? err.message : 'Vault re-index failed.');
     } finally {
       setVaultBusy(false);
+    }
+  };
+
+  const sparkIdeas = async (source: Source) => {
+    // Toggle off if the same source's ideas are already open.
+    if (ideasSourceId === source.id && !ideasBusy) {
+      setIdeasSourceId(null);
+      setIdeas([]);
+      return;
+    }
+    setIdeasSourceId(source.id);
+    setIdeas([]);
+    setIdeasError(null);
+    setIdeasBusy(true);
+    try {
+      const res = await generateIdeasFromSource({
+        id: source.id,
+        title: source.title,
+        material: sourceMaterial(source),
+      });
+      setIdeas(res.ideas);
+    } catch (err) {
+      setIdeasError(err instanceof Error ? err.message : 'Failed to generate ideas.');
+    } finally {
+      setIdeasBusy(false);
     }
   };
 
@@ -291,33 +326,85 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
           {sources.map((s) => (
             <li
               key={s.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2.5"
+              className="space-y-3 rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2.5"
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">
-                    {s.kind}
-                  </span>
-                  {isVaultSource(s) && (
-                    <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-[10px] uppercase text-brand-400">
-                      vault
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">
+                      {s.kind}
                     </span>
+                    {isVaultSource(s) && (
+                      <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-[10px] uppercase text-brand-400">
+                        vault
+                      </span>
+                    )}
+                    <span className="truncate text-sm font-medium text-slate-200">{s.title}</span>
+                  </div>
+                  {(s.abstract || s.body) && (
+                    <p className="mt-1 line-clamp-2 text-xs text-slate-400">{s.abstract || s.body}</p>
                   )}
-                  <span className="truncate text-sm font-medium text-slate-200">{s.title}</span>
+                  {s.tags.length > 0 && (
+                    <p className="mt-1 text-[11px] text-slate-500">{s.tags.map((t) => `#${t}`).join(' ')}</p>
+                  )}
                 </div>
-                {(s.abstract || s.body) && (
-                  <p className="mt-1 line-clamp-2 text-xs text-slate-400">{s.abstract || s.body}</p>
-                )}
-                {s.tags.length > 0 && (
-                  <p className="mt-1 text-[11px] text-slate-500">{s.tags.map((t) => `#${t}`).join(' ')}</p>
-                )}
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  <button
+                    className="btn-primary py-1.5 text-xs"
+                    onClick={() => onDraft({ title: s.title, material: sourceMaterial(s), sourceId: s.id })}
+                  >
+                    Draft in Studio →
+                  </button>
+                  <button
+                    className="btn-secondary py-1.5 text-xs"
+                    onClick={() => sparkIdeas(s)}
+                    aria-expanded={ideasSourceId === s.id}
+                  >
+                    <SparkleIcon width={13} height={13} /> Spark ideas
+                  </button>
+                </div>
               </div>
-              <button
-                className="btn-primary shrink-0 py-1.5 text-xs"
-                onClick={() => onDraft({ title: s.title, material: sourceMaterial(s), sourceId: s.id })}
-              >
-                Draft in Studio →
-              </button>
+
+              {ideasSourceId === s.id && (
+                <div className="rounded-lg border border-brand-500/30 bg-brand-500/5 p-3">
+                  {ideasBusy ? (
+                    <Spinner />
+                  ) : ideasError ? (
+                    <ErrorState title="Couldn't generate ideas" message={ideasError} onRetry={() => sparkIdeas(s)} />
+                  ) : (
+                    <ul className="space-y-2" data-testid="idea-list">
+                      {ideas.map((idea) => (
+                        <li
+                          key={idea.id}
+                          className="flex items-start justify-between gap-3 rounded-md border border-surface-700 bg-surface-800/60 px-3 py-2"
+                        >
+                          <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">
+                                {idea.channel}
+                              </span>
+                              <span className="truncate text-sm font-medium text-slate-200">{idea.angle}</span>
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-xs text-slate-400">{idea.hook}</p>
+                          </div>
+                          <button
+                            className="btn-secondary shrink-0 py-1 text-xs"
+                            onClick={() =>
+                              onDraft({
+                                title: idea.angle,
+                                material: `${idea.hook}\n\n${sourceMaterial(s)}`,
+                                sourceId: s.id,
+                              })
+                            }
+                          >
+                            Draft this →
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>
