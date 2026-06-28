@@ -7,6 +7,8 @@ import { LocalSourcesClient, setSourcesClient } from '../src/sources/sourcesClie
 import { LocalVaultClient, setVaultClient } from '../src/vault/vaultClient';
 import { LocalIdeaLabClient, setIdeaLabClient } from '../src/idea-lab/ideaLabClient';
 import { LocalCarouselClient, setCarouselClient } from '../src/carousel/carouselClient';
+import { MockThreadDrafter } from '../src/ai/mockThreadDrafter';
+import { setThreadDrafter } from '../src/ai/threadService';
 import type { Source } from '../src/sources/sourcesTypes';
 
 const SEED: Source[] = [
@@ -40,6 +42,7 @@ function reset() {
   );
   setIdeaLabClient(new LocalIdeaLabClient());
   setCarouselClient(new LocalCarouselClient());
+  setThreadDrafter(new MockThreadDrafter());
   useStore.setState({
     posts: [],
     accounts: [],
@@ -149,5 +152,26 @@ describe('Source Inbox', () => {
     expect(slides.length).toBeGreaterThanOrEqual(2);
     expect(within(deck).getByText(/Safety review cleared/i)).toBeInTheDocument();
     expect(within(deck).getByRole('button', { name: /Download deck JSON/i })).toBeInTheDocument();
+  });
+
+  it('repurposes a source into ideas, carousel and thread at once', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Repurpose/i }));
+
+    const panel = await screen.findByTestId('repurpose-panel');
+    expect(within(panel).getByTestId('repurpose-ideas')).toBeInTheDocument();
+    expect(within(panel).getByTestId('repurpose-carousel')).toBeInTheDocument();
+    // The thread drafter has simulated latency; wait for it to land.
+    await within(panel).findByTestId('repurpose-thread');
+
+    // Drafting from an idea inside the panel pre-fills the Studio.
+    const firstIdea = within(within(panel).getByTestId('repurpose-ideas')).getAllByRole('listitem')[0];
+    fireEvent.click(within(firstIdea).getByRole('button', { name: /Draft →/ }));
+    expect((screen.getByLabelText('Source title') as HTMLInputElement).value).toMatch(
+      /Street trees and urban heat/,
+    );
   });
 });

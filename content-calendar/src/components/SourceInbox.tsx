@@ -14,6 +14,7 @@ import {
   type AcademicIdea,
 } from '../idea-lab/ideaLabClient';
 import { generateCarousel, type CarouselResult } from '../carousel/carouselClient';
+import { RepurposePanel } from './RepurposePanel';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
 import { Spinner } from './ui/Spinner';
 import { ErrorState } from './ui/States';
@@ -59,6 +60,9 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
   const [deck, setDeck] = useState<CarouselResult | null>(null);
   const [deckBusy, setDeckBusy] = useState(false);
   const [deckError, setDeckError] = useState<string | null>(null);
+
+  // Repurpose — fan one source out into all formats at once.
+  const [repurposeSourceId, setRepurposeSourceId] = useState<string | null>(null);
 
   const load = async (q: string) => {
     setLoading(true);
@@ -394,6 +398,13 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                 <div className="flex shrink-0 flex-col gap-1.5">
                   <button
                     className="btn-primary py-1.5 text-xs"
+                    onClick={() => setRepurposeSourceId((id) => (id === s.id ? null : s.id))}
+                    aria-expanded={repurposeSourceId === s.id}
+                  >
+                    <SparkleIcon width={13} height={13} /> Repurpose
+                  </button>
+                  <button
+                    className="btn-secondary py-1.5 text-xs"
                     onClick={() => onDraft({ title: s.title, material: sourceMaterial(s), sourceId: s.id })}
                   >
                     Draft in Studio →
@@ -414,6 +425,8 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                   </button>
                 </div>
               </div>
+
+              {repurposeSourceId === s.id && <RepurposePanel source={s} onDraft={onDraft} />}
 
               {ideasSourceId === s.id && (
                 <div className="rounded-lg border border-brand-500/30 bg-brand-500/5 p-3">
