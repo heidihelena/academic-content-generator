@@ -39,6 +39,8 @@ export interface AppConfig {
     instagram: PlatformCredentials;
     linkedin: PlatformCredentials & { version: string };
     threads: PlatformCredentials;
+    /** X (Twitter) v2 — OAuth2 PKCE. Needs a paid X developer app to post. */
+    x: PlatformCredentials;
     /** Bluesky uses an app password (AT Protocol), not OAuth client creds. */
     bluesky: { service: string; identifier?: string; appPassword?: string };
     /** Mastodon uses a per-instance access token, not OAuth client creds. */
@@ -171,6 +173,10 @@ export default (): AppConfig => {
     threads: {
       clientId: process.env.THREADS_CLIENT_ID,
       clientSecret: process.env.THREADS_CLIENT_SECRET,
+    },
+    x: {
+      clientId: process.env.X_CLIENT_ID,
+      clientSecret: process.env.X_CLIENT_SECRET,
     },
     bluesky: {
       service: process.env.BLUESKY_SERVICE ?? 'https://bsky.social',

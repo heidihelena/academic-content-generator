@@ -32,7 +32,7 @@ export class OAuthController {
     const state = this.stateService.create(platform);
     const authorizeUrl = this.integrations
       .get(platform)
-      .authorizeUrl(this.callbackUrl(req), state);
+      .authorizeUrl(this.callbackUrl(req), state, this.stateService.challengeFor(state));
     return { authorizeUrl, state };
   }
 
@@ -43,6 +43,8 @@ export class OAuthController {
     @Req() req: any,
     @Res() res: any,
   ): Promise<void> {
+    // Read the PKCE verifier before consuming the state (consume deletes it).
+    const codeVerifier = state ? this.stateService.verifierFor(state) : undefined;
     const platform = state ? this.stateService.consume(state) : null;
     if (!platform) throw new BadRequestException('Invalid or expired OAuth state');
     if (!code) throw new BadRequestException('Missing authorization code');
@@ -51,6 +53,7 @@ export class OAuthController {
     const account = await this.accounts.connect(platform, {
       code,
       redirectUri: this.callbackUrl(req),
+      codeVerifier,
     });
 
     const frontendUrl = this.config.get<string>('frontendUrl');

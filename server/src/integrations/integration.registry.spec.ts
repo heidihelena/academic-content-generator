@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { IntegrationRegistry } from './integration.registry';
 import { BlueskyIntegration } from './bluesky.integration';
+import { XIntegration } from './x.integration';
 import { MockIntegration } from './mock.integration';
 import { MemoryTokenStore } from '../persistence/memory/memory.repositories';
 import type { TokenStore } from '../persistence/repository.interfaces';
@@ -33,6 +34,16 @@ describe('IntegrationRegistry.forPublish', () => {
     expect(integration).toBeInstanceOf(BlueskyIntegration);
     // get() still returns the configured (mock) client — only publishing upgrades.
     expect(reg.get('bluesky')).toBeInstanceOf(MockIntegration);
+  });
+
+  it('uses the mock for X with no developer app, and the real client when configured', () => {
+    expect(registry(new MemoryTokenStore()).get('x')).toBeInstanceOf(MockIntegration);
+
+    const configured = new IntegrationRegistry(
+      new ConfigService({ integrations: { x: { clientId: 'id', clientSecret: 'sec' } } }),
+      new MemoryTokenStore(),
+    );
+    expect(configured.get('x')).toBeInstanceOf(XIntegration);
   });
 
   it('falls back to the configured client for platforms a token alone cannot publish', async () => {

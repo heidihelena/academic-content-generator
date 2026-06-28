@@ -1,10 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'crypto';
+import { createHash, randomBytes, randomUUID } from 'crypto';
 import type { Platform } from '../domain/types';
 
 interface PendingState {
   platform: Platform;
   expiresAt: number;
+  /** PKCE code_verifier (RFC 7636) — required by providers like X. */
+  codeVerifier: string;
+  /** S256 code_challenge derived from the verifier, sent on the authorize URL. */
+  codeChallenge: string;
+}
+
+function base64url(buf: Buffer): string {
+  return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 
 /**
@@ -23,8 +31,29 @@ export class OAuthStateService {
   create(platform: Platform): string {
     this.sweep();
     const state = randomUUID();
-    this.states.set(state, { platform, expiresAt: Date.now() + this.ttlMs });
+    const codeVerifier = base64url(randomBytes(32));
+    const codeChallenge = base64url(createHash('sha256').update(codeVerifier).digest());
+    this.states.set(state, {
+      platform,
+      expiresAt: Date.now() + this.ttlMs,
+      codeVerifier,
+      codeChallenge,
+    });
     return state;
+  }
+
+  /** The PKCE code_challenge to put on the authorize URL (read-only; does not
+   *  consume the state). Undefined for an unknown/expired state. */
+  challengeFor(state: string): string | undefined {
+    const entry = this.states.get(state);
+    return entry && entry.expiresAt >= Date.now() ? entry.codeChallenge : undefined;
+  }
+
+  /** The PKCE code_verifier to send on token exchange. Read this BEFORE
+   *  `consume`, which deletes the state. */
+  verifierFor(state: string): string | undefined {
+    const entry = this.states.get(state);
+    return entry && entry.expiresAt >= Date.now() ? entry.codeVerifier : undefined;
   }
 
   /** Returns the platform for a valid, unexpired state and consumes it. */
