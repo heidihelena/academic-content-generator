@@ -36,6 +36,9 @@ export function PostEditorDrawer() {
   const accounts = useStore((s) => s.accounts);
   const savePost = useStore((s) => s.savePost);
   const deletePost = useStore((s) => s.deletePost);
+  const publishPost = useStore((s) => s.publishPost);
+  const publishingId = useStore((s) => s.publishingId);
+  const publishError = useStore((s) => s.publishError);
   const closeEditor = useStore((s) => s.closeEditor);
   const uploadMedia = useStore((s) => s.uploadMedia);
   const approvePost = useStore((s) => s.approvePost);
@@ -181,6 +184,20 @@ export function PostEditorDrawer() {
     [draft.scheduledAt, overLimit],
   );
 
+  // Live publish: only offered for a saved post whose platform account is
+  // connected. The backend re-checks the account and enforces the real post.
+  const accountConnected =
+    accounts.find((a) => a.platform === draft.platform)?.status === 'connected';
+  const isPublishing = publishingId === existing?.id;
+  const isPublished = existing?.status === 'published';
+  const canPublish = Boolean(existing) && accountConnected && !overLimit && draft.body.trim().length > 0;
+
+  const doPublish = async () => {
+    if (!existing) return;
+    const ok = await publishPost(existing.id);
+    if (ok) closeEditor();
+  };
+
   return (
     <Drawer
       open={isOpen}
@@ -199,13 +216,41 @@ export function PostEditorDrawer() {
           <button className="btn-secondary" onClick={closeEditor}>
             Cancel
           </button>
-          <button className="btn-primary" disabled={!canSave} onClick={() => savePost(draft)}>
+          <button className="btn-secondary" disabled={!canSave} onClick={() => savePost(draft)}>
             Save post
           </button>
+          {existing && (
+            <button
+              className="btn-primary"
+              disabled={!canPublish || isPublishing || isPublished}
+              title={
+                accountConnected
+                  ? undefined
+                  : `Connect ${draft.platform} on the Accounts screen to publish`
+              }
+              onClick={doPublish}
+            >
+              {isPublishing ? <Spinner size={14} label="Publishing" /> : <CheckIcon width={15} height={15} />}
+              {isPublished ? 'Published' : isPublishing ? 'Publishing…' : 'Publish now'}
+            </button>
+          )}
         </>
       }
     >
       <div className="space-y-4">
+        {existing && publishError && publishingId === null && (
+          <p data-testid="publish-error" className="rounded-md bg-status-failed/10 px-3 py-2 text-xs text-status-failed">
+            Couldn’t publish: {publishError}
+          </p>
+        )}
+        {isPublished && existing?.permalink && (
+          <p className="rounded-md bg-status-published/10 px-3 py-2 text-xs text-status-published">
+            Published —{' '}
+            <a className="underline" href={existing.permalink} target="_blank" rel="noreferrer">
+              view post
+            </a>
+          </p>
+        )}
         <div>
           <span className="label">Platform</span>
           <div className="flex gap-1.5">
