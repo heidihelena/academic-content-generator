@@ -10,7 +10,7 @@ on:
     tags:
       - 'v*'
     branches:
-      - 'claude/social-content-calendar-yntmj7'
+      - main
     # Only build when actual app source changes — not for README/docs/profile or
     # workflow edits. Keeps doc commits from triggering expensive desktop builds.
     paths:
