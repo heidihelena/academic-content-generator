@@ -5,8 +5,7 @@ import { generateIdeas } from '../ai/ideaService';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS, SparkleIcon, PlusIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Text } from './ui';
 
 const TONES: Tone[] = ['professional', 'casual', 'witty', 'inspirational', 'educational', 'bold'];
 
@@ -69,36 +68,33 @@ export function GenerateIdeas() {
 
   return (
     <section aria-label="Generate ideas" className="space-y-4">
-      <div className="card p-4">
+      <Card className="p-4">
         <header className="mb-4 flex items-center gap-2">
           <SparkleIcon width={18} height={18} className="text-brand-400" />
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">Generate Ideas</h2>
-            <p className="text-xs text-slate-500">
+            <Heading>Generate Ideas</Heading>
+            <Text variant="muted">
               Describe your goal and the AI assistant returns 5 ready-to-use post ideas.
-            </p>
+            </Text>
           </div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <label htmlFor="idea-niche" className="label">Research area / topic</label>
-            <input id="idea-niche" className="input" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder='Your paper, finding, or topic — e.g. "statin adherence in primary care"' />
-          </div>
-          <div>
-            <label htmlFor="idea-audience" className="label">Target audience</label>
-            <input id="idea-audience" className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Who is this for? e.g. clinicians, patients, the public" />
-          </div>
-          <div>
-            <label htmlFor="idea-tone" className="label">Voice</label>
-            <select id="idea-tone" className="input" value={tone} onChange={(e) => setTone(e.target.value as Tone)}>
+          <Field label="Research area / topic" htmlFor="idea-niche">
+            <Input id="idea-niche" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder='Your paper, finding, or topic — e.g. "statin adherence in primary care"' />
+          </Field>
+          <Field label="Target audience" htmlFor="idea-audience">
+            <Input id="idea-audience" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Who is this for? e.g. clinicians, patients, the public" />
+          </Field>
+          <Field label="Voice" htmlFor="idea-tone">
+            <Select id="idea-tone" value={tone} onChange={(e) => setTone(e.target.value as Tone)}>
               {TONES.map((t) => (
                 <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>
               ))}
-            </select>
-          </div>
+            </Select>
+          </Field>
           <div>
-            <span className="label">Platform</span>
+            <Label>Platform</Label>
             <div className="flex gap-1.5">
               {PLATFORMS.map((p) => {
                 const Glyph = PLATFORM_GLYPHS[p];
@@ -115,11 +111,11 @@ export function GenerateIdeas() {
           </div>
         </div>
 
-        <button className="btn-primary mt-4 w-full sm:w-auto" onClick={submit} disabled={loading}>
-          {loading ? <Spinner size={16} label="Generating" /> : <SparkleIcon width={16} height={16} />}
+        <Button className="mt-4 w-full sm:w-auto" onClick={submit} loading={loading}>
+          {!loading && <SparkleIcon width={16} height={16} />}
           {loading ? 'Generating…' : 'Generate 5 ideas'}
-        </button>
-      </div>
+        </Button>
+      </Card>
 
       {error && <ErrorState message={error} onRetry={submit} />}
 
@@ -130,7 +126,7 @@ export function GenerateIdeas() {
             on {getPlatformMeta(result.request.platform).name} · via {result.source}
           </p>
           {result.ideas.map((idea, i) => (
-            <article key={idea.id} data-testid="idea-card" className="card p-4">
+            <Card key={idea.id} data-testid="idea-card" className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
@@ -147,14 +143,16 @@ export function GenerateIdeas() {
                     <span className="text-slate-500">{idea.platformFit}</span>
                   </div>
                 </div>
-                <button
-                  className="btn-secondary shrink-0 py-1.5 text-xs"
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="shrink-0"
                   onClick={() => applyIdea(idea.topic, idea.hook)}
                 >
                   <PlusIcon width={14} height={14} /> Use
-                </button>
+                </Button>
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       )}

@@ -21,6 +21,7 @@ import type { StudioChannel } from '../studio/studioTypes';
 import { useStore } from '../store/useStore';
 import type { Platform } from '../types';
 import { BookIcon } from './icons';
+import { Button, Field, Heading, Input, Label, Select, Text, Textarea } from './ui';
 
 /** Map a content channel to the calendar platform it posts to. */
 const CHANNEL_PLATFORM: Record<StudioChannel, Platform> = {
@@ -171,10 +172,10 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       <header className="flex items-center gap-2">
         <BookIcon width={18} height={18} className="text-brand-400" />
         <div>
-          <h2 className="text-sm font-semibold text-slate-200">Draft Studio</h2>
-          <p className="text-xs text-slate-500">
+          <Heading>Draft Studio</Heading>
+          <Text variant="muted">
             Compose → draft → review → approve. Send work back to revise or forward when it&apos;s ready.
-          </p>
+          </Text>
         </div>
       </header>
 
@@ -207,70 +208,62 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       {/* Stage body */}
       {state.stage === 'compose' && (
         <div className="space-y-4">
-          <div>
-            <label htmlFor="studio-title" className="label">Source title</label>
-            <input
+          <Field label="Source title" htmlFor="studio-title">
+            <Input
               id="studio-title"
-              className="input"
               placeholder="e.g. Street trees and urban heat"
               value={state.input.title}
               onChange={(e) => setInput({ title: e.target.value })}
             />
-          </div>
-          <div>
-            <label htmlFor="studio-material" className="label">Source material (abstract / notes)</label>
-            <textarea
+          </Field>
+          <Field label="Source material (abstract / notes)" htmlFor="studio-material">
+            <Textarea
               id="studio-material"
               rows={5}
-              className="input resize-none"
               placeholder="Paste the abstract or notes to draft from…"
               value={state.input.material}
               onChange={(e) => setInput({ material: e.target.value })}
             />
-          </div>
+          </Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label htmlFor="studio-channel" className="label">Channel</label>
-              <select
+            <Field label="Channel" htmlFor="studio-channel">
+              <Select
                 id="studio-channel"
-                className="input"
                 value={state.input.channel}
                 onChange={(e) => setInput({ channel: e.target.value as StudioInput['channel'] })}
               >
                 {STUDIO_CHANNELS.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="studio-audience" className="label">Audience</label>
-              <select
+              </Select>
+            </Field>
+            <Field label="Audience" htmlFor="studio-audience">
+              <Select
                 id="studio-audience"
-                className="input"
                 value={state.input.audience}
                 onChange={(e) => setInput({ audience: e.target.value as StudioInput['audience'] })}
               >
                 {STUDIO_AUDIENCES.map((a) => (
                   <option key={a} value={a}>{a}</option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </Field>
           </div>
           <div>
             <div className="flex items-center justify-between">
-              <label htmlFor="studio-hook" className="label">Hook / angle (optional)</label>
-              <button
+              <Label htmlFor="studio-hook">Hook / angle (optional)</Label>
+              <Button
                 type="button"
-                className="btn-ghost py-1 text-xs"
+                variant="ghost"
+                size="sm"
                 onClick={suggestHook}
                 disabled={hookBusy || !state.input.title.trim()}
               >
                 {hookBusy ? 'Suggesting…' : '✦ Suggest hook'}
-              </button>
+              </Button>
             </div>
-            <input
+            <Input
               id="studio-hook"
-              className="input"
               placeholder="An opening line to steer the draft…"
               value={state.input.hook}
               onChange={(e) => setInput({ hook: e.target.value })}
@@ -281,18 +274,18 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
 
       {state.stage === 'draft' && (
         <div className="space-y-2">
-          <label htmlFor="studio-draft" className="label">
+          <Label htmlFor="studio-draft">
             Draft for {state.input.audience} · {state.input.channel}
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="studio-draft"
             rows={10}
             data-testid="studio-draft"
-            className="input resize-none font-mono text-xs"
+            className="font-mono text-xs"
             value={state.draft}
             onChange={(e) => setState((s) => ({ ...s, draft: e.target.value }))}
           />
-          <p className="text-xs text-slate-500">Edit freely, then run the review.</p>
+          <Text variant="muted">Edit freely, then run the review.</Text>
         </div>
       )}
 
@@ -360,12 +353,12 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
             {state.draft}
           </pre>
           <div className="flex flex-wrap gap-2">
-            <button className="btn-primary py-1.5 text-xs" onClick={saveToCalendar} disabled={saved}>
+            <Button size="sm" onClick={saveToCalendar} disabled={saved}>
               {saved ? '✓ Saved to calendar' : 'Save to calendar'}
-            </button>
-            <button className="btn-secondary py-1.5 text-xs" onClick={copyDraft}>Copy</button>
-            <button className="btn-secondary py-1.5 text-xs" onClick={downloadMarkdown}>Download .md</button>
-            <button className="btn-ghost py-1.5 text-xs" onClick={reset}>Start over</button>
+            </Button>
+            <Button variant="secondary" size="sm" onClick={copyDraft}>Copy</Button>
+            <Button variant="secondary" size="sm" onClick={downloadMarkdown}>Download .md</Button>
+            <Button variant="ghost" size="sm" onClick={reset}>Start over</Button>
           </div>
           {saved && (
             <p data-testid="studio-saved" className="text-xs text-status-published">
@@ -384,16 +377,16 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       {/* Back / Forward controls */}
       {state.stage !== 'ready' && (
         <footer className="flex items-center justify-between border-t border-surface-800 pt-4">
-          <button className="btn-ghost" onClick={back} disabled={!canGoBack(state) || busy}>
+          <Button variant="ghost" onClick={back} disabled={!canGoBack(state) || busy}>
             ← Back
-          </button>
-          <button
-            className="btn-primary"
+          </Button>
+          <Button
             onClick={forward}
+            loading={busy}
             disabled={!canGoForward(state) || busy}
           >
             {busy ? 'Working…' : FORWARD_LABEL[state.stage]}
-          </button>
+          </Button>
         </footer>
       )}
     </section>
