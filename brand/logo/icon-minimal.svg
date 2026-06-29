@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Forskai Studio">
+  <!-- Variation A — Minimal Signal
+       dot + two thin concentric arcs opening forward. The quiet, single-weight mark. -->
+  <path d="M42.9 18.7 A17 17 0 0 1 42.9 45.3" stroke="#5B4FA6" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M48.8 15.6 A24 24 0 0 1 48.8 48.4" stroke="#1F726B" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="4.5" fill="#1A1B2E"/>
+</svg>

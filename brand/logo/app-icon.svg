@@ -1,0 +1,12 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Forskai Studio app icon">
+  <!-- Square app icon. Off-white squircle, centered mark, generous clear space.
+       Mark is scaled from the 64 grid (×1.5) and centered at (64,64). -->
+  <rect width="128" height="128" rx="28" fill="#F6F6F2"/>
+  <rect x="0.5" y="0.5" width="127" height="127" rx="27.5" stroke="#E1E2DA"/>
+  <g transform="translate(16,16) scale(1.5)">
+    <path d="M42.9 37.1 A12 12 0 1 1 42.9 26.9" stroke="#5B4FA6" stroke-width="3" stroke-linecap="round"/>
+    <path d="M42.9 16.4 A19 19 0 0 1 42.9 47.6" stroke="#1F726B" stroke-width="3" stroke-linecap="round"/>
+    <path d="M50.4 13.6 A26 26 0 0 1 50.4 50.4" stroke="#1F726B" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
+    <circle cx="32" cy="32" r="5" fill="#1A1B2E"/>
+  </g>
+</svg>

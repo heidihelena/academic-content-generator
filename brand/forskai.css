@@ -1,0 +1,80 @@
+/* Forskai Studio — brand CSS variables
+ * Light is the default. Dark applies under [data-theme="dark"] or .dark.
+ * Color maps to function: teal=create, violet=verify, green=ready, amber=review, red=stop, neutral=workspace.
+ */
+
+:root,
+[data-theme="light"] {
+  /* workspace / neutral */
+  --fs-bg:        #F6F6F2;
+  --fs-surface:   #FFFFFF;
+  --fs-surface-2: #EFEFEA;
+  --fs-border:    #E1E2DA;
+  --fs-ink:       #1A1B2E;
+  --fs-ink-soft:  #4C4E66;
+  --fs-muted:     #75788C;
+
+  /* create — teal */
+  --fs-create:      #1F726B;
+  --fs-create-soft: #E3F0EE;
+  /* verify — violet */
+  --fs-verify:      #5B4FA6;
+  --fs-verify-soft: #ECEAF7;
+  /* ready — green */
+  --fs-ready:       #2E7D55;
+  --fs-ready-soft:  #E2F1E8;
+  /* review — amber */
+  --fs-review:      #9A6700;
+  --fs-review-soft: #F8EFD6;
+  --fs-review-accent:#C0892D;
+  /* stop — red */
+  --fs-stop:        #B23A3A;
+  --fs-stop-soft:   #F7E6E4;
+
+  --fs-radius-sm: 6px;
+  --fs-radius-md: 10px;
+  --fs-radius-lg: 14px;
+  --fs-radius-pill: 999px;
+
+  --fs-shadow-card:  0 1px 2px rgba(26,27,46,.06), 0 1px 3px rgba(26,27,46,.05);
+  --fs-shadow-panel: 0 8px 24px rgba(26,27,46,.10);
+
+  --fs-font-heading: "Newsreader", "Source Serif 4", Georgia, serif;
+  --fs-font-ui:      "Inter", "Inter Tight", system-ui, -apple-system, sans-serif;
+  --fs-font-mono:    "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+[data-theme="dark"],
+.dark {
+  --fs-bg:        #14151F;
+  --fs-surface:   #1C1E2B;
+  --fs-surface-2: #242636;
+  --fs-border:    #2E3042;
+  --fs-ink:       #ECECF2;
+  --fs-ink-soft:  #B7B9C9;
+  --fs-muted:     #8A8DA0;
+
+  --fs-create:      #4FB3A8;
+  --fs-create-soft: #17312E;
+  --fs-verify:      #9A8CE0;
+  --fs-verify-soft: #241F3D;
+  --fs-ready:       #5FBF87;
+  --fs-ready-soft:  #143026;
+  --fs-review:      #D9A441;
+  --fs-review-soft: #34280F;
+  --fs-review-accent:#D9A441;
+  --fs-stop:        #E07A74;
+  --fs-stop-soft:   #371B1B;
+
+  --fs-shadow-card:  0 1px 2px rgba(0,0,0,.4);
+  --fs-shadow-panel: 0 8px 24px rgba(0,0,0,.5);
+}
+
+/* Base application surface */
+body.fs-app {
+  background: var(--fs-bg);
+  color: var(--fs-ink);
+  font-family: var(--fs-font-ui);
+  font-feature-settings: "cv05", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
