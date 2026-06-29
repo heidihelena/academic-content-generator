@@ -101,6 +101,10 @@ internal rhythm (`ui/Card.tsx`).
 with freeform content. Use `CardContent`/`CardHeader`/`CardFooter` when you want
 the standard spacing and divider lines.
 
+`Card` is polymorphic via `as`, so a panel can keep its semantic element and
+landmark role — e.g. `<Card as="section" aria-label="Connected accounts">` or a
+clickable stat tile with `<Card as="button" onClick={…}>`. Defaults to `div`.
+
 ---
 
 ## 5. Form patterns

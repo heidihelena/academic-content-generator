@@ -1,6 +1,7 @@
 import { useStore } from '../store/useStore';
 import type { View } from './Sidebar';
 import { CheckIcon } from './icons';
+import { Card, Heading } from './ui';
 
 /**
  * Home — the landing screen. Replaces "drop the user on a sample-data Pipeline"
@@ -34,8 +35,8 @@ export function HomeScreen({ onNavigate }: { onNavigate: (view: View) => void })
 
   return (
     <div className="mx-auto max-w-3xl space-y-5" data-testid="home">
-      <section aria-label="Getting started" className="card space-y-3 p-5">
-        <h2 className="text-sm font-semibold text-slate-200">Getting started</h2>
+      <Card as="section" aria-label="Getting started" className="space-y-3 p-5">
+        <Heading>Getting started</Heading>
         <ul className="space-y-2">
           {steps.map((s) => (
             <li
@@ -60,18 +61,19 @@ export function HomeScreen({ onNavigate }: { onNavigate: (view: View) => void })
             </li>
           ))}
         </ul>
-      </section>
+      </Card>
 
       <section aria-label="At a glance" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {stats.map((s) => (
-          <button
+          <Card
+            as="button"
             key={s.label}
             onClick={() => onNavigate(s.to)}
-            className="card p-4 text-left transition-colors hover:border-brand-500/40"
+            className="p-4 text-left transition-colors hover:border-brand-500/40"
           >
             <p className="text-2xl font-semibold text-slate-100">{s.n}</p>
             <p className="text-xs text-slate-500">{s.label}</p>
-          </button>
+          </Card>
         ))}
       </section>
     </div>

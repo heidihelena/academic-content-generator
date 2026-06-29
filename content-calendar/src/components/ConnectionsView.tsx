@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ConnectionsReport, ProviderStatus, SocialStatus } from '../lib/api';
 import { fetchConnectionsState, type ConnectionsState } from '../lib/connections';
 import { ConnectedAccounts } from './ConnectedAccounts';
-import { ErrorState, LoadingState } from './ui/States';
+import { Card, ErrorState, Heading, LoadingState } from './ui';
 import { PlugIcon, SparkleIcon } from './icons';
 
 const PROVIDER_LABELS: Array<{ key: keyof ConnectionsReport['providers']; label: string; hint: string }> = [
@@ -54,10 +54,10 @@ export function ConnectionsView() {
             </p>
           )}
 
-          <section aria-label="Content generators" className="card space-y-3 p-4">
+          <Card as="section" aria-label="Content generators" className="space-y-3 p-4">
             <header className="flex items-center gap-2">
               <SparkleIcon width={16} height={16} className="text-brand-400" />
-              <h2 className="text-sm font-semibold text-slate-200">Content generators</h2>
+              <Heading>Content generators</Heading>
             </header>
             <p className="text-xs text-slate-500">
               Everything works offline with a deterministic mock. Add an API key in your
@@ -68,12 +68,12 @@ export function ConnectionsView() {
                 <ProviderRow key={key} label={label} hint={hint} status={state.report.providers[key]} />
               ))}
             </div>
-          </section>
+          </Card>
 
-          <section aria-label="Publishing destinations" className="card space-y-3 p-4">
+          <Card as="section" aria-label="Publishing destinations" className="space-y-3 p-4">
             <header className="flex items-center gap-2">
               <PlugIcon width={16} height={16} className="text-brand-400" />
-              <h2 className="text-sm font-semibold text-slate-200">Publishing destinations</h2>
+              <Heading>Publishing destinations</Heading>
             </header>
             <p className="text-xs text-slate-500">
               Status of each destination's credentials (configure live posting in your
@@ -84,7 +84,7 @@ export function ConnectionsView() {
                 <SocialRow key={s.platform} status={s} />
               ))}
             </div>
-          </section>
+          </Card>
         </>
       )}
     </div>

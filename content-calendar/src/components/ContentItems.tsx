@@ -7,7 +7,7 @@ import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
 import { ContentTable } from './ContentTable';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
-import { ErrorState, LoadingState } from './ui/States';
+import { Card, ErrorState, Heading, LoadingState } from './ui';
 import { downloadContentIcs } from '../lib/ics';
 import { downloadContentCsv } from '../lib/csv';
 
@@ -119,9 +119,9 @@ export function ContentItems() {
       {mode === 'table' && <ContentTable items={items} onOpen={setOpenId} campaigns={campaigns} />}
 
       {mode === 'list' && items.map((item) => (
-        <section key={item.id} aria-label={item.title} className="card space-y-3 p-4">
+        <Card as="section" key={item.id} aria-label={item.title} className="space-y-3 p-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">{item.title}</h2>
+            <Heading>{item.title}</Heading>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {item.campaignId && <Chip>📁 {campaigns.get(item.campaignId) ?? item.campaignId}</Chip>}
               <Chip>{item.pillar}</Chip>
@@ -153,7 +153,7 @@ export function ContentItems() {
             })}
           </ul>
           <AddVariant item={item} onAdded={addVariant} />
-        </section>
+        </Card>
       ))}
 
       {open && (

@@ -4,7 +4,7 @@ import type { PlatformCredentials } from '../lib/dataSource';
 import { useStore } from '../store/useStore';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS, CheckIcon, AlertIcon, PlugIcon } from './icons';
-import { Button, ConfirmDialog, Heading, Input, Spinner, Text } from './ui';
+import { Button, Card, ConfirmDialog, Heading, Input, Spinner, Text } from './ui';
 
 /** Platforms that connect with a user-entered credential (not an OAuth redirect). */
 const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
@@ -190,7 +190,7 @@ export function ConnectedAccounts() {
   const accounts = useStore((s) => s.accounts);
 
   return (
-    <section aria-label="Connected accounts" className="card p-4">
+    <Card as="section" aria-label="Connected accounts" className="p-4">
       <header className="mb-3 flex items-center gap-2">
         <PlugIcon width={16} height={16} className="text-brand-400" />
         <Heading>Connected accounts</Heading>
@@ -204,6 +204,6 @@ export function ConnectedAccounts() {
           <AccountRow key={a.platform} account={a} />
         ))}
       </div>
-    </section>
+    </Card>
   );
 }

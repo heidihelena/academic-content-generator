@@ -5,8 +5,7 @@ import { draftThread } from '../ai/threadService';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS, BookIcon, PlusIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Card, ErrorState, Heading, Spinner } from './ui';
 
 /** Tomorrow at 09:00 local — a sensible default slot for a fresh draft thread. */
 function tomorrowMorning(): string {
@@ -65,11 +64,11 @@ export function AbstractToThread() {
   const limit = getPlatformMeta(platform).characterLimit;
 
   return (
-    <section aria-label="Abstract to thread" className="card space-y-4 p-4">
+    <Card as="section" aria-label="Abstract to thread" className="space-y-4 p-4">
       <header className="flex items-center gap-2">
         <BookIcon width={18} height={18} className="text-brand-400" />
         <div>
-          <h2 className="text-sm font-semibold text-slate-200">Abstract → thread</h2>
+          <Heading>Abstract → thread</Heading>
           <p className="text-xs text-slate-500">
             Paste an abstract and get an accessible, platform-sized draft thread to edit.
           </p>
@@ -170,6 +169,6 @@ export function AbstractToThread() {
           )}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

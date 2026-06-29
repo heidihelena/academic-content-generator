@@ -6,7 +6,7 @@ import { analyzeReach } from '../lib/reach';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
 import { Filters } from './Filters';
 import { SearchBar } from './calendar/SearchBar';
-import { EmptyState } from './ui/States';
+import { Card, EmptyState } from './ui';
 import { AlertIcon, BookIcon, ListIcon } from './icons';
 
 /** Reach-killer warnings for a still-publishable post (empty once it's out). */
@@ -57,7 +57,7 @@ export function ListView() {
           description="Adjust the platform, stage or search filters to see content here."
         />
       ) : (
-        <div className="card overflow-x-auto p-0">
+        <Card className="overflow-x-auto p-0">
           <table className="w-full border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-surface-700 text-[11px] uppercase tracking-wide text-slate-500">
@@ -139,7 +139,7 @@ export function ListView() {
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
     </section>
   );

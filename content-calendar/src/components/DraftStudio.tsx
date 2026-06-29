@@ -21,7 +21,7 @@ import type { StudioChannel } from '../studio/studioTypes';
 import { useStore } from '../store/useStore';
 import type { Platform } from '../types';
 import { BookIcon } from './icons';
-import { Button, Field, Heading, Input, Label, Select, Text, Textarea } from './ui';
+import { Button, Card, Field, Heading, Input, Label, Select, Text, Textarea } from './ui';
 
 /** Map a content channel to the calendar platform it posts to. */
 const CHANNEL_PLATFORM: Record<StudioChannel, Platform> = {
@@ -168,7 +168,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   };
 
   return (
-    <section aria-label="Draft Studio" className="card space-y-5 p-5">
+    <Card as="section" aria-label="Draft Studio" className="space-y-5 p-5">
       <header className="flex items-center gap-2">
         <BookIcon width={18} height={18} className="text-brand-400" />
         <div>
@@ -389,6 +389,6 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
           </Button>
         </footer>
       )}
-    </section>
+    </Card>
   );
 }

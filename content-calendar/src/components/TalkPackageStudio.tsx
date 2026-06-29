@@ -6,8 +6,7 @@ import {
 } from '../ai/talkPackageTypes';
 import { exportTalkPackage, generateTalkPackage } from '../ai/talkPackageService';
 import { SparkleIcon, BookIcon, VideoIcon, CheckIcon, AlertIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Card, ErrorState, Heading, Spinner } from './ui';
 
 const DURATIONS = [
   { min: 5, label: '5 min — lightning' },
@@ -58,11 +57,11 @@ export function TalkPackageStudio() {
   };
 
   return (
-    <section aria-label="Talk package" className="card space-y-4 p-4">
+    <Card as="section" aria-label="Talk package" className="space-y-4 p-4">
       <header className="flex items-center gap-2">
         <SparkleIcon width={18} height={18} className="text-brand-400" />
         <div>
-          <h2 className="text-sm font-semibold text-slate-200">Abstract → talk + shorts</h2>
+          <Heading>Abstract → talk + shorts</Heading>
           <p className="text-xs text-slate-500">
             One click: a long-form talk and a short per point, safety-reviewed, ready to schedule.
           </p>
@@ -206,7 +205,7 @@ export function TalkPackageStudio() {
           </div>
         </div>
       )}
-    </section>
+    </Card>
   );
 }
 

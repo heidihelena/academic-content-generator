@@ -2,6 +2,7 @@ import { useStore } from '../store/useStore';
 import type { Post } from '../types';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS } from './icons';
+import { Card, Heading } from './ui';
 
 /**
  * Outbox — one place to see what's gone out, what's queued, and what failed,
@@ -49,9 +50,9 @@ function Row({ post }: { post: Post }) {
 
 function Group({ title, posts, empty }: { title: string; posts: Post[]; empty: string }) {
   return (
-    <section aria-label={title} className="card space-y-2 p-4">
+    <Card as="section" aria-label={title} className="space-y-2 p-4">
       <header className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-200">{title}</h2>
+        <Heading>{title}</Heading>
         <span className="text-[11px] text-slate-500">{posts.length}</span>
       </header>
       {posts.length === 0 ? (
@@ -63,7 +64,7 @@ function Group({ title, posts, empty }: { title: string; posts: Post[]; empty: s
           ))}
         </ul>
       )}
-    </section>
+    </Card>
   );
 }
 

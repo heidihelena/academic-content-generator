@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ConnectionsReport, LocalSettings } from '../lib/api';
 import { fetchConnectionsState } from '../lib/connections';
 import { fetchSettings, saveSettings } from '../lib/settings';
-import { ErrorState, LoadingState } from './ui/States';
-import { Spinner } from './ui/Spinner';
+import { Card, ErrorState, Heading, LoadingState, Spinner } from './ui';
 import { BookIcon, CheckIcon } from './icons';
 
 /**
@@ -88,10 +87,10 @@ function SettingsCard({
   };
 
   return (
-    <section aria-label="Inputs and storage" className="card space-y-3 p-4">
+    <Card as="section" aria-label="Inputs and storage" className="space-y-3 p-4">
       <header className="flex items-center gap-2">
         <BookIcon width={16} height={16} className="text-brand-400" />
-        <h2 className="text-sm font-semibold text-slate-200">Inputs &amp; storage</h2>
+        <Heading>Inputs &amp; storage</Heading>
       </header>
 
       {loading ? (
@@ -152,7 +151,7 @@ function SettingsCard({
         </p>
         <code className="block break-all text-slate-300">{MAC_PATHS.sqlite}</code>
       </div>
-    </section>
+    </Card>
   );
 }
 

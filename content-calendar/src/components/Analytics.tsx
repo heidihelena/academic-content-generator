@@ -12,16 +12,16 @@ import {
 } from '../analytics/calculations';
 import { BarChart, type BarDatum } from './charts/BarChart';
 import { DonutChart } from './charts/DonutChart';
-import { EmptyState } from './ui/States';
+import { Card, EmptyState, Heading, Text } from './ui';
 import { ChartIcon } from './icons';
 
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="card p-4">
-      <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
-      {subtitle && <p className="mb-3 mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+    <Card className="p-4">
+      <Heading as="h3">{title}</Heading>
+      {subtitle && <Text variant="muted" className="mb-3 mt-0.5">{subtitle}</Text>}
       <div className={subtitle ? '' : 'mt-3'}>{children}</div>
-    </div>
+    </Card>
   );
 }
 
@@ -115,7 +115,7 @@ export function Analytics() {
       </div>
 
       <div>
-        <h2 className="mb-3 mt-2 text-sm font-semibold text-slate-200">Research communication</h2>
+        <Heading className="mb-3 mt-2">Research communication</Heading>
         <div className="grid gap-4 lg:grid-cols-2">
           <ChartCard title="Evidence mix" subtitle="How your posts are framed by claim strength">
             <DonutChart data={evidenceSlices} ariaLabel="Evidence mix donut chart" />
