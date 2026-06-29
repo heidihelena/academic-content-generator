@@ -2,9 +2,8 @@ import { useEffect, useState } from 'react';
 import type { ContentItem, ContentVariant, TimingSuggestion } from '../content/contentTypes';
 import { exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
-import { Drawer } from './ui/Drawer';
+import { Button, Drawer } from './ui';
 import { CheckIcon, AlertIcon, BookIcon } from './icons';
-import { Spinner } from './ui/Spinner';
 import { PublishAssistant } from './PublishAssistant';
 import { StatusTimeline } from './StatusTimeline';
 import { CommentsSection } from './CommentsSection';
@@ -142,9 +141,9 @@ export function VariantDrawer({
             <label htmlFor="v-tags" className="label">Hashtags <span className="font-normal text-slate-500">— comma-separated</span></label>
             <input id="v-tags" className="input" value={hashtags} onChange={(e) => setHashtags(e.target.value)} />
           </div>
-          <button className="btn-secondary py-1.5 text-xs" disabled={!dirty || busy === 'save'} onClick={save}>
-            {busy === 'save' ? <Spinner size={12} label="Saving" /> : <BookIcon width={13} height={13} />} Save copy
-          </button>
+          <Button variant="secondary" size="sm" disabled={!dirty} loading={busy === 'save'} onClick={save}>
+            {busy !== 'save' && <BookIcon width={13} height={13} />} Save copy
+          </Button>
         </div>
 
         {/* Review gate */}
@@ -153,23 +152,23 @@ export function VariantDrawer({
           <p className="text-[11px] text-slate-500">Draft → run review → fix findings → mark reviewed → approve for publishing.</p>
 
           <div className="flex flex-wrap gap-1.5">
-            <button className="btn-secondary py-1 text-xs" disabled={busy === 'safety'}
+            <Button variant="secondary" size="sm" loading={busy === 'safety'}
               onClick={() => run('safety', () => contentClient.runSafetyReview(variant.id))}>
               Run medical safety review
-            </button>
-            <button className="btn-secondary py-1 text-xs" disabled={busy === 'citation'}
+            </Button>
+            <Button variant="secondary" size="sm" loading={busy === 'citation'}
               onClick={() => run('citation', () => contentClient.runCitationReview(variant.id))}>
               Run citation review
-            </button>
+            </Button>
           </div>
 
           <Findings variant={variant} />
 
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn-secondary py-1 text-xs" disabled={!!variant.humanReviewedAt || busy === 'review'}
+            <Button variant="secondary" size="sm" disabled={!!variant.humanReviewedAt} loading={busy === 'review'}
               onClick={() => run('review', () => contentClient.markReviewed(variant.id))}>
               {variant.humanReviewedAt ? <><CheckIcon width={12} height={12} /> Human-reviewed</> : 'Mark human reviewed'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -212,16 +211,15 @@ export function VariantDrawer({
             </div>
           )}
           <div className="flex gap-1.5">
-            <button className="btn-secondary py-1 text-xs" disabled={busy === 'schedule' || variant.status === 'exported'}
+            <Button variant="secondary" size="sm" disabled={variant.status === 'exported'} loading={busy === 'schedule'}
               onClick={() => run('schedule', () => contentClient.schedule(variant.id, tomorrowMorning()))}>
               Schedule
-            </button>
-            <button className="btn-primary py-1 text-xs" disabled={!exportable || busy === 'publish' || variant.status === 'exported'}
+            </Button>
+            <Button size="sm" disabled={!exportable || variant.status === 'exported'} loading={busy === 'publish'}
               title={exportable ? undefined : 'Resolve the blockers above first'}
               onClick={() => run('publish', () => contentClient.publish(variant.id))}>
-              {busy === 'publish' ? <Spinner size={12} label="Approving" /> : null}
               {variant.status === 'exported' ? 'Approved' : 'Approve for publishing'}
-            </button>
+            </Button>
           </div>
         </div>
 

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { CalendarEntry } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
 import { CalendarIcon, CheckIcon } from './icons';
-import { Card, Heading } from './ui';
+import { Button, Card, Heading } from './ui';
 
 /** Group entries by local calendar day (YYYY-MM-DD), preserving time order. */
 function byDay(entries: CalendarEntry[]): Array<[string, CalendarEntry[]]> {
@@ -71,15 +71,17 @@ export function ScheduledAgenda({
         <CalendarIcon width={16} height={16} className="text-brand-400" />
         <Heading>Scheduled</Heading>
         <span className="text-[11px] text-slate-500">{entries.length} upcoming</span>
-        <button
+        <Button
           data-testid="sync-engagement"
-          className="btn-secondary ml-auto py-1 text-[11px]"
-          disabled={syncing}
+          variant="secondary"
+          size="sm"
+          className="ml-auto"
+          loading={syncing}
           onClick={sync}
           title="Pull engagement for exported posts and feed it to the timing optimizer"
         >
           {syncing ? 'Syncing…' : 'Sync engagement'}
-        </button>
+        </Button>
       </header>
       {syncMsg && <p data-testid="sync-result" className="mb-2 text-[11px] text-slate-400">{syncMsg}</p>}
 

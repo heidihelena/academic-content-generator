@@ -5,7 +5,7 @@ import { draftThread } from '../ai/threadService';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS, BookIcon, PlusIcon } from './icons';
-import { Card, ErrorState, Heading, Spinner } from './ui';
+import { Button, Card, ErrorState, Heading } from './ui';
 
 /** Tomorrow at 09:00 local — a sensible default slot for a fresh draft thread. */
 function tomorrowMorning(): string {
@@ -135,10 +135,10 @@ export function AbstractToThread() {
         </div>
       </div>
 
-      <button className="btn-primary w-full sm:w-auto" onClick={submit} disabled={loading}>
-        {loading ? <Spinner size={16} label="Drafting" /> : <BookIcon width={16} height={16} />}
+      <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
+        {!loading && <BookIcon width={16} height={16} />}
         {loading ? 'Drafting…' : 'Draft thread'}
-      </button>
+      </Button>
 
       {error && <ErrorState message={error} onRetry={submit} />}
 
@@ -148,9 +148,9 @@ export function AbstractToThread() {
             <p className="text-xs text-slate-500">
               {result.parts.length}-part thread for {getPlatformMeta(platform).name} · via {result.source}
             </p>
-            <button className="btn-secondary py-1.5 text-xs" onClick={addToCalendar}>
+            <Button variant="secondary" size="sm" onClick={addToCalendar}>
               <PlusIcon width={14} height={14} /> Add to Drafting
-            </button>
+            </Button>
           </div>
 
           <ol data-testid="thread-preview" className="space-y-2">

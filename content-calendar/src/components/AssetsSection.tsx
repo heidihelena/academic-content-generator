@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { AssetEntry } from '../content/contentTypes';
+import { Button } from './ui';
 
 /**
  * Media attachments on a content item — the image/video that ships with it (a
@@ -91,9 +92,9 @@ export function AssetsSection({ itemId }: { itemId: string }) {
           <option value="image">image</option>
           <option value="video">video</option>
         </select>
-        <button className="btn-secondary py-1 text-xs" disabled={!url.trim()} onClick={attach}>
+        <Button variant="secondary" size="sm" disabled={!url.trim()} onClick={attach}>
           Attach
-        </button>
+        </Button>
       </div>
 
       {error && <p className="text-xs text-status-overdue">{error}</p>}

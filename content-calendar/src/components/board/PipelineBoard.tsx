@@ -6,6 +6,7 @@ import { SearchBar } from '../calendar/SearchBar';
 import { BulkActionBar } from '../BulkActionBar';
 import { BoardColumn } from './BoardColumn';
 import { PlusIcon } from '../icons';
+import { Button } from '../ui';
 
 /**
  * The editorial pipeline board — the home view. Columns are the workflow stages
@@ -44,9 +45,9 @@ export function PipelineBoard() {
         <div className="flex items-center gap-2">
           <SearchBar />
           {canCreate && (
-            <button className="btn-primary py-1.5" onClick={() => openEditor()}>
+            <Button onClick={() => openEditor()}>
               <PlusIcon width={16} height={16} /> New brief
-            </button>
+            </Button>
           )}
         </div>
       </div>

@@ -6,7 +6,7 @@ import {
 } from '../ai/talkPackageTypes';
 import { exportTalkPackage, generateTalkPackage } from '../ai/talkPackageService';
 import { SparkleIcon, BookIcon, VideoIcon, CheckIcon, AlertIcon } from './icons';
-import { Card, ErrorState, Heading, Spinner } from './ui';
+import { Button, Card, ErrorState, Heading } from './ui';
 
 const DURATIONS = [
   { min: 5, label: '5 min — lightning' },
@@ -132,10 +132,10 @@ export function TalkPackageStudio() {
         </div>
       </div>
 
-      <button className="btn-primary w-full sm:w-auto" onClick={generate} disabled={loading}>
-        {loading ? <Spinner size={16} label="Generating" /> : <SparkleIcon width={16} height={16} />}
+      <Button className="w-full sm:w-auto" onClick={generate} loading={loading}>
+        {!loading && <SparkleIcon width={16} height={16} />}
         {loading ? 'Generating…' : 'Generate talk + shorts'}
-      </button>
+      </Button>
 
       {error && <ErrorState message={error} onRetry={generate} />}
 
@@ -193,9 +193,9 @@ export function TalkPackageStudio() {
           </ol>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn-secondary py-1.5 text-xs" onClick={exportVault}>
+            <Button variant="secondary" size="sm" onClick={exportVault}>
               <BookIcon width={14} height={14} /> Export to vault
-            </button>
+            </Button>
             {exported && (
               <span data-testid="export-done" className="text-xs text-status-published">
                 ✓ Wrote {exported.length} note{exported.length === 1 ? '' : 's'} to the vault.

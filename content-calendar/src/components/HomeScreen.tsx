@@ -1,7 +1,7 @@
 import { useStore } from '../store/useStore';
 import type { View } from './Sidebar';
 import { CheckIcon } from './icons';
-import { Card, Heading } from './ui';
+import { Button, Card, Heading } from './ui';
 
 /**
  * Home — the landing screen. Replaces "drop the user on a sample-data Pipeline"
@@ -54,9 +54,9 @@ export function HomeScreen({ onNavigate }: { onNavigate: (view: View) => void })
                 <span className={s.done ? 'text-slate-400 line-through' : 'text-slate-200'}>{s.label}</span>
               </span>
               {!s.done && (
-                <button className="btn-secondary shrink-0 py-1 text-xs" onClick={() => onNavigate(s.to)}>
+                <Button variant="secondary" size="sm" className="shrink-0" onClick={() => onNavigate(s.to)}>
                   {s.cta} →
-                </button>
+                </Button>
               )}
             </li>
           ))}

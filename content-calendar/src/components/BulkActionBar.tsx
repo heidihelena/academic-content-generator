@@ -2,6 +2,7 @@ import type { PostStatus } from '../types';
 import { useStore } from '../store/useStore';
 import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { TrashIcon, CloseIcon } from './icons';
+import { Button } from './ui';
 
 const STATUSES: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
@@ -53,14 +54,14 @@ export function BulkActionBar() {
       )}
 
       {permissions.canDelete && (
-        <button className="btn-danger py-1.5 text-xs" onClick={bulkDelete}>
+        <Button variant="danger" size="sm" onClick={bulkDelete}>
           <TrashIcon width={14} height={14} /> Delete
-        </button>
+        </Button>
       )}
 
-      <button className="btn-ghost py-1.5 text-xs" onClick={clearSelection} aria-label="Clear selection">
+      <Button variant="ghost" size="sm" onClick={clearSelection} aria-label="Clear selection">
         <CloseIcon width={14} height={14} /> Clear
-      </button>
+      </Button>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { ChecklistEntry } from '../content/contentTypes';
+import { Button } from './ui';
 
 /**
  * Pre-publish QA checklist on a content item — tick off "added alt text",
@@ -87,9 +88,9 @@ export function ChecklistSection({ itemId }: { itemId: string }) {
           onChange={(e) => setLabel(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && add()}
         />
-        <button className="btn-secondary py-1 text-xs" disabled={!label.trim()} onClick={add}>
+        <Button variant="secondary" size="sm" disabled={!label.trim()} onClick={add}>
           Add
-        </button>
+        </Button>
       </div>
     </div>
   );
