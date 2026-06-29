@@ -3,9 +3,7 @@ import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
 import { useRoute } from './lib/router';
 import { Header } from './components/Header';
-import { ContentCalendarPage } from './components/ContentCalendarPage';
-import { ListView } from './components/ListView';
-import { PipelineBoard } from './components/board/PipelineBoard';
+import { LibraryScreen, isLibraryView } from './components/LibraryScreen';
 import { Analytics } from './components/Analytics';
 import { GenerateIdeas } from './components/GenerateIdeas';
 import { SourceInbox } from './components/SourceInbox';
@@ -13,8 +11,6 @@ import { DraftStudio } from './components/DraftStudio';
 import type { StudioSeed } from './studio/studioTypes';
 import { AbstractToThread } from './components/AbstractToThread';
 import { TalkPackageStudio } from './components/TalkPackageStudio';
-import { ContentItems } from './components/ContentItems';
-import { InsightsPanel } from './components/InsightsPanel';
 import { CampaignsView } from './components/CampaignsView';
 import { ConnectionsView } from './components/ConnectionsView';
 import { VideoToShorts } from './components/VideoToShorts';
@@ -60,9 +56,7 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
             />
           ) : (
             <div className="mx-auto max-w-7xl">
-              {view === 'board' && <PipelineBoard />}
-              {view === 'calendar' && <ContentCalendarPage />}
-              {view === 'list' && <ListView />}
+              {isLibraryView(view) && <LibraryScreen view={view} onChange={navigate} />}
               {view === 'analytics' && <Analytics />}
               {view === 'inbox' && (
                 <div className="mx-auto max-w-3xl">
@@ -72,12 +66,6 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
               {view === 'studio' && (
                 <div className="mx-auto max-w-3xl">
                   <DraftStudio seed={studioSeed} />
-                </div>
-              )}
-              {view === 'content' && (
-                <div className="mx-auto max-w-3xl space-y-5">
-                  <InsightsPanel />
-                  <ContentItems />
                 </div>
               )}
               {view === 'campaigns' && (
