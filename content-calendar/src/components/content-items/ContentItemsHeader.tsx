@@ -17,7 +17,7 @@ export function ContentItemsHeader({ mode, onMode, onExportCsv, onExportIcs }: C
     <header className="flex items-center gap-2">
       <SparkleIcon width={20} height={20} className="text-brand-400" />
       <div>
-        <h1 className="text-base font-semibold text-slate-200">Content</h1>
+        <h2 className="text-base font-semibold text-slate-200">Content</h2>
         <p className="text-xs text-slate-500">
           One idea, many variants. Click a variant to edit, review and export it in the side panel.
         </p>

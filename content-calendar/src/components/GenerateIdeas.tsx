@@ -101,7 +101,16 @@ export function GenerateIdeas() {
               onChange={(v) => v && setPlatform(v)}
               options={PLATFORMS.map((p) => {
                 const Glyph = PLATFORM_GLYPHS[p];
-                return { value: p, activeColor: getPlatformMeta(p).color, label: <Glyph width={16} height={16} /> };
+                return {
+                  value: p,
+                  activeColor: getPlatformMeta(p).color,
+                  label: (
+                    <>
+                      <Glyph width={16} height={16} />
+                      <span className="sr-only">{getPlatformMeta(p).name}</span>
+                    </>
+                  ),
+                };
               })}
             />
           </div>

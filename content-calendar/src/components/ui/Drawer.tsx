@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { CloseIcon } from '../icons';
+import { useFocusTrap } from './useFocusTrap';
 
 interface DrawerProps {
   open: boolean;
@@ -28,6 +29,8 @@ export function Drawer({
   widthClass = 'max-w-xl',
 }: DrawerProps) {
   const [shown, setShown] = useState(false);
+  const trapRef = useFocusTrap<HTMLDivElement>(open);
+  const titleId = useId();
 
   useEffect(() => {
     if (!open) return;
@@ -57,15 +60,17 @@ export function Drawer({
       />
       {/* Panel */}
       <div
+        ref={trapRef}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
-        className={`relative flex h-full w-full ${widthClass} flex-col bg-surface-850 shadow-2xl transition-transform duration-200 ease-out ${
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        className={`relative flex h-full w-full ${widthClass} flex-col bg-surface-850 shadow-2xl transition-transform duration-200 ease-out focus:outline-none ${
           shown ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         <div className="flex items-center justify-between border-b border-surface-700 px-5 py-4">
-          <h2 className="text-base font-semibold text-slate-100">{title}</h2>
+          <h2 id={titleId} className="text-base font-semibold text-slate-100">{title}</h2>
           <button className="btn-ghost -mr-2 p-1.5" aria-label="Close" onClick={onClose}>
             <CloseIcon />
           </button>

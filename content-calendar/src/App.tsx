@@ -40,12 +40,18 @@ export default function App({ initialView = 'home' }: { initialView?: View } = {
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-950 md:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only left-4 top-4 z-[60] rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white focus:not-sr-only focus:absolute"
+      >
+        Skip to content
+      </a>
       <Sidebar view={view} onChange={navigate} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Header view={view} />
 
-        <main className="flex-1 overflow-x-hidden px-4 py-5 sm:px-6">
+        <main id="main-content" tabIndex={-1} className="flex-1 overflow-x-hidden px-4 py-5 focus:outline-none sm:px-6">
           {!ready ? (
             <LoadingState label="Loading your workspace…" />
           ) : loadError ? (
