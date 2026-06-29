@@ -28,6 +28,7 @@ export function useSourceDeck() {
     busy: action.busy,
     error: action.error,
     toggle: action.toggle,
+    retry: action.retry,
     download,
   };
 }

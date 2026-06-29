@@ -105,7 +105,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                 error: ideas.error,
                 items: ideas.ideas,
                 onToggle: () => ideas.toggle(s),
-                onRetry: () => ideas.toggle(s),
+                onRetry: () => ideas.retry(s),
               }}
               deck={{
                 open: deck.activeId === s.id,
@@ -113,7 +113,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                 error: deck.error,
                 result: deck.deck,
                 onToggle: () => deck.toggle(s),
-                onRetry: () => deck.toggle(s),
+                onRetry: () => deck.retry(s),
                 onDownload: () => deck.download(s.title),
               }}
             />
