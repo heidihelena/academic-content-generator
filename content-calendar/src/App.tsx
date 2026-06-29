@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
+import { useRoute } from './lib/router';
 import { Header } from './components/Header';
 import { ContentCalendarPage } from './components/ContentCalendarPage';
 import { ListView } from './components/ListView';
 import { PipelineBoard } from './components/board/PipelineBoard';
 import { Analytics } from './components/Analytics';
-import { ConnectedAccounts } from './components/ConnectedAccounts';
 import { GenerateIdeas } from './components/GenerateIdeas';
 import { SourceInbox } from './components/SourceInbox';
 import { DraftStudio } from './components/DraftStudio';
@@ -28,13 +28,13 @@ import { LoadingState, ErrorState } from './components/ui/States';
 export default function App({ initialView = 'board' }: { initialView?: View } = {}) {
   const initialize = useStore((s) => s.initialize);
   const loadError = useStore((s) => s.loadError);
-  const [view, setView] = useState<View>(initialView);
+  const [view, navigate] = useRoute(initialView);
   const [ready, setReady] = useState(false);
   const [studioSeed, setStudioSeed] = useState<StudioSeed | null>(null);
 
   const draftFromSource = (seed: StudioSeed) => {
     setStudioSeed(seed);
-    setView('studio');
+    navigate('studio');
   };
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
 
   return (
     <div className="flex min-h-screen flex-col bg-surface-950 md:flex-row">
-      <Sidebar view={view} onChange={setView} />
+      <Sidebar view={view} onChange={navigate} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Header view={view} />
@@ -64,11 +64,6 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
               {view === 'calendar' && <ContentCalendarPage />}
               {view === 'list' && <ListView />}
               {view === 'analytics' && <Analytics />}
-              {view === 'accounts' && (
-                <div className="mx-auto max-w-2xl">
-                  <ConnectedAccounts />
-                </div>
-              )}
               {view === 'inbox' && (
                 <div className="mx-auto max-w-3xl">
                   <SourceInbox onDraft={draftFromSource} />

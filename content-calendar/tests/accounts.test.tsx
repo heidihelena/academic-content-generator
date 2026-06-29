@@ -22,7 +22,8 @@ function resetStore() {
 }
 
 function gotoAccounts() {
-  fireEvent.click(screen.getByRole('button', { name: /Accounts/i }));
+  // Accounts live on the Connections screen now (the two nav items were merged).
+  fireEvent.click(screen.getByRole('button', { name: /Connections/i }));
 }
 
 describe('ConnectedAccounts UI', () => {

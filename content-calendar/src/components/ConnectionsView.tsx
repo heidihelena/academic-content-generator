@@ -47,54 +47,62 @@ export function ConnectionsView() {
 
   useEffect(load, []);
 
-  if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!state) return <LoadingState label="Loading connections…" />;
-
-  const { report, mode, online } = state;
-
   return (
     <div className="space-y-4">
-      {mode === 'api' && !online && (
-        <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
-          Backend unreachable — showing local defaults. Start the server or check
-          <code className="mx-1">VITE_API_URL</code>.
-        </p>
+      {/* Connect accounts — always available; this is the interactive flow and
+          doesn't depend on the (async) secret-safe status snapshot below. It is
+          the single home for accounts now that the separate nav item was merged. */}
+      <ConnectedAccounts />
+
+      {/* Secret-safe status snapshot + local settings (loads from the backend). */}
+      {error ? (
+        <ErrorState message={error} onRetry={load} />
+      ) : !state ? (
+        <LoadingState label="Loading connection status…" />
+      ) : (
+        <>
+          {state.mode === 'api' && !state.online && (
+            <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+              Backend unreachable — showing local defaults. Start the server or check
+              <code className="mx-1">VITE_API_URL</code>.
+            </p>
+          )}
+
+          <SettingsCard inputs={state.report.inputs} editable={state.mode === 'api' && state.online} />
+
+          <section aria-label="Content generators" className="card space-y-3 p-4">
+            <header className="flex items-center gap-2">
+              <SparkleIcon width={16} height={16} className="text-brand-400" />
+              <h2 className="text-sm font-semibold text-slate-200">Content generators</h2>
+            </header>
+            <p className="text-xs text-slate-500">
+              Everything works offline with a deterministic mock. Add an API key in your
+              <code className="mx-1">.env</code> to switch a generator to live — no code change.
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {PROVIDER_LABELS.map(({ key, label, hint }) => (
+                <ProviderRow key={key} label={label} hint={hint} status={state.report.providers[key]} />
+              ))}
+            </div>
+          </section>
+
+          <section aria-label="Publishing destinations" className="card space-y-3 p-4">
+            <header className="flex items-center gap-2">
+              <PlugIcon width={16} height={16} className="text-brand-400" />
+              <h2 className="text-sm font-semibold text-slate-200">Publishing destinations</h2>
+            </header>
+            <p className="text-xs text-slate-500">
+              Status of each destination's credentials (configure live posting in your
+              <code className="mx-1">.env</code>; connect accounts above).
+            </p>
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {state.report.social.map((s) => (
+                <SocialRow key={s.platform} status={s} />
+              ))}
+            </div>
+          </section>
+        </>
       )}
-
-      <SettingsCard inputs={report.inputs} editable={mode === 'api' && online} />
-
-      <section aria-label="Content generators" className="card space-y-3 p-4">
-        <header className="flex items-center gap-2">
-          <SparkleIcon width={16} height={16} className="text-brand-400" />
-          <h2 className="text-sm font-semibold text-slate-200">Content generators</h2>
-        </header>
-        <p className="text-xs text-slate-500">
-          Everything works offline with a deterministic mock. Add an API key in your
-          <code className="mx-1">.env</code> to switch a generator to live — no code change.
-        </p>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {PROVIDER_LABELS.map(({ key, label, hint }) => (
-            <ProviderRow key={key} label={label} hint={hint} status={report.providers[key]} />
-          ))}
-        </div>
-      </section>
-
-      <section aria-label="Publishing destinations" className="card space-y-3 p-4">
-        <header className="flex items-center gap-2">
-          <PlugIcon width={16} height={16} className="text-brand-400" />
-          <h2 className="text-sm font-semibold text-slate-200">Publishing destinations</h2>
-        </header>
-        <div className="grid gap-1.5 sm:grid-cols-2">
-          {report.social.map((s) => (
-            <SocialRow key={s.platform} status={s} />
-          ))}
-        </div>
-        <p className="text-xs text-slate-500">
-          Connect an account below to verify and store its credentials. Bluesky is the
-          quickest — create an app password under Settings → App Passwords.
-        </p>
-        <ConnectedAccounts />
-      </section>
     </div>
   );
 }
