@@ -82,15 +82,36 @@ describe('ConnectedAccounts UI', () => {
     expect(within(screen.getByTestId('account-threads')).getByRole('button', { name: /Retry/i })).toBeInTheDocument();
   });
 
-  it('disconnects a connected account', async () => {
+  it('disconnects a connected account after confirming', async () => {
     render(<App />);
     gotoAccounts();
 
     const row = screen.getByTestId('account-instagram');
     fireEvent.click(within(row).getByRole('button', { name: /Disconnect/i }));
 
+    // A confirmation dialog guards the destructive action — nothing happens yet.
+    expect(screen.getByText(/Disconnect Instagram\?/i)).toBeInTheDocument();
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Connected');
+
+    // Confirm: the dialog's own Disconnect button carries it out.
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Disconnect/i }));
     await vi.runAllTimersAsync();
 
     expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Not connected');
+  });
+
+  it('keeps the account connected when disconnect is cancelled', async () => {
+    render(<App />);
+    gotoAccounts();
+
+    const row = screen.getByTestId('account-instagram');
+    fireEvent.click(within(row).getByRole('button', { name: /Disconnect/i }));
+
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /Cancel/i }));
+    await vi.runAllTimersAsync();
+
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Connected');
   });
 });

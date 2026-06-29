@@ -17,6 +17,7 @@ import { splitIntoThread } from '../lib/thread';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
 import { Drawer } from './ui/Drawer';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 import { Spinner } from './ui/Spinner';
 import { PostPreview } from './PostPreview';
 import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon, BookIcon, AlertIcon } from './icons';
@@ -186,8 +187,9 @@ export function PostEditorDrawer() {
 
   // Live publish: only offered for a saved post whose platform account is
   // connected. The backend re-checks the account and enforces the real post.
-  const accountConnected =
-    accounts.find((a) => a.platform === draft.platform)?.status === 'connected';
+  const accountConnected = account?.status === 'connected';
+  const publishTarget = account?.handle ?? meta.name;
+  const [confirm, setConfirm] = useState<null | 'publish' | 'delete'>(null);
   const isPublishing = publishingId === existing?.id;
   const isPublished = existing?.status === 'published';
   const canPublish = Boolean(existing) && accountConnected && !overLimit && draft.body.trim().length > 0;
@@ -199,6 +201,7 @@ export function PostEditorDrawer() {
   };
 
   return (
+    <>
     <Drawer
       open={isOpen}
       title={existing ? 'Edit post' : 'New post'}
@@ -208,7 +211,7 @@ export function PostEditorDrawer() {
           {existing && (
             <button
               className="btn-danger mr-auto"
-              onClick={() => deletePost(existing.id)}
+              onClick={() => setConfirm('delete')}
             >
               <TrashIcon width={15} height={15} /> Delete
             </button>
@@ -228,7 +231,7 @@ export function PostEditorDrawer() {
                   ? undefined
                   : `Connect ${draft.platform} on the Accounts screen to publish`
               }
-              onClick={doPublish}
+              onClick={() => setConfirm('publish')}
             >
               {isPublishing ? <Spinner size={14} label="Publishing" /> : <CheckIcon width={15} height={15} />}
               {isPublished ? 'Published' : isPublishing ? 'Publishing…' : 'Publish now'}
@@ -760,5 +763,30 @@ export function PostEditorDrawer() {
         </div>
       </div>
     </Drawer>
+
+    <ConfirmDialog
+      open={confirm === 'publish'}
+      title="Publish now?"
+      message={`This posts publicly to ${publishTarget} right now. You can't unpublish it from here.`}
+      confirmLabel="Post now"
+      onCancel={() => setConfirm(null)}
+      onConfirm={() => {
+        setConfirm(null);
+        void doPublish();
+      }}
+    />
+    <ConfirmDialog
+      open={confirm === 'delete'}
+      title="Delete this post?"
+      message="This removes the draft for good. This can't be undone."
+      confirmLabel="Delete"
+      danger
+      onCancel={() => setConfirm(null)}
+      onConfirm={() => {
+        setConfirm(null);
+        if (existing) deletePost(existing.id);
+      }}
+    />
+    </>
   );
 }

@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import App from '../src/App';
 import { useStore, __setPersistence } from '../src/store/useStore';
 import { MemoryPersistence } from '../src/lib/persistence';
@@ -81,12 +81,31 @@ describe('PostEditorModal', () => {
     expect(posts.some((p) => p.body === 'Fresh post')).toBe(true);
   });
 
-  it('deletes a post from the editor', () => {
+  it('deletes a post from the editor after confirming', () => {
     render(<App initialView="calendar" />);
     const target = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
     fireEvent.click(screen.getByText(/urban tree canopy/i));
     fireEvent.click(screen.getByRole('button', { name: /Delete/i }));
+
+    // Deletion is guarded by a confirmation — the post is still there.
+    expect(screen.getByText(/Delete this post\?/i)).toBeInTheDocument();
+    expect(useStore.getState().posts.find((p) => p.id === target.id)).toBeDefined();
+
+    // Confirm in the dialog.
+    const dialog = screen.getByRole('dialog', { name: /Delete this post\?/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Delete/i }));
     expect(useStore.getState().posts.find((p) => p.id === target.id)).toBeUndefined();
+  });
+
+  it('keeps the post when delete is cancelled', () => {
+    render(<App initialView="calendar" />);
+    const target = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
+    fireEvent.click(screen.getByText(/urban tree canopy/i));
+    fireEvent.click(screen.getByRole('button', { name: /Delete/i }));
+
+    const dialog = screen.getByRole('dialog', { name: /Delete this post\?/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Cancel/i }));
+    expect(useStore.getState().posts.find((p) => p.id === target.id)).toBeDefined();
   });
 
   it('saves owner and campaign with a new post and shows them on the card', () => {
@@ -103,6 +122,32 @@ describe('PostEditorModal', () => {
     // Owner/campaign surface on the calendar card.
     expect(screen.getByText('Dana')).toBeInTheDocument();
     expect(screen.getByText('Launch Week')).toBeInTheDocument();
+  });
+
+  it('publishes only after confirming the public post', async () => {
+    // Hydrate the sample data: a connected Bluesky account and Bluesky posts.
+    act(() => {
+      __setPersistence(new MemoryPersistence());
+      useStore.getState().initialize();
+    });
+    const post = useStore.getState().posts.find((p) => p.platform === 'bluesky')!;
+
+    render(<App initialView="calendar" />);
+    act(() => useStore.getState().openEditor(post.id));
+
+    // The footer offers Publish; clicking it opens a confirmation, not a post.
+    fireEvent.click(screen.getByRole('button', { name: /Publish now/i }));
+    expect(screen.getByText(/Publish now\?/i)).toBeInTheDocument();
+    expect(useStore.getState().posts.find((p) => p.id === post.id)!.status).not.toBe('published');
+
+    // Confirm "Post now" in the dialog → the real publish runs.
+    const dialog = screen.getByRole('dialog', { name: /Publish now\?/i });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Post now/i }));
+    await act(async () => {
+      await vi.runAllTimersAsync();
+    });
+
+    expect(useStore.getState().posts.find((p) => p.id === post.id)!.status).toBe('published');
   });
 
   it('renders a live preview reflecting the caption', () => {
