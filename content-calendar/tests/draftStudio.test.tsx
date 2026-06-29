@@ -43,7 +43,7 @@ describe('Draft Studio', () => {
     fireEvent.click(screen.getByRole('button', { name: /Run review/i }));
     expect(await screen.findByTestId('review-status')).toHaveAttribute('data-cleared');
 
-    fireEvent.click(screen.getByRole('button', { name: /Approve & export/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Approve for publishing/i }));
     expect(await screen.findByTestId('ready-banner')).toBeInTheDocument();
   });
 
@@ -57,7 +57,7 @@ describe('Draft Studio', () => {
 
     const status = await screen.findByTestId('review-status');
     expect(status).not.toHaveAttribute('data-cleared');
-    expect(screen.getByRole('button', { name: /Approve & export/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Approve for publishing/i })).toBeDisabled();
     expect(within(screen.getByTestId('findings')).getAllByRole('listitem').length).toBeGreaterThan(0);
 
     fireEvent.click(screen.getByRole('button', { name: /Back/i }));
@@ -71,7 +71,7 @@ describe('Draft Studio', () => {
     await screen.findByTestId('studio-draft');
     fireEvent.click(screen.getByRole('button', { name: /Run review/i }));
     await screen.findByTestId('review-status');
-    fireEvent.click(screen.getByRole('button', { name: /Approve & export/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Approve for publishing/i }));
     await screen.findByTestId('ready-banner');
 
     const before = useStore.getState().posts.length;

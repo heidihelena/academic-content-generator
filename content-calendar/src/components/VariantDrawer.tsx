@@ -34,7 +34,7 @@ function nextOccurrence(weekday: number, hour: number, from: Date = new Date()):
  * The editor workspace: a right side-drawer (calendar/list/board stay visible)
  * for one ContentVariant. Shows the item's strategy fields, lets you edit the
  * copy, and runs the explicit review gate — Draft → Run review → Findings →
- * Fix → Cleared for export — so a user can see *why* a text can't ship.
+ * Fix → Approve for publishing — so a user can see *why* a text can't ship.
  */
 export function VariantDrawer({
   item,
@@ -118,7 +118,7 @@ export function VariantDrawer({
             <Field label="Owner">{item.ownerId ?? '—'}</Field>
             <Field label="Campaign">{item.campaignId ?? '—'}</Field>
             <Field label="Status">{variant.status}</Field>
-            <Field label="Export">{exportable ? 'cleared' : `blocked (${blockers.length})`}</Field>
+            <Field label="Publishing">{exportable ? 'cleared' : `blocked (${blockers.length})`}</Field>
           </dl>
         </div>
 
@@ -150,7 +150,7 @@ export function VariantDrawer({
         {/* Review gate */}
         <div className="space-y-3 border-t border-surface-700 pt-4">
           <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Review gate</p>
-          <p className="text-[11px] text-slate-500">Draft → run review → fix findings → mark reviewed → export.</p>
+          <p className="text-[11px] text-slate-500">Draft → run review → fix findings → mark reviewed → approve for publishing.</p>
 
           <div className="flex flex-wrap gap-1.5">
             <button className="btn-secondary py-1 text-xs" disabled={busy === 'safety'}
@@ -173,10 +173,10 @@ export function VariantDrawer({
           </div>
         </div>
 
-        {/* Export gate */}
+        {/* Publishing gate */}
         <div className="space-y-2 border-t border-surface-700 pt-4">
           <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Export</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Approve for publishing</p>
             {exportable ? (
               <span className="inline-flex items-center gap-1 text-[11px] text-status-published"><CheckIcon width={12} height={12} /> cleared</span>
             ) : (
@@ -219,12 +219,14 @@ export function VariantDrawer({
             <button className="btn-primary py-1 text-xs" disabled={!exportable || busy === 'publish' || variant.status === 'exported'}
               title={exportable ? undefined : 'Resolve the blockers above first'}
               onClick={() => run('publish', () => contentClient.publish(variant.id))}>
-              {busy === 'publish' ? <Spinner size={12} label="Exporting" /> : null} Export
+              {busy === 'publish' ? <Spinner size={12} label="Approving" /> : null}
+              {variant.status === 'exported' ? 'Approved' : 'Approve for publishing'}
             </button>
           </div>
         </div>
 
-        {/* Manual-publish assistant — available once the variant is exported. */}
+        {/* Copy the approved text out and record where you posted it — shown
+            once the variant is approved for publishing. */}
         {variant.status === 'exported' && <PublishAssistant variant={variant} />}
 
         {/* Lifecycle history (approval-workflow audit trail). */}

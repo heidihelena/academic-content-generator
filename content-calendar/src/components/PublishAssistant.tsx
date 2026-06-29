@@ -5,9 +5,10 @@ import { CheckIcon } from './icons';
 import { Spinner } from './ui/Spinner';
 
 /**
- * Manual-publish assistant: copy the reviewed text out, post it by hand, then
+ * Copy & record helper: copy the approved text out, post it by hand, then
  * record where it went live (writes to the backend PublishLog via the content
- * client). Shown once a variant is exported — the point at which you publish.
+ * client). Shown once a variant is approved for publishing. This is a manual
+ * record step, not a second publisher — live publishing lives in the calendar.
  */
 export function PublishAssistant({ variant }: { variant: ContentVariant }) {
   const [logs, setLogs] = useState<PublishLogEntry[]>([]);
@@ -62,7 +63,10 @@ export function PublishAssistant({ variant }: { variant: ContentVariant }) {
 
   return (
     <div className="space-y-3 border-t border-surface-700 pt-4" data-testid="publish-assistant">
-      <p className="text-xs font-semibold text-slate-300">Publish assistant</p>
+      <p className="text-xs font-semibold text-slate-300">Copy &amp; record where you posted</p>
+      <p className="text-[11px] text-slate-500">
+        Copy the approved text, post it on the platform, then log the link here.
+      </p>
 
       <div className="flex flex-wrap gap-1.5">
         <CopyButton label="Copy post" active={copied === 'post'} onClick={() => copy('post', fullText)} />

@@ -57,7 +57,7 @@ describe('PublishAssistant', () => {
     setContentClient(stub());
     render(<PublishAssistant variant={variant} />);
 
-    expect(await screen.findByText('Publish assistant')).toBeInTheDocument();
+    expect(await screen.findByText('Copy & record where you posted')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Published URL'), {
       target: { value: 'https://linkedin.com/p/1' },
     });
