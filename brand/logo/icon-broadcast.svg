@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Forskai Studio">
+  <!-- Variation B — Evidence Broadcast
+       dot + three arcs, segmented to read as discrete, verified increments rather than
+       a continuous wave. The innermost arc is violet (passed review); outer arcs teal. -->
+  <path d="M41.6 19.9 A16 16 0 0 1 41.6 44.1" stroke="#5B4FA6" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6"/>
+  <path d="M46.7 16.8 A23 23 0 0 1 46.7 47.2" stroke="#1F726B" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6"/>
+  <path d="M51.8 13.6 A30 30 0 0 1 51.8 50.4" stroke="#1F726B" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 6" opacity="0.5"/>
+  <circle cx="32" cy="32" r="5" fill="#1A1B2E"/>
+</svg>
