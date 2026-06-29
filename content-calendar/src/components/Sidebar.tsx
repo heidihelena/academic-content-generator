@@ -1,3 +1,4 @@
+import { BrandMark } from './BrandMark';
 import {
   BoardIcon,
   BookIcon,
@@ -81,13 +82,15 @@ interface SidebarProps {
 export function Sidebar({ view, onChange }: SidebarProps) {
   return (
     <aside className="flex shrink-0 flex-row gap-1 border-b border-surface-800 bg-surface-900 p-2 md:w-56 md:flex-col md:border-b-0 md:border-r md:p-3">
-      <div className="mb-0 hidden items-center gap-2 px-2 py-2 md:mb-4 md:flex">
-        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
-          ✦
-        </div>
+      <div className="mb-0 hidden items-center gap-2.5 px-2 py-2 md:mb-4 md:flex">
+        <BrandMark size={30} />
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-slate-100">forskai</p>
-          <p className="text-[11px] text-slate-500">Share your research</p>
+          <p className="text-sm tracking-tight">
+            <span className="font-semibold text-slate-100">forskai</span>
+            <span className="font-normal text-slate-600">&nbsp;·&nbsp;</span>
+            <span className="font-normal text-slate-400">Studio</span>
+          </p>
+          <p className="text-[11px] text-slate-500">Test before you trust</p>
         </div>
       </div>
 

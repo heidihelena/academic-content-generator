@@ -4,7 +4,7 @@
   "description": "NestJS backend for the vahtian content calendar: posts, scheduling, social integrations, a markdown/Obsidian vault with vector search, and an AI idea generator.",
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=20 <21"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
