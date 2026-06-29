@@ -3,7 +3,9 @@ import { useStore } from './store/useStore';
 import { Sidebar, type View } from './components/Sidebar';
 import { useRoute } from './lib/router';
 import { Header } from './components/Header';
+import { HomeScreen } from './components/HomeScreen';
 import { LibraryScreen, isLibraryView } from './components/LibraryScreen';
+import { OutboxScreen } from './components/OutboxScreen';
 import { Analytics } from './components/Analytics';
 import { IdeasScreen } from './components/IdeasScreen';
 import { SourceInbox } from './components/SourceInbox';
@@ -19,7 +21,7 @@ import { LoadingState, ErrorState } from './components/ui/States';
  * Application root. Wires the navigation views, the persistent post editor modal,
  * and store initialization (loads from mock persistence or seeds sample data).
  */
-export default function App({ initialView = 'board' }: { initialView?: View } = {}) {
+export default function App({ initialView = 'home' }: { initialView?: View } = {}) {
   const initialize = useStore((s) => s.initialize);
   const loadError = useStore((s) => s.loadError);
   const [view, navigate] = useRoute(initialView);
@@ -54,7 +56,13 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
             />
           ) : (
             <div className="mx-auto max-w-7xl">
+              {view === 'home' && <HomeScreen onNavigate={navigate} />}
               {isLibraryView(view) && <LibraryScreen view={view} onChange={navigate} />}
+              {view === 'outbox' && (
+                <div className="mx-auto max-w-3xl">
+                  <OutboxScreen />
+                </div>
+              )}
               {view === 'analytics' && <Analytics />}
               {view === 'inbox' && (
                 <div className="mx-auto max-w-3xl">

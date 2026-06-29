@@ -7,6 +7,7 @@ import { MoonIcon, SunIcon } from './icons';
 import { ConnectionStatus } from './ConnectionStatus';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
+  home: { title: 'Home', subtitle: 'Your getting-started steps and a snapshot of what’s in flight' },
   board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
   calendar: { title: 'Content Calendar', subtitle: 'Plan your research communication across every network' },
   list: { title: 'All content', subtitle: 'Every post in one sortable, filterable table' },
@@ -17,6 +18,7 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
   connections: { title: 'Connections', subtitle: 'Connect accounts and wire up your generators and publishing destinations' },
+  outbox: { title: 'Outbox', subtitle: 'What’s published, scheduled and what failed — across every destination' },
   settings: { title: 'Settings', subtitle: 'Local inputs & storage — your Obsidian vault path and content database' },
 };
 

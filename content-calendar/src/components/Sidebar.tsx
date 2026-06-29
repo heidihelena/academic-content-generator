@@ -1,6 +1,17 @@
-import { BoardIcon, BookIcon, CalendarIcon, ChartIcon, LinkIcon, PlugIcon, SparkleIcon } from './icons';
+import {
+  BoardIcon,
+  BookIcon,
+  CalendarIcon,
+  ChartIcon,
+  HomeIcon,
+  LinkIcon,
+  OutboxIcon,
+  PlugIcon,
+  SparkleIcon,
+} from './icons';
 
 export type View =
+  | 'home'
   | 'board'
   | 'calendar'
   | 'list'
@@ -10,6 +21,7 @@ export type View =
   | 'campaigns'
   | 'analytics'
   | 'connections'
+  | 'outbox'
   | 'settings'
   | 'ideas';
 
@@ -45,7 +57,10 @@ const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
   },
   {
     label: 'Publish',
-    items: [{ id: 'connections', label: 'Connections', icon: PlugIcon }],
+    items: [
+      { id: 'outbox', label: 'Outbox', icon: OutboxIcon },
+      { id: 'connections', label: 'Connections', icon: PlugIcon },
+    ],
   },
   {
     label: 'Measure',
@@ -77,6 +92,16 @@ export function Sidebar({ view, onChange }: SidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-row gap-1 md:flex-col md:gap-0" aria-label="Primary">
+        <button
+          aria-current={view === 'home' ? 'page' : undefined}
+          onClick={() => onChange('home')}
+          className={`mb-0 flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:mb-3 md:flex-none md:justify-start ${
+            view === 'home' ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+          }`}
+        >
+          <HomeIcon width={18} height={18} />
+          <span className="hidden md:inline">Home</span>
+        </button>
         {SECTIONS.map((section) => (
           <div key={section.label} className="flex flex-row gap-1 md:mb-3 md:flex-col md:gap-0.5">
             <p className="hidden px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-600 md:block">
