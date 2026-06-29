@@ -90,7 +90,7 @@ export class MockIdeaGenerator implements IdeaGenerator {
     await new Promise((r) => setTimeout(r, 600));
 
     if (!request.niche.trim() || !request.audience.trim()) {
-      throw new Error('Please provide both a niche and a target audience.');
+      throw new Error('Please add a topic and an audience.');
     }
 
     const ideas: PostIdea[] = ANGLES.map((angle, i) => ({

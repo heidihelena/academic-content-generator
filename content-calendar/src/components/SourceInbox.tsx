@@ -70,7 +70,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
     try {
       setSources(await listSources(q));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load sources.');
+      setError(err instanceof Error ? err.message : 'Couldn’t load your sources — the local server may still be starting.');
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
       });
       setIdeas(res.ideas);
     } catch (err) {
-      setIdeasError(err instanceof Error ? err.message : 'Failed to generate ideas.');
+      setIdeasError(err instanceof Error ? err.message : 'Idea generation didn’t finish. It runs locally — try again.');
     } finally {
       setIdeasBusy(false);
     }
@@ -164,7 +164,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
         }),
       );
     } catch (err) {
-      setDeckError(err instanceof Error ? err.message : 'Failed to build a carousel.');
+      setDeckError(err instanceof Error ? err.message : 'Couldn’t build the slide deck. Try again.');
     } finally {
       setDeckBusy(false);
     }
@@ -196,7 +196,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
       setQuery('');
       await load('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add the source.');
+      setError(err instanceof Error ? err.message : 'Couldn’t add that source. Check the title and try again.');
     }
   };
 
@@ -366,7 +366,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
         <ErrorState title="Couldn't load sources" message={error} onRetry={() => load(query)} />
       ) : sources.length === 0 ? (
         <p className="py-6 text-center text-xs text-slate-500">
-          No sources yet. Add one above, or point the app at a backend with an Obsidian vault.
+          No sources yet. Add a paper or note above, or set your Obsidian vault path in Settings to pull notes in.
         </p>
       ) : (
         <ul className="space-y-2" data-testid="source-list">
@@ -401,7 +401,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                     onClick={() => setRepurposeSourceId((id) => (id === s.id ? null : s.id))}
                     aria-expanded={repurposeSourceId === s.id}
                   >
-                    <SparkleIcon width={13} height={13} /> Repurpose
+                    <SparkleIcon width={13} height={13} /> Turn into posts
                   </button>
                   <button
                     className="btn-secondary py-1.5 text-xs"
@@ -414,14 +414,14 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                     onClick={() => sparkIdeas(s)}
                     aria-expanded={ideasSourceId === s.id}
                   >
-                    <SparkleIcon width={13} height={13} /> Spark ideas
+                    <SparkleIcon width={13} height={13} /> Suggest angles
                   </button>
                   <button
                     className="btn-secondary py-1.5 text-xs"
                     onClick={() => makeCarousel(s)}
                     aria-expanded={deckSourceId === s.id}
                   >
-                    <LinkIcon width={13} height={13} /> Make carousel
+                    <LinkIcon width={13} height={13} /> Build slide deck
                   </button>
                 </div>
               </div>
@@ -474,7 +474,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                   {deckBusy ? (
                     <Spinner />
                   ) : deckError ? (
-                    <ErrorState title="Couldn't build a carousel" message={deckError} onRetry={() => makeCarousel(s)} />
+                    <ErrorState title="Couldn’t build the slide deck" message={deckError} onRetry={() => makeCarousel(s)} />
                   ) : deck ? (
                     <div className="space-y-3" data-testid="carousel-deck">
                       <div

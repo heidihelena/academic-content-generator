@@ -163,7 +163,7 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
             </p>
           )}
           <p className="text-[11px] text-slate-500">
-            Credentials are sent to your server to verify, then stored as a token — never shown again.
+            Your password is verified once and stored securely on this Mac. It's never shown again or sent anywhere else.
           </p>
         </div>
       )}
@@ -182,8 +182,8 @@ export function ConnectedAccounts() {
         <h2 className="text-sm font-semibold text-slate-200">Connected accounts</h2>
       </header>
       <p className="mb-4 text-xs text-slate-500">
-        Connect your social profiles to schedule and publish directly. Uses a mock
-        OAuth flow until real platform credentials are configured.
+        Connect the accounts you'll post to. Until you connect one, the app runs in
+        demo mode and nothing is sent.
       </p>
       <div className="grid gap-2.5">
         {accounts.map((a) => (
