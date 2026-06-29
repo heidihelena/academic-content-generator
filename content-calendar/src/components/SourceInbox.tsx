@@ -16,8 +16,7 @@ import {
 import { generateCarousel, type CarouselResult } from '../carousel/carouselClient';
 import { RepurposePanel } from './RepurposePanel';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Badge, Button, ErrorState, Field, Heading, Input, Select, Spinner, Text, Textarea } from './ui';
 
 interface SourceInboxProps {
   /** Send a source into the Draft Studio (pre-fills the Compose stage). */
@@ -206,56 +205,57 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
         <div className="flex items-center gap-2">
           <LinkIcon width={18} height={18} className="text-brand-400" />
           <div>
-            <h2 className="text-sm font-semibold text-slate-200">Source Inbox</h2>
-            <p className="text-xs text-slate-500">
+            <Heading>Source Inbox</Heading>
+            <Text variant="muted">
               Papers, notes and links — plus your Obsidian vault. Pick one to draft from.
-            </p>
+            </Text>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            className="btn-secondary py-1.5 text-xs"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowVault((v) => !v)}
             aria-expanded={showVault}
           >
             <SparkleIcon width={14} height={14} /> Search vault
-          </button>
-          <button
-            className="btn-secondary py-1.5 text-xs"
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setShowForm((v) => !v)}
             aria-expanded={showForm}
           >
             <PlusIcon width={14} height={14} /> Add source
-          </button>
+          </Button>
         </div>
       </header>
 
       {showVault && (
         <div className="space-y-3 rounded-lg border border-brand-500/30 bg-brand-500/5 p-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-slate-400">
+            <Text variant="secondary" className="text-xs text-slate-400">
               Find vault passages by meaning, then draft straight from one.
-            </p>
-            <button
-              type="button"
-              className="btn-secondary py-1 text-[11px]"
+            </Text>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={reindexVault}
               disabled={vaultBusy}
             >
               Re-index
-            </button>
+            </Button>
           </div>
           <form onSubmit={runVaultSearch} className="flex gap-2">
-            <input
+            <Input
               aria-label="Search your vault"
-              className="input"
               placeholder="e.g. tree canopy and heat…"
               value={vaultQuery}
               onChange={(e) => setVaultQuery(e.target.value)}
             />
-            <button type="submit" className="btn-primary shrink-0" disabled={vaultBusy || !vaultQuery.trim()}>
+            <Button type="submit" className="shrink-0" disabled={vaultBusy || !vaultQuery.trim()}>
               Search
-            </button>
+            </Button>
           </form>
           {vaultNotice && <p className="text-[11px] text-brand-300">{vaultNotice}</p>}
           {vaultBusy ? (
@@ -273,9 +273,9 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-[10px] uppercase text-brand-400">
+                      <Badge tone="brand" size="chip">
                         {Math.round(h.score * 100)}%
-                      </span>
+                      </Badge>
                       <span className="truncate text-sm font-medium text-slate-200">
                         {h.title || h.source}
                       </span>
@@ -283,14 +283,15 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                     <p className="mt-1 line-clamp-2 text-xs text-slate-400">{h.content}</p>
                     <p className="mt-1 truncate text-[11px] text-slate-500">{h.source}</p>
                   </div>
-                  <button
-                    className="btn-primary shrink-0 py-1.5 text-xs"
+                  <Button
+                    size="sm"
+                    className="shrink-0"
                     onClick={() =>
                       onDraft({ title: h.title || h.source, material: h.content, sourceId: h.id })
                     }
                   >
                     Draft in Studio →
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -299,64 +300,55 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
       )}
 
       <form onSubmit={submitSearch} className="flex gap-2">
-        <input
+        <Input
           aria-label="Search sources"
-          className="input"
           placeholder="Search your sources…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-        <button type="submit" className="btn-secondary shrink-0">Search</button>
+        <Button type="submit" variant="secondary" className="shrink-0">Search</Button>
       </form>
 
       {showForm && (
         <form onSubmit={addSource} className="space-y-3 rounded-lg border border-surface-700 bg-surface-800/40 p-3">
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-            <div>
-              <label htmlFor="src-title" className="label">Title</label>
-              <input
+            <Field label="Title" htmlFor="src-title">
+              <Input
                 id="src-title"
-                className="input"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
               />
-            </div>
-            <div>
-              <label htmlFor="src-kind" className="label">Kind</label>
-              <select
+            </Field>
+            <Field label="Kind" htmlFor="src-kind">
+              <Select
                 id="src-kind"
-                className="input"
                 value={form.kind}
                 onChange={(e) => setForm({ ...form, kind: e.target.value as SourceKind })}
               >
                 {SOURCE_KINDS.map((k) => (
                   <option key={k} value={k}>{k}</option>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </Field>
           </div>
-          <div>
-            <label htmlFor="src-url" className="label">Link / DOI (optional)</label>
-            <input
+          <Field label="Link / DOI (optional)" htmlFor="src-url">
+            <Input
               id="src-url"
-              className="input"
               value={form.url}
               onChange={(e) => setForm({ ...form, url: e.target.value })}
             />
-          </div>
-          <div>
-            <label htmlFor="src-abstract" className="label">Abstract / notes (optional)</label>
-            <textarea
+          </Field>
+          <Field label="Abstract / notes (optional)" htmlFor="src-abstract">
+            <Textarea
               id="src-abstract"
               rows={3}
-              className="input resize-none"
               value={form.abstract}
               onChange={(e) => setForm({ ...form, abstract: e.target.value })}
             />
-          </div>
-          <button type="submit" className="btn-primary py-1.5 text-xs" disabled={!form.title.trim()}>
+          </Field>
+          <Button type="submit" size="sm" disabled={!form.title.trim()}>
             Add to inbox
-          </button>
+          </Button>
         </form>
       )}
 
@@ -378,13 +370,9 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">
-                      {s.kind}
-                    </span>
+                    <Badge size="chip">{s.kind}</Badge>
                     {isVaultSource(s) && (
-                      <span className="rounded bg-brand-500/15 px-1.5 py-0.5 text-[10px] uppercase text-brand-400">
-                        vault
-                      </span>
+                      <Badge tone="brand" size="chip">vault</Badge>
                     )}
                     <span className="truncate text-sm font-medium text-slate-200">{s.title}</span>
                   </div>
@@ -396,33 +384,36 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                   )}
                 </div>
                 <div className="flex shrink-0 flex-col gap-1.5">
-                  <button
-                    className="btn-primary py-1.5 text-xs"
+                  <Button
+                    size="sm"
                     onClick={() => setRepurposeSourceId((id) => (id === s.id ? null : s.id))}
                     aria-expanded={repurposeSourceId === s.id}
                   >
                     <SparkleIcon width={13} height={13} /> Turn into posts
-                  </button>
-                  <button
-                    className="btn-secondary py-1.5 text-xs"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => onDraft({ title: s.title, material: sourceMaterial(s), sourceId: s.id })}
                   >
                     Draft in Studio →
-                  </button>
-                  <button
-                    className="btn-secondary py-1.5 text-xs"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => sparkIdeas(s)}
                     aria-expanded={ideasSourceId === s.id}
                   >
                     <SparkleIcon width={13} height={13} /> Suggest angles
-                  </button>
-                  <button
-                    className="btn-secondary py-1.5 text-xs"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => makeCarousel(s)}
                     aria-expanded={deckSourceId === s.id}
                   >
                     <LinkIcon width={13} height={13} /> Build slide deck
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -443,15 +434,15 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                         >
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="rounded bg-surface-700 px-1.5 py-0.5 text-[10px] uppercase text-slate-300">
-                                {idea.channel}
-                              </span>
+                              <Badge size="chip">{idea.channel}</Badge>
                               <span className="truncate text-sm font-medium text-slate-200">{idea.angle}</span>
                             </div>
                             <p className="mt-1 line-clamp-2 text-xs text-slate-400">{idea.hook}</p>
                           </div>
-                          <button
-                            className="btn-secondary shrink-0 py-1 text-xs"
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="shrink-0"
                             onClick={() =>
                               onDraft({
                                 title: idea.angle,
@@ -461,7 +452,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                             }
                           >
                             Draft this →
-                          </button>
+                          </Button>
                         </li>
                       ))}
                     </ul>
@@ -506,9 +497,9 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
                       </ol>
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[11px] text-slate-500">{deck.deck.slides.length} slides · {deck.deck.theme}</p>
-                        <button className="btn-secondary py-1 text-xs" onClick={() => downloadDeck(s.title)}>
+                        <Button variant="secondary" size="sm" onClick={() => downloadDeck(s.title)}>
                           Download deck JSON
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : null}

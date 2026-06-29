@@ -4,8 +4,7 @@ import type { PlatformCredentials } from '../lib/dataSource';
 import { useStore } from '../store/useStore';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS, CheckIcon, AlertIcon, PlugIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ConfirmDialog } from './ui/ConfirmDialog';
+import { Button, ConfirmDialog, Heading, Input, Spinner, Text } from './ui';
 
 /** Platforms that connect with a user-entered credential (not an OAuth redirect). */
 const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
@@ -95,17 +94,17 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
               <Spinner size={16} />
             </span>
           ) : isConnected ? (
-            <button className="btn-secondary py-1.5 text-xs" onClick={() => setConfirmDisconnect(true)}>
+            <Button variant="secondary" size="sm" onClick={() => setConfirmDisconnect(true)}>
               Disconnect
-            </button>
+            </Button>
           ) : usesCredentials ? (
-            <button className="btn-primary py-1.5 text-xs" onClick={() => setFormOpen((o) => !o)}>
+            <Button size="sm" onClick={() => setFormOpen((o) => !o)}>
               {isError ? 'Retry' : 'Connect'}
-            </button>
+            </Button>
           ) : (
-            <button className="btn-primary py-1.5 text-xs" onClick={() => connect(platform)}>
+            <Button size="sm" onClick={() => connect(platform)}>
               {isError ? 'Retry' : 'Connect'}
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -115,15 +114,15 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
         <div className="mt-3 space-y-2 border-t border-surface-700 pt-3">
           {platform === 'bluesky' ? (
             <>
-              <input
-                className="input text-xs"
+              <Input
+                className="text-xs"
                 aria-label="Bluesky handle"
                 placeholder="you.bsky.social"
                 value={creds.identifier ?? ''}
                 onChange={(e) => set({ identifier: e.target.value })}
               />
-              <input
-                className="input text-xs"
+              <Input
+                className="text-xs"
                 type="password"
                 aria-label="Bluesky app password"
                 placeholder="app password (Settings → App Passwords)"
@@ -133,15 +132,15 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
             </>
           ) : (
             <>
-              <input
-                className="input text-xs"
+              <Input
+                className="text-xs"
                 aria-label="Mastodon instance"
                 placeholder="https://fediscience.org"
                 value={creds.instance ?? ''}
                 onChange={(e) => set({ instance: e.target.value })}
               />
-              <input
-                className="input text-xs"
+              <Input
+                className="text-xs"
                 type="password"
                 aria-label="Mastodon access token"
                 placeholder="access token (Preferences → Development)"
@@ -151,13 +150,13 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
             </>
           )}
           <div className="flex items-center gap-2">
-            <button className="btn-primary py-1.5 text-xs" onClick={onVerify} disabled={busy}>
-              {busy ? <Spinner size={14} label="Verifying" /> : <CheckIcon width={14} height={14} />}
+            <Button size="sm" onClick={onVerify} loading={busy}>
+              {!busy && <CheckIcon width={14} height={14} />}
               {busy ? 'Verifying…' : 'Verify & connect'}
-            </button>
-            <button className="btn-ghost py-1.5 text-xs" onClick={() => setFormOpen(false)}>
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setFormOpen(false)}>
               Cancel
-            </button>
+            </Button>
           </div>
           {error && (
             <p data-testid={`verify-error-${platform}`} className="text-[11px] text-status-failed">
@@ -194,12 +193,12 @@ export function ConnectedAccounts() {
     <section aria-label="Connected accounts" className="card p-4">
       <header className="mb-3 flex items-center gap-2">
         <PlugIcon width={16} height={16} className="text-brand-400" />
-        <h2 className="text-sm font-semibold text-slate-200">Connected accounts</h2>
+        <Heading>Connected accounts</Heading>
       </header>
-      <p className="mb-4 text-xs text-slate-500">
+      <Text variant="muted" className="mb-4">
         Connect the accounts you'll post to. Until you connect one, the app runs in
         demo mode and nothing is sent.
-      </p>
+      </Text>
       <div className="grid gap-2.5">
         {accounts.map((a) => (
           <AccountRow key={a.platform} account={a} />

@@ -16,9 +16,7 @@ import { analyzeReach, reachVerdict } from '../lib/reach';
 import { splitIntoThread } from '../lib/thread';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
-import { Drawer } from './ui/Drawer';
-import { ConfirmDialog } from './ui/ConfirmDialog';
-import { Spinner } from './ui/Spinner';
+import { Button, ConfirmDialog, Drawer } from './ui';
 import { PostPreview } from './PostPreview';
 import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon, BookIcon, AlertIcon } from './icons';
 
@@ -209,22 +207,19 @@ export function PostEditorDrawer() {
       footer={
         <>
           {existing && (
-            <button
-              className="btn-danger mr-auto"
-              onClick={() => setConfirm('delete')}
-            >
+            <Button variant="danger" className="mr-auto" onClick={() => setConfirm('delete')}>
               <TrashIcon width={15} height={15} /> Delete
-            </button>
+            </Button>
           )}
-          <button className="btn-secondary" onClick={closeEditor}>
+          <Button variant="secondary" onClick={closeEditor}>
             Cancel
-          </button>
-          <button className="btn-secondary" disabled={!canSave} onClick={() => savePost(draft)}>
+          </Button>
+          <Button variant="secondary" disabled={!canSave} onClick={() => savePost(draft)}>
             Save post
-          </button>
+          </Button>
           {existing && (
-            <button
-              className="btn-primary"
+            <Button
+              loading={isPublishing}
               disabled={!canPublish || isPublishing || isPublished}
               title={
                 accountConnected
@@ -233,9 +228,9 @@ export function PostEditorDrawer() {
               }
               onClick={() => setConfirm('publish')}
             >
-              {isPublishing ? <Spinner size={14} label="Publishing" /> : <CheckIcon width={15} height={15} />}
+              {!isPublishing && <CheckIcon width={15} height={15} />}
               {isPublished ? 'Published' : isPublishing ? 'Publishing…' : 'Publish now'}
-            </button>
+            </Button>
           )}
         </>
       }
@@ -522,13 +517,9 @@ export function PostEditorDrawer() {
               <span className="text-xs font-semibold text-slate-200">
                 Too long for {meta.name} — post as a {threadParts.length}-part thread
               </span>
-              <button
-                type="button"
-                className="btn-primary py-1.5 text-xs"
-                onClick={() => createThread(draft)}
-              >
+              <Button type="button" size="sm" onClick={() => createThread(draft)}>
                 Create {threadParts.length}-part thread
-              </button>
+              </Button>
             </div>
             <ol className="space-y-1.5">
               {threadParts.map((part, i) => (
@@ -655,26 +646,22 @@ export function PostEditorDrawer() {
                   onChange={(e) => setChangeNote(e.target.value)}
                 />
                 <div className="flex gap-2">
-                  <button
-                    className="btn-primary py-1.5 text-xs"
-                    disabled={!changeNote.trim()}
-                    onClick={onRequestChanges}
-                  >
+                  <Button size="sm" disabled={!changeNote.trim()} onClick={onRequestChanges}>
                     Send back to Drafting
-                  </button>
-                  <button className="btn-ghost py-1.5 text-xs" onClick={() => setShowNote(false)}>
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowNote(false)}>
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button className="btn-primary py-1.5 text-xs" onClick={onApprove}>
+                <Button size="sm" onClick={onApprove}>
                   <CheckIcon width={14} height={14} /> Approve
-                </button>
-                <button className="btn-secondary py-1.5 text-xs" onClick={() => setShowNote(true)}>
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => setShowNote(true)}>
                   Request changes
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -724,22 +711,23 @@ export function PostEditorDrawer() {
                 </button>
               </span>
             ))}
-            <button className="btn-secondary py-1.5 text-xs" onClick={() => addMedia('image')}>
+            <Button variant="secondary" size="sm" onClick={() => addMedia('image')}>
               <ImageIcon width={14} height={14} /> Add image
-            </button>
-            <button className="btn-secondary py-1.5 text-xs" onClick={() => addMedia('video')}>
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => addMedia('video')}>
               <VideoIcon width={14} height={14} /> Add video
-            </button>
+            </Button>
             {/* Real upload: stores the file via the backend (or an object URL
                 offline) and attaches a usable URL — required for Instagram. */}
-            <button
-              className="btn-secondary py-1.5 text-xs"
-              disabled={uploading}
+            <Button
+              variant="secondary"
+              size="sm"
+              loading={uploading}
               onClick={() => fileInputRef.current?.click()}
             >
-              {uploading ? <Spinner size={14} label="Uploading" /> : <ImageIcon width={14} height={14} />}
+              {!uploading && <ImageIcon width={14} height={14} />}
               {uploading ? 'Uploading…' : 'Upload file'}
-            </button>
+            </Button>
             <input
               ref={fileInputRef}
               type="file"
