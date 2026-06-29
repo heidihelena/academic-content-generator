@@ -98,7 +98,7 @@ export function ScheduledAgenda({
                     <button
                       data-testid="agenda-entry"
                       onClick={() => onSelect(e.variantId)}
-                      className="flex w-full items-center gap-2 rounded-md border border-surface-700 bg-surface-800/50 px-2.5 py-1.5 text-left hover:border-violet-500"
+                      className="flex w-full items-center gap-2 rounded-md border border-surface-700 bg-surface-800/50 px-2.5 py-1.5 text-left hover:border-vahtian-accent"
                     >
                       <span className="font-mono text-[11px] text-slate-400">{time(e.scheduledAt)}</span>
                       <span className="truncate text-xs text-slate-300">{e.title}</span>

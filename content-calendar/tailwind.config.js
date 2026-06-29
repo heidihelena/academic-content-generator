@@ -43,6 +43,16 @@ export default {
           500: '#46a085', // aurora
           600: '#3c8a72', // deep aurora — primary buttons
         },
+        // Vahtian — the academic-integrity accent. Used for the review &
+        // evidence surfaces (claim/citation/safety review, audit trail,
+        // evidence status, the publishing gate) so integrity reads as one
+        // distinct, deliberate colour, separate from the aurora brand.
+        vahtian: {
+          DEFAULT: '#8b6fc9',
+          primary: '#2d2440', // deep aubergine — borders / strong surfaces
+          accent: '#8b6fc9', // the review accent — text, dots, active borders
+          soft: '#c5b8e8', // soft lilac — subtle fills / on-dark text
+        },
         platform: {
           instagram: '#e1306c',
           linkedin: '#0a66c2',

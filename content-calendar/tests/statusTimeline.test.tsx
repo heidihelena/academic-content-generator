@@ -43,7 +43,7 @@ describe('StatusTimeline', () => {
       ]),
     );
     render(<StatusTimeline variant={variant} />);
-    expect(await screen.findByText('History')).toBeInTheDocument();
+    expect(await screen.findByText('Audit trail')).toBeInTheDocument();
     expect(screen.getByText('draft → scheduled')).toBeInTheDocument();
     expect(screen.getByText('by alice')).toBeInTheDocument();
   });

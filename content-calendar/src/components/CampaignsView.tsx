@@ -7,7 +7,7 @@ const STATUS_ORDER: ContentStatus[] = ['idea', 'draft', 'reviewed', 'scheduled',
 const STATUS_COLOR: Record<ContentStatus, string> = {
   idea: 'bg-slate-500',
   draft: 'bg-sky-500',
-  reviewed: 'bg-violet-500',
+  reviewed: 'bg-vahtian-accent',
   scheduled: 'bg-amber-500',
   exported: 'bg-emerald-500',
 };

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ContentItem, ContentVariant, TimingSuggestion } from '../content/contentTypes';
 import { exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
-import { Button, Drawer, Input, Label, Textarea } from './ui';
+import { Badge, Button, Drawer, Input, Label, Textarea } from './ui';
 import { CheckIcon, AlertIcon, BookIcon } from './icons';
 import { PublishAssistant } from './PublishAssistant';
 import { StatusTimeline } from './StatusTimeline';
@@ -112,7 +112,7 @@ export function VariantDrawer({
           <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
             <Field label="Source">{item.sourceIds.join(', ') || '—'}</Field>
             <Field label="Audience">{item.audience}</Field>
-            <Field label="Evidence level">{item.evidenceLevel}</Field>
+            <Field label="Evidence level"><Badge tone="review">{item.evidenceLevel}</Badge></Field>
             <Field label="Claim risk">{item.claimRisk}</Field>
             <Field label="Owner">{item.ownerId ?? '—'}</Field>
             <Field label="Campaign">{item.campaignId ?? '—'}</Field>
@@ -148,7 +148,7 @@ export function VariantDrawer({
 
         {/* Review gate */}
         <div className="space-y-3 border-t border-surface-700 pt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Review gate</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-vahtian-accent">Review gate</p>
           <p className="text-[11px] text-slate-500">Draft → run review → fix findings → mark reviewed → approve for publishing.</p>
 
           <div className="flex flex-wrap gap-1.5">
@@ -175,7 +175,7 @@ export function VariantDrawer({
         {/* Publishing gate */}
         <div className="space-y-2 border-t border-surface-700 pt-4">
           <div className="flex items-center gap-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-violet-300">Approve for publishing</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-vahtian-accent">Approve for publishing</p>
             {exportable ? (
               <span className="inline-flex items-center gap-1 text-[11px] text-status-published"><CheckIcon width={12} height={12} /> cleared</span>
             ) : (
@@ -200,7 +200,7 @@ export function VariantDrawer({
                     key={s.label}
                     data-testid="timing-suggestion"
                     title={`${s.rationale}${s.learnedFrom ? ` · learned from ${s.learnedFrom}` : ''}`}
-                    className="rounded-md border border-surface-700 bg-surface-800/60 px-2 py-1 text-[11px] text-slate-300 hover:border-violet-500"
+                    className="rounded-md border border-surface-700 bg-surface-800/60 px-2 py-1 text-[11px] text-slate-300 hover:border-vahtian-accent"
                     disabled={busy === 'schedule'}
                     onClick={() => run('schedule', () => contentClient.schedule(variant.id, nextOccurrence(s.weekday, s.hour)))}
                   >

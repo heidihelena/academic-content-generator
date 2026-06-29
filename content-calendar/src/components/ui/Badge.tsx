@@ -1,7 +1,7 @@
 import { type HTMLAttributes } from 'react';
 import { cva } from './cva';
 
-export type BadgeTone = 'neutral' | 'brand' | 'success' | 'warn' | 'danger' | 'info';
+export type BadgeTone = 'neutral' | 'brand' | 'success' | 'warn' | 'danger' | 'info' | 'review';
 export type BadgeSize = 'pill' | 'chip';
 
 /**
@@ -21,6 +21,7 @@ const badge = cva('inline-flex items-center font-medium', {
       warn: 'bg-status-brief/15 text-status-brief',
       danger: 'bg-status-failed/15 text-status-failed',
       info: 'bg-status-review/15 text-status-review',
+      review: 'bg-vahtian-accent/15 text-vahtian-accent', // academic-integrity accent
     },
     size: {
       pill: 'rounded-full px-2 py-0.5 text-[11px]',

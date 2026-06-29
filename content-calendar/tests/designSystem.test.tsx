@@ -80,6 +80,11 @@ describe('Badge', () => {
     const badge = screen.getByText('paper');
     expect(badge).toHaveClass('text-brand-400', 'uppercase', 'rounded');
   });
+
+  it('carries the Vahtian accent for the review tone', () => {
+    render(<Badge tone="review">peer-reviewed</Badge>);
+    expect(screen.getByText('peer-reviewed')).toHaveClass('text-vahtian-accent');
+  });
 });
 
 describe('Card', () => {
