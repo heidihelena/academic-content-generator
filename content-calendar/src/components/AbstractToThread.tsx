@@ -5,7 +5,7 @@ import { draftThread } from '../ai/threadService';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS, BookIcon, PlusIcon } from './icons';
-import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea } from './ui';
+import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea, ToggleGroup } from './ui';
 
 /** Tomorrow at 09:00 local — a sensible default slot for a fresh draft thread. */
 function tomorrowMorning(): string {
@@ -109,24 +109,24 @@ export function AbstractToThread() {
 
       <div>
         <Label>Platform</Label>
-        <div className="flex gap-1.5">
-          {PLATFORMS.map((p) => {
+        <ToggleGroup
+          ariaLabel="Platform"
+          value={platform}
+          onChange={(v) => v && setPlatform(v)}
+          options={PLATFORMS.map((p) => {
             const Glyph = PLATFORM_GLYPHS[p];
-            const active = platform === p;
-            return (
-              <button
-                key={p}
-                onClick={() => setPlatform(p)}
-                aria-pressed={active}
-                className={`btn flex-1 py-2 ${active ? 'bg-surface-600' : 'bg-surface-800 hover:bg-surface-700'}`}
-                style={active ? { color: getPlatformMeta(p).color } : undefined}
-              >
-                <Glyph width={16} height={16} />
-                <span className="text-xs">{getPlatformMeta(p).name}</span>
-              </button>
-            );
+            return {
+              value: p,
+              activeColor: getPlatformMeta(p).color,
+              label: (
+                <>
+                  <Glyph width={16} height={16} />
+                  <span className="text-xs">{getPlatformMeta(p).name}</span>
+                </>
+              ),
+            };
           })}
-        </div>
+        />
       </div>
 
       <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
