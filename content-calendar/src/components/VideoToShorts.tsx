@@ -7,8 +7,7 @@ import { fetchTranscript } from '../lib/transcript';
 import { getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { VideoIcon, PlusIcon } from './icons';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Card, ErrorState, Heading, Spinner } from './ui';
 
 const COUNTS = [3, 4, 5, 6];
 
@@ -121,11 +120,11 @@ export function VideoToShorts() {
   const limit = getPlatformMeta('youtube').characterLimit;
 
   return (
-    <section aria-label="Video to shorts" className="card space-y-4 p-4">
+    <Card as="section" aria-label="Video to shorts" className="space-y-4 p-4">
       <header className="flex items-center gap-2">
         <VideoIcon width={18} height={18} className="text-brand-400" />
         <div>
-          <h2 className="text-sm font-semibold text-slate-200">Video → Shorts plan</h2>
+          <Heading>Video → Shorts plan</Heading>
           <p className="text-xs text-slate-500">
             Paste a long-form transcript and get a plan of short clips with cut points.
           </p>
@@ -269,6 +268,6 @@ export function VideoToShorts() {
           )}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

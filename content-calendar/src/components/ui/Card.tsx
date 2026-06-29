@@ -1,4 +1,4 @@
-import { forwardRef, type HTMLAttributes } from 'react';
+import { forwardRef, type ElementType, type HTMLAttributes } from 'react';
 import { cn } from './cn';
 
 /**
@@ -15,12 +15,20 @@ import { cn } from './cn';
  *
  * Padding is not forced on `Card` itself, so existing `card p-4`/`p-5` usages
  * and the composed sub-parts can coexist during the migration.
+ *
+ * Polymorphic via `as` so a panel can stay a semantic element — e.g.
+ * `<Card as="section" aria-label="…">` keeps the landmark/region role.
  */
-export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(function Card(
-  { className, ...props },
+interface CardProps extends HTMLAttributes<HTMLElement> {
+  as?: ElementType;
+}
+
+export const Card = forwardRef<HTMLElement, CardProps>(function Card(
+  { as, className, ...props },
   ref,
 ) {
-  return <div ref={ref} className={cn('card', className)} {...props} />;
+  const Tag = (as ?? 'div') as ElementType;
+  return <Tag ref={ref} className={cn('card', className)} {...props} />;
 });
 
 export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {

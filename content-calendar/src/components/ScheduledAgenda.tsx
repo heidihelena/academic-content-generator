@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { CalendarEntry } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
 import { CalendarIcon, CheckIcon } from './icons';
+import { Card, Heading } from './ui';
 
 /** Group entries by local calendar day (YYYY-MM-DD), preserving time order. */
 function byDay(entries: CalendarEntry[]): Array<[string, CalendarEntry[]]> {
@@ -65,10 +66,10 @@ export function ScheduledAgenda({
   if (!entries) return null;
 
   return (
-    <section aria-label="Scheduled content" className="card p-4">
+    <Card as="section" aria-label="Scheduled content" className="p-4">
       <header className="mb-2 flex items-center gap-2">
         <CalendarIcon width={16} height={16} className="text-brand-400" />
-        <h2 className="text-sm font-semibold text-slate-200">Scheduled</h2>
+        <Heading>Scheduled</Heading>
         <span className="text-[11px] text-slate-500">{entries.length} upcoming</span>
         <button
           data-testid="sync-engagement"
@@ -109,6 +110,6 @@ export function ScheduledAgenda({
           ))}
         </div>
       )}
-    </section>
+    </Card>
   );
 }

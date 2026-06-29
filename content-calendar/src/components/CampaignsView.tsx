@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { Campaign, ContentItemWithVariants, ContentStatus } from '../content/contentTypes';
-import { ErrorState, LoadingState } from './ui/States';
+import { Card, ErrorState, Heading, LoadingState } from './ui';
 
 const STATUS_ORDER: ContentStatus[] = ['idea', 'draft', 'reviewed', 'scheduled', 'exported'];
 const STATUS_COLOR: Record<ContentStatus, string> = {
@@ -67,10 +67,10 @@ function CampaignCard({ campaign, items }: { campaign: Campaign; items: ContentI
   const total = items.length;
 
   return (
-    <section aria-label={campaign.title} className="card space-y-3 p-4">
+    <Card as="section" aria-label={campaign.title} className="space-y-3 p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <h2 className="text-sm font-semibold text-slate-200">{campaign.title}</h2>
+          <Heading>{campaign.title}</Heading>
           {campaign.goal && <p className="text-xs text-slate-500">{campaign.goal}</p>}
         </div>
         <div className="text-right text-[11px] text-slate-500">
@@ -109,6 +109,6 @@ function CampaignCard({ campaign, items }: { campaign: Campaign; items: ContentI
         ))}
         {total === 0 && <li className="text-[11px] text-slate-600">No content yet.</li>}
       </ul>
-    </section>
+    </Card>
   );
 }

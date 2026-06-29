@@ -1,5 +1,6 @@
 import { useStore } from '../store/useStore';
 import { Filters } from './Filters';
+import { Card, Heading } from './ui';
 
 /**
  * Sidebar housing the platform + status filters (filterState), a live result
@@ -19,9 +20,9 @@ export function FilterSidebar() {
   const filtersActive = platformFilter !== 'all' || statusFilter !== 'all' || searchQuery !== '';
 
   return (
-    <aside aria-label="Filters" className="card h-fit w-full shrink-0 p-4 lg:w-60">
+    <Card as="aside" aria-label="Filters" className="h-fit w-full shrink-0 p-4 lg:w-60">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-200">Filters</h2>
+        <Heading>Filters</Heading>
         {filtersActive && (
           <button
             className="text-[11px] text-brand-400 hover:underline"
@@ -39,6 +40,6 @@ export function FilterSidebar() {
       <p className="mt-3 text-[11px] text-slate-500">
         Showing {filteredCount} of {totalCount} posts
       </p>
-    </aside>
+    </Card>
   );
 }

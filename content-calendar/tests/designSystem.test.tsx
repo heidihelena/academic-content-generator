@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { Badge, Button, cn, cva, Field, Input } from '../src/components/ui';
+import { Badge, Button, Card, cn, cva, Field, Input } from '../src/components/ui';
 
 describe('cn', () => {
   it('joins truthy classes and drops falsy ones', () => {
@@ -79,6 +79,37 @@ describe('Badge', () => {
     );
     const badge = screen.getByText('paper');
     expect(badge).toHaveClass('text-brand-400', 'uppercase', 'rounded');
+  });
+});
+
+describe('Card', () => {
+  it('renders a div with the .card class by default', () => {
+    render(<Card data-testid="c">body</Card>);
+    const el = screen.getByTestId('c');
+    expect(el.tagName).toBe('DIV');
+    expect(el).toHaveClass('card');
+  });
+
+  it('is polymorphic via `as`, keeping the element and its aria role', () => {
+    render(
+      <Card as="section" aria-label="Connected accounts" className="p-4">
+        rows
+      </Card>,
+    );
+    const region = screen.getByRole('region', { name: 'Connected accounts' });
+    expect(region.tagName).toBe('SECTION');
+    expect(region).toHaveClass('card', 'p-4');
+  });
+
+  it('can render as a clickable button tile', () => {
+    const onClick = vi.fn();
+    render(
+      <Card as="button" onClick={onClick}>
+        12 Drafts
+      </Card>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Drafts/ }));
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });
 

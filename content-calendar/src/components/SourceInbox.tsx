@@ -16,7 +16,7 @@ import {
 import { generateCarousel, type CarouselResult } from '../carousel/carouselClient';
 import { RepurposePanel } from './RepurposePanel';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
-import { Badge, Button, ErrorState, Field, Heading, Input, Select, Spinner, Text, Textarea } from './ui';
+import { Badge, Button, Card, ErrorState, Field, Heading, Input, Select, Spinner, Text, Textarea } from './ui';
 
 interface SourceInboxProps {
   /** Send a source into the Draft Studio (pre-fills the Compose stage). */
@@ -200,7 +200,7 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
   };
 
   return (
-    <section aria-label="Source Inbox" className="card space-y-4 p-5">
+    <Card as="section" aria-label="Source Inbox" className="space-y-4 p-5">
       <header className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <LinkIcon width={18} height={18} className="text-brand-400" />
@@ -509,6 +509,6 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
           ))}
         </ul>
       )}
-    </section>
+    </Card>
   );
 }
