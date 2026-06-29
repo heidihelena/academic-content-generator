@@ -140,7 +140,7 @@ export function ContentItems() {
                   <button
                     data-testid="variant-row"
                     onClick={() => setOpenId(v.id)}
-                    className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2 text-left hover:border-violet-500"
+                    className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2 text-left hover:border-vahtian-accent"
                   >
                     <span className="font-mono text-xs text-slate-300">{v.channel} · {v.format}</span>
                     <span data-testid="variant-status" className="text-[11px] uppercase tracking-wide text-slate-500">{v.status}</span>

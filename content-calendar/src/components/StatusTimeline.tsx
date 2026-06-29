@@ -25,7 +25,10 @@ export function StatusTimeline({ variant }: { variant: ContentVariant }) {
 
   return (
     <div className="space-y-2 border-t border-surface-700 pt-4" data-testid="status-timeline">
-      <p className="text-xs font-semibold text-slate-300">History</p>
+      <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
+        <span className="h-1.5 w-1.5 rounded-full bg-vahtian-accent" aria-hidden />
+        Audit trail
+      </p>
       <ol className="space-y-1">
         {history.map((c) => (
           <li key={c.id} className="flex items-center gap-1.5 text-[11px] text-slate-400">

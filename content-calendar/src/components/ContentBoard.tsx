@@ -62,7 +62,7 @@ export function ContentBoard({
                     <button
                       data-testid="board-card"
                       onClick={() => onOpen(variant.id)}
-                      className="w-full rounded-md border border-surface-700 bg-surface-800/60 p-2 text-left hover:border-violet-500"
+                      className="w-full rounded-md border border-surface-700 bg-surface-800/60 p-2 text-left hover:border-vahtian-accent"
                     >
                       <p className="truncate text-xs font-medium text-slate-200">{title}</p>
                       <div className="mt-1 flex items-center gap-1.5">

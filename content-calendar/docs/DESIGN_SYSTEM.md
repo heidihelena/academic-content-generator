@@ -145,9 +145,27 @@ Two tools:
 <Badge size="chip">{source.kind}</Badge>      {/* squared, uppercase tag */}
 ```
 
-`tone`: `neutral` · `brand` · `success` · `warn` · `danger` · `info`.
+`tone`: `neutral` · `brand` · `success` · `warn` · `danger` · `info` · `review`.
 `size`: `pill` (default, rounded-full) · `chip` (squared, uppercase, for tiny
 category tags like kind / channel / score).
+
+### The Vahtian accent (academic integrity)
+
+The **Vahtian** palette is a deliberate, separate accent for the
+academic-integrity surfaces — claim review, citation check, safety review, the
+audit trail, evidence status, and the publishing gate — so integrity reads as
+one distinct colour rather than borrowing the aurora brand.
+
+| Token | Hex | Use |
+| --- | --- | --- |
+| `vahtian-primary` | `#2D2440` | deep aubergine — strong borders/surfaces |
+| `vahtian-accent` | `#8B6FC9` | the accent — text, dots, active borders |
+| `vahtian-soft` | `#C5B8E8` | soft lilac — subtle fills / on-dark text |
+
+Use `<Badge tone="review">` for evidence/review status, and `text-vahtian-accent`
+/ `hover:border-vahtian-accent` for review-section headers and review-pipeline
+cards. Keep `status-failed` (red) for genuinely blocked states — Vahtian marks
+*review*, not *error*.
 
 ---
 
