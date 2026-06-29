@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ContentItem, ContentVariant, TimingSuggestion } from '../content/contentTypes';
 import { exportBlockers } from '../content/contentTypes';
 import { contentClient } from '../content/contentClient';
-import { Button, Drawer } from './ui';
+import { Button, Drawer, Input, Label, Textarea } from './ui';
 import { CheckIcon, AlertIcon, BookIcon } from './icons';
 import { PublishAssistant } from './PublishAssistant';
 import { StatusTimeline } from './StatusTimeline';
@@ -124,22 +124,22 @@ export function VariantDrawer({
         {/* Copy editing */}
         <div className="space-y-3 border-t border-surface-700 pt-4">
           <div>
-            <label htmlFor="v-hook" className="label">Hook</label>
-            <input id="v-hook" className="input" value={hook} onChange={(e) => setHook(e.target.value)} />
+            <Label htmlFor="v-hook">Hook</Label>
+            <Input id="v-hook" value={hook} onChange={(e) => setHook(e.target.value)} />
           </div>
           <div>
-            <label htmlFor="v-body" className="label">Body</label>
-            <textarea
+            <Label htmlFor="v-body">Body</Label>
+            <Textarea
               id="v-body"
               rows={7}
-              className="input resize-none font-mono text-xs"
+              className="font-mono text-xs"
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
           </div>
           <div>
-            <label htmlFor="v-tags" className="label">Hashtags <span className="font-normal text-slate-500">— comma-separated</span></label>
-            <input id="v-tags" className="input" value={hashtags} onChange={(e) => setHashtags(e.target.value)} />
+            <Label htmlFor="v-tags">Hashtags <span className="font-normal text-slate-500">— comma-separated</span></Label>
+            <Input id="v-tags" value={hashtags} onChange={(e) => setHashtags(e.target.value)} />
           </div>
           <Button variant="secondary" size="sm" disabled={!dirty} loading={busy === 'save'} onClick={save}>
             {busy !== 'save' && <BookIcon width={13} height={13} />} Save copy

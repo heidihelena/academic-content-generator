@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { AssetEntry } from '../content/contentTypes';
-import { Button } from './ui';
+import { Button, Input, Select } from './ui';
 
 /**
  * Media attachments on a content item — the image/video that ships with it (a
@@ -76,22 +76,22 @@ export function AssetsSection({ itemId }: { itemId: string }) {
       )}
 
       <div className="flex gap-1.5">
-        <input
-          className="input flex-1 text-xs"
+        <Input
+          className="flex-1 text-xs"
           placeholder="Media URL…"
           aria-label="Media URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <select
-          className="input text-xs"
+        <Select
+          className="text-xs"
           aria-label="Media type"
           value={type}
           onChange={(e) => setType(e.target.value as 'image' | 'video')}
         >
           <option value="image">image</option>
           <option value="video">video</option>
-        </select>
+        </Select>
         <Button variant="secondary" size="sm" disabled={!url.trim()} onClick={attach}>
           Attach
         </Button>

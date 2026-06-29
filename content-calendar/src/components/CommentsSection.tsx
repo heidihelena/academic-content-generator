@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { CommentEntry } from '../content/contentTypes';
-import { Button } from './ui';
+import { Button, Textarea } from './ui';
 
 /**
  * The collaboration thread on a content item — review notes, hand-off context,
@@ -61,8 +61,8 @@ export function CommentsSection({ itemId }: { itemId: string }) {
       )}
 
       <div className="space-y-1.5">
-        <textarea
-          className="input w-full text-xs"
+        <Textarea
+          className="w-full text-xs"
           rows={2}
           placeholder="Add a note…"
           aria-label="Add a comment"

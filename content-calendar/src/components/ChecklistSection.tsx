@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { ChecklistEntry } from '../content/contentTypes';
-import { Button } from './ui';
+import { Button, Input } from './ui';
 
 /**
  * Pre-publish QA checklist on a content item — tick off "added alt text",
@@ -80,8 +80,8 @@ export function ChecklistSection({ itemId }: { itemId: string }) {
       )}
 
       <div className="flex gap-1.5">
-        <input
-          className="input flex-1 text-xs"
+        <Input
+          className="flex-1 text-xs"
           placeholder="Add a check…"
           aria-label="Add a checklist item"
           value={label}

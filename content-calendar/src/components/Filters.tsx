@@ -3,6 +3,7 @@ import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS } from './icons';
+import { Select } from './ui';
 
 const STATUS_OPTIONS: Array<{ value: PostStatus | 'all'; label: string }> = [
   { value: 'all', label: 'All stages' },
@@ -46,18 +47,18 @@ export function Filters() {
         {PLATFORMS.map((p) => platformButton(p, getPlatformMeta(p).name))}
       </div>
 
-      <select
+      <Select
         aria-label="Filter by status"
         value={statusFilter}
         onChange={(e) => setStatusFilter(e.target.value as PostStatus | 'all')}
-        className="input w-auto py-1.5 text-xs"
+        className="w-auto py-1.5 text-xs"
       >
         {STATUS_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
             {o.label}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }

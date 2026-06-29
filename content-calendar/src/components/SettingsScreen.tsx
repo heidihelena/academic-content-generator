@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ConnectionsReport, LocalSettings } from '../lib/api';
 import { fetchConnectionsState } from '../lib/connections';
 import { fetchSettings, saveSettings } from '../lib/settings';
-import { Button, Card, ErrorState, Heading, LoadingState } from './ui';
+import { Button, Card, ErrorState, Heading, Input, LoadingState, Select } from './ui';
 import { BookIcon, CheckIcon } from './icons';
 
 /**
@@ -173,9 +173,8 @@ function TextField({
   return (
     <label className={span ? 'sm:col-span-2' : undefined}>
       <span className="text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-      <input
-        className="input mt-1 font-mono text-xs"
-        type="text"
+      <Input
+        className="mt-1 font-mono text-xs"
         aria-label={label}
         value={value}
         placeholder={placeholder}
@@ -202,8 +201,8 @@ function SelectField({
   return (
     <label>
       <span className="text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-      <select
-        className="input mt-1 text-xs"
+      <Select
+        className="mt-1 text-xs"
         aria-label={label}
         value={value}
         disabled={disabled}
@@ -214,7 +213,7 @@ function SelectField({
             {o}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

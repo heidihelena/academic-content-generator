@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { ContentVariant, PublishLogEntry } from '../content/contentTypes';
 import { CheckIcon } from './icons';
-import { Button } from './ui';
+import { Button, Input } from './ui';
 
 /**
  * Copy & record helper: copy the approved text out, post it by hand, then
@@ -77,15 +77,15 @@ export function PublishAssistant({ variant }: { variant: ContentVariant }) {
       </div>
 
       <div className="space-y-1.5">
-        <input
-          className="input w-full text-xs"
+        <Input
+          className="w-full text-xs"
           placeholder="Published URL (optional)"
           aria-label="Published URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <input
-          className="input w-full text-xs"
+        <Input
+          className="w-full text-xs"
           placeholder="Notes (optional)"
           aria-label="Publish notes"
           value={notes}

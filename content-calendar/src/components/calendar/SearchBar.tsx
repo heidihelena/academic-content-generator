@@ -1,4 +1,5 @@
 import { useStore } from '../../store/useStore';
+import { Input } from '../ui';
 
 /** Free-text search over post captions + platform (drives filterState.searchQuery). */
 export function SearchBar() {
@@ -19,13 +20,13 @@ export function SearchBar() {
         <circle cx="11" cy="11" r="7" />
         <path d="M21 21l-4.3-4.3" />
       </svg>
-      <input
+      <Input
         type="search"
         aria-label="Search posts"
         placeholder="Search posts…"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="input w-44 py-1.5 pl-8 text-xs sm:w-56"
+        className="w-44 py-1.5 pl-8 text-xs sm:w-56"
       />
     </div>
   );

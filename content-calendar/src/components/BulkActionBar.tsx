@@ -2,7 +2,7 @@ import type { PostStatus } from '../types';
 import { useStore } from '../store/useStore';
 import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { TrashIcon, CloseIcon } from './icons';
-import { Button } from './ui';
+import { Button, Select } from './ui';
 
 const STATUSES: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
@@ -31,7 +31,7 @@ export function BulkActionBar() {
       </span>
 
       {permissions.canBulk && (
-        <select
+        <Select
           aria-label="Set status for selected"
           defaultValue=""
           onChange={(e) => {
@@ -40,7 +40,7 @@ export function BulkActionBar() {
               e.target.value = '';
             }
           }}
-          className="input w-auto py-1.5 text-xs"
+          className="w-auto py-1.5 text-xs"
         >
           <option value="" disabled>
             Mark as…
@@ -50,7 +50,7 @@ export function BulkActionBar() {
               {STAGE_META[s].label}
             </option>
           ))}
-        </select>
+        </Select>
       )}
 
       {permissions.canDelete && (

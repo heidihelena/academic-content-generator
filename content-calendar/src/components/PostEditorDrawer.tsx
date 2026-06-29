@@ -16,7 +16,7 @@ import { analyzeReach, reachVerdict } from '../lib/reach';
 import { splitIntoThread } from '../lib/thread';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { createId } from '../lib/id';
-import { Button, ConfirmDialog, Drawer } from './ui';
+import { Button, ConfirmDialog, Drawer, Input, Label, Select, Textarea } from './ui';
 import { PostPreview } from './PostPreview';
 import { PLATFORM_GLYPHS, ImageIcon, VideoIcon, TrashIcon, CheckIcon, BookIcon, AlertIcon } from './icons';
 
@@ -250,7 +250,7 @@ export function PostEditorDrawer() {
           </p>
         )}
         <div>
-          <span className="label">Platform</span>
+          <Label>Platform</Label>
           <div className="flex gap-1.5">
             {PLATFORMS.map((p) => {
               const Glyph = PLATFORM_GLYPHS[p];
@@ -273,13 +273,12 @@ export function PostEditorDrawer() {
         </div>
 
         <div>
-          <label htmlFor="post-brief" className="label">
+          <Label htmlFor="post-brief">
             Brief <span className="font-normal text-slate-500">— why this post exists</span>
-          </label>
-          <textarea
+          </Label>
+          <Textarea
             id="post-brief"
             rows={2}
-            className="input resize-none"
             placeholder="Objective / goal for this post…"
             value={draft.brief ?? ''}
             onChange={(e) => update('brief', e.target.value || undefined)}
@@ -288,26 +287,22 @@ export function PostEditorDrawer() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="post-audience" className="label">
+            <Label htmlFor="post-audience">
               Audience
-            </label>
-            <input
+            </Label>
+            <Input
               id="post-audience"
-              type="text"
-              className="input"
               placeholder="Who is this for?"
               value={draft.audience ?? ''}
               onChange={(e) => update('audience', e.target.value || undefined)}
             />
           </div>
           <div>
-            <label htmlFor="post-theme" className="label">
+            <Label htmlFor="post-theme">
               Theme
-            </label>
-            <input
+            </Label>
+            <Input
               id="post-theme"
-              type="text"
-              className="input"
               placeholder="Content pillar / topic"
               value={draft.theme ?? ''}
               onChange={(e) => update('theme', e.target.value || undefined)}
@@ -316,13 +311,11 @@ export function PostEditorDrawer() {
         </div>
 
         <div>
-          <label htmlFor="post-hook" className="label">
+          <Label htmlFor="post-hook">
             Hook <span className="font-normal text-slate-500">— the opening line</span>
-          </label>
-          <input
+          </Label>
+          <Input
             id="post-hook"
-            type="text"
-            className="input"
             placeholder="The scroll-stopping first line…"
             value={draft.hook ?? ''}
             onChange={(e) => update('hook', e.target.value || undefined)}
@@ -337,7 +330,7 @@ export function PostEditorDrawer() {
           </div>
 
           <div>
-            <span className="label">How strong is the claim?</span>
+            <Label>How strong is the claim?</Label>
             <div className="flex gap-1.5">
               {EVIDENCE_ORDER.map((level) => {
                 const m = EVIDENCE_META[level];
@@ -362,13 +355,11 @@ export function PostEditorDrawer() {
           </div>
 
           <div>
-            <label htmlFor="source-link" className="label">
+            <Label htmlFor="source-link">
               DOI or link
-            </label>
-            <input
+            </Label>
+            <Input
               id="source-link"
-              type="text"
-              className="input"
               placeholder="10.1038/s41586-… or https://…"
               value={draft.source?.doi ?? draft.source?.url ?? ''}
               onChange={(e) => {
@@ -389,35 +380,29 @@ export function PostEditorDrawer() {
             />
           </div>
 
-          <input
-            type="text"
-            className="input"
+          <Input
             placeholder="Title of the work"
             aria-label="Source title"
             value={draft.source?.title ?? ''}
             onChange={(e) => updateSource('title', e.target.value || undefined)}
           />
           <div className="grid grid-cols-3 gap-2">
-            <input
-              type="text"
-              className="input col-span-2"
+            <Input
+              className="col-span-2"
               placeholder="Authors"
               aria-label="Source authors"
               value={draft.source?.authors ?? ''}
               onChange={(e) => updateSource('authors', e.target.value || undefined)}
             />
-            <input
+            <Input
               type="number"
-              className="input"
               placeholder="Year"
               aria-label="Source year"
               value={draft.source?.year ?? ''}
               onChange={(e) => updateSource('year', e.target.value ? Number(e.target.value) : undefined)}
             />
           </div>
-          <input
-            type="text"
-            className="input"
+          <Input
             placeholder="Venue (journal, conference, repository)"
             aria-label="Source venue"
             value={draft.source?.venue ?? ''}
@@ -434,9 +419,9 @@ export function PostEditorDrawer() {
 
         <div>
           <div className="flex items-center justify-between">
-            <label htmlFor="post-body" className="label">
+            <Label htmlFor="post-body">
               Script / Copy
-            </label>
+            </Label>
             <span
               data-testid="char-count"
               className={`text-[11px] ${overLimit ? 'text-status-failed' : 'text-slate-500'}`}
@@ -444,10 +429,9 @@ export function PostEditorDrawer() {
               {charCount} / {meta.characterLimit}
             </span>
           </div>
-          <textarea
+          <Textarea
             id="post-body"
             rows={6}
-            className="input resize-none"
             placeholder="Write your caption…"
             value={draft.body}
             onChange={(e) => update('body', e.target.value)}
@@ -539,24 +523,22 @@ export function PostEditorDrawer() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="post-when" className="label">
+            <Label htmlFor="post-when">
               Schedule
-            </label>
-            <input
+            </Label>
+            <Input
               id="post-when"
               type="datetime-local"
-              className="input"
               value={toDateTimeLocalValue(draft.scheduledAt)}
               onChange={(e) => update('scheduledAt', fromDateTimeLocalValue(e.target.value))}
             />
           </div>
           <div>
-            <label htmlFor="post-status" className="label">
+            <Label htmlFor="post-status">
               Stage
-            </label>
-            <select
+            </Label>
+            <Select
               id="post-status"
-              className="input"
               value={draft.status}
               onChange={(e) => update('status', e.target.value as PostStatus)}
             >
@@ -565,7 +547,7 @@ export function PostEditorDrawer() {
                   {STAGE_META[s].label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
         </div>
 
@@ -592,14 +574,12 @@ export function PostEditorDrawer() {
             className="space-y-3 rounded-lg border border-status-review/40 bg-status-review/5 p-3"
           >
             <div>
-              <label htmlFor="post-reviewer" className="label">
+              <Label htmlFor="post-reviewer">
                 Reviewer
-              </label>
-              <input
+              </Label>
+              <Input
                 id="post-reviewer"
-                type="text"
                 list="reviewer-suggestions"
-                className="input"
                 placeholder="Assign a reviewer…"
                 value={draft.reviewer ?? ''}
                 onChange={(e) => update('reviewer', e.target.value || undefined)}
@@ -634,13 +614,12 @@ export function PostEditorDrawer() {
 
             {showNote ? (
               <div className="space-y-2">
-                <label htmlFor="change-note" className="label">
+                <Label htmlFor="change-note">
                   What needs to change?
-                </label>
-                <textarea
+                </Label>
+                <Textarea
                   id="change-note"
                   rows={3}
-                  className="input resize-none"
                   placeholder="Describe the changes needed…"
                   value={changeNote}
                   onChange={(e) => setChangeNote(e.target.value)}
@@ -669,26 +648,22 @@ export function PostEditorDrawer() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="post-owner" className="label">
+            <Label htmlFor="post-owner">
               Owner
-            </label>
-            <input
+            </Label>
+            <Input
               id="post-owner"
-              type="text"
-              className="input"
               placeholder="Who's responsible?"
               value={draft.owner ?? ''}
               onChange={(e) => update('owner', e.target.value || undefined)}
             />
           </div>
           <div>
-            <label htmlFor="post-campaign" className="label">
+            <Label htmlFor="post-campaign">
               Campaign
-            </label>
-            <input
+            </Label>
+            <Input
               id="post-campaign"
-              type="text"
-              className="input"
               placeholder="e.g. Spring launch"
               value={draft.campaign ?? ''}
               onChange={(e) => update('campaign', e.target.value || undefined)}
@@ -697,7 +672,7 @@ export function PostEditorDrawer() {
         </div>
 
         <div>
-          <span className="label">Media</span>
+          <Label>Media</Label>
           <div className="flex flex-wrap gap-2">
             {draft.media.map((m) => (
               <span
@@ -740,7 +715,7 @@ export function PostEditorDrawer() {
         </div>
 
         <div>
-          <span className="label">Preview</span>
+          <Label>Preview</Label>
           <PostPreview
             platform={draft.platform}
             body={draft.body}

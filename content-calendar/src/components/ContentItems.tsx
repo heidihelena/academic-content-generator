@@ -7,7 +7,7 @@ import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
 import { ContentTable } from './ContentTable';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
-import { Badge, Button, Card, ErrorState, Heading, LoadingState } from './ui';
+import { Badge, Button, Card, ErrorState, Heading, LoadingState, Select } from './ui';
 import { downloadContentIcs } from '../lib/ics';
 import { downloadContentCsv } from '../lib/csv';
 
@@ -220,22 +220,22 @@ function AddVariant({
     <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-surface-600 p-2">
       <label className="text-[11px] text-slate-400">
         Channel
-        <select className="input mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
           {VARIANT_CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        </Select>
       </label>
       <label className="text-[11px] text-slate-400">
         Format
-        <select className="input mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
           {VARIANT_FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
+        </Select>
       </label>
       <label className="text-[11px] text-slate-400">
         Copy text from
-        <select className="input mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
           <option value="">(blank)</option>
           {item.variants.map((v) => <option key={v.id} value={v.id}>{v.channel} · {v.format}</option>)}
-        </select>
+        </Select>
       </label>
       <Button size="sm" loading={busy} onClick={add}>Add</Button>
       <Button variant="secondary" size="sm" onClick={() => setOpenForm(false)}>Cancel</Button>

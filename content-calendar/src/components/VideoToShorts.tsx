@@ -7,7 +7,7 @@ import { fetchTranscript } from '../lib/transcript';
 import { getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { VideoIcon, PlusIcon } from './icons';
-import { Button, Card, ErrorState, Heading } from './ui';
+import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea } from './ui';
 
 const COUNTS = [3, 4, 5, 6];
 
@@ -133,11 +133,10 @@ export function VideoToShorts() {
       </header>
 
       <div>
-        <label htmlFor="video-url" className="label">YouTube URL (optional)</label>
+        <Label htmlFor="video-url">YouTube URL (optional)</Label>
         <div className="flex gap-2">
-          <input
+          <Input
             id="video-url"
-            className="input"
             placeholder="https://www.youtube.com/watch?v=…"
             value={videoUrl}
             onChange={(e) => {
@@ -172,13 +171,13 @@ export function VideoToShorts() {
       </div>
 
       <div>
-        <label htmlFor="transcript" className="label">
+        <Label htmlFor="transcript">
           Transcript <span className="font-normal text-slate-500">— paste with timestamps for real cut points</span>
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="transcript"
           rows={7}
-          className="input resize-none font-mono text-[11px]"
+          className="font-mono text-[11px]"
           placeholder={'0:00 Welcome back…\n0:42 The key finding is…\n2:15 Here\'s why it matters…'}
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
@@ -186,32 +185,28 @@ export function VideoToShorts() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="shorts-count" className="label">How many shorts</label>
-          <select
+        <Field label="How many shorts" htmlFor="shorts-count">
+          <Select
             id="shorts-count"
-            className="input"
             value={count}
             onChange={(e) => setCount(Number(e.target.value))}
           >
             {COUNTS.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="shorts-audience" className="label">Audience</label>
-          <select
+          </Select>
+        </Field>
+        <Field label="Audience" htmlFor="shorts-audience">
+          <Select
             id="shorts-audience"
-            className="input"
             value={audience}
             onChange={(e) => setAudience(e.target.value as ThreadAudience)}
           >
             {THREAD_AUDIENCES.map((a) => (
               <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       </div>
 
       <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
