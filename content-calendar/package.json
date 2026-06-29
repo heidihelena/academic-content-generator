@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "Production-quality social media content calendar dashboard for vahtian.com",
+  "engines": {
+    "node": ">=20 <21"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
