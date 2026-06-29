@@ -133,7 +133,7 @@ function SettingsCard({
               Saved — restart the server to apply.
             </span>
           )}
-          {error && <span className="text-[11px] text-status-failed">{error}</span>}
+          {error && <span role="alert" className="text-[11px] text-status-failed">{error}</span>}
         </div>
       ) : (
         <p className="text-[11px] text-slate-500">

@@ -80,7 +80,7 @@ export function VariantDrawer({
         {/* Collaboration thread on the parent item. */}
         <CommentsSection itemId={item.id} />
 
-        {v.error && <p className="text-xs text-status-overdue">{v.error}</p>}
+        {v.error && <p role="alert" className="text-xs text-status-overdue">{v.error}</p>}
       </div>
     </Drawer>
   );

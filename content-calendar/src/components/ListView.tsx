@@ -8,6 +8,7 @@ import { Filters } from './Filters';
 import { SearchBar } from './calendar/SearchBar';
 import { Card, EmptyState } from './ui';
 import { AlertIcon, BookIcon, ListIcon } from './icons';
+import { onActivate } from '../lib/a11y';
 
 /** Reach-killer warnings for a still-publishable post (empty once it's out). */
 function reachWarningsFor(post: { platform: Parameters<typeof analyzeReach>[0]['platform']; body: string; status: string; media: unknown[] }) {
@@ -61,13 +62,13 @@ export function ListView() {
           <table className="w-full border-collapse text-left text-xs">
             <thead>
               <tr className="border-b border-surface-700 text-[11px] uppercase tracking-wide text-slate-500">
-                <th className="px-3 py-2 font-medium">
+                <th className="px-3 py-2 font-medium" aria-sort={sortDir === 'asc' ? 'ascending' : 'descending'}>
                   <button
-                    className="inline-flex items-center gap-1 hover:text-slate-300"
+                    className="inline-flex items-center gap-1 hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
                     onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
                     aria-label="Sort by date"
                   >
-                    When {sortDir === 'asc' ? '↑' : '↓'}
+                    When <span aria-hidden="true">{sortDir === 'asc' ? '↑' : '↓'}</span>
                   </button>
                 </th>
                 <th className="px-3 py-2 font-medium">Channel</th>
@@ -83,8 +84,11 @@ export function ListView() {
                 <tr
                   key={post.id}
                   data-testid={`list-row-${post.id}`}
+                  tabIndex={0}
+                  aria-label={`Open ${post.platform} post scheduled ${formatDateTime(post.scheduledAt)}`}
                   onClick={() => openEditor(post.id)}
-                  className="cursor-pointer border-b border-surface-800 last:border-0 hover:bg-surface-800/50"
+                  onKeyDown={onActivate(() => openEditor(post.id))}
+                  className="cursor-pointer border-b border-surface-800 last:border-0 hover:bg-surface-800/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-400"
                 >
                   <td className="whitespace-nowrap px-3 py-2 text-slate-400">
                     {formatDateTime(post.scheduledAt)}

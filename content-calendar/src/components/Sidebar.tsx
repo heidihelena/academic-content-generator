@@ -96,6 +96,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
 
       <nav className="flex flex-1 flex-row gap-1 md:flex-col md:gap-0" aria-label="Primary">
         <button
+          aria-label="Home"
           aria-current={view === 'home' ? 'page' : undefined}
           onClick={() => onChange('home')}
           className={`mb-0 flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:mb-3 md:flex-none md:justify-start ${
@@ -116,6 +117,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
               return (
                 <button
                   key={item.id}
+                  aria-label={item.label}
                   aria-current={active ? 'page' : undefined}
                   onClick={() => onChange(item.id)}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none md:justify-start ${

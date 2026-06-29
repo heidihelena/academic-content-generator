@@ -17,6 +17,11 @@ const base = (props: IconProps) => ({
   strokeWidth: 1.8,
   strokeLinecap: 'round' as const,
   strokeLinejoin: 'round' as const,
+  // Icons are decorative: their meaning comes from adjacent text or the
+  // aria-label on the button/control that wraps them. Hide from the a11y tree
+  // by default (a caller can still override via props).
+  'aria-hidden': true,
+  focusable: false,
   ...props,
 });
 

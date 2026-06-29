@@ -67,7 +67,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       )}
 
       {error && (
-        <p data-testid="studio-error" className="text-xs text-status-failed">
+        <p role="alert" data-testid="studio-error" className="text-xs text-status-failed">
           {error}
         </p>
       )}

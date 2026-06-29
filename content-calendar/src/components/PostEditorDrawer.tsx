@@ -99,7 +99,7 @@ export function PostEditorDrawer() {
       >
         <div className="space-y-4">
           {existing && publishError && publishingId === null && (
-            <p data-testid="publish-error" className="rounded-md bg-status-failed/10 px-3 py-2 text-xs text-status-failed">
+            <p role="alert" data-testid="publish-error" className="rounded-md bg-status-failed/10 px-3 py-2 text-xs text-status-failed">
               Couldn’t publish: {publishError}
             </p>
           )}

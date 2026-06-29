@@ -159,7 +159,7 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
             </Button>
           </div>
           {error && (
-            <p data-testid={`verify-error-${platform}`} className="text-[11px] text-status-failed">
+            <p role="alert" data-testid={`verify-error-${platform}`} className="text-[11px] text-status-failed">
               {error} — check your credentials and try again.
             </p>
           )}

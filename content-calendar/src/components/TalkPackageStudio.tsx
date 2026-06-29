@@ -191,7 +191,7 @@ export function TalkPackageStudio() {
                 ✓ Wrote {exported.length} note{exported.length === 1 ? '' : 's'} to the vault.
               </span>
             )}
-            {exportError && <span className="text-xs text-status-overdue">{exportError}</span>}
+            {exportError && <span role="alert" className="text-xs text-status-overdue">{exportError}</span>}
           </div>
         </div>
       )}

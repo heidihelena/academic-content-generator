@@ -27,8 +27,8 @@
     --slate-200: 38 39 58; /* body text */
     --slate-300: 76 78 102; /* strong secondary (--fs-ink-soft) */
     --slate-400: 94 96 117;
-    --slate-500: 117 120 140; /* muted / labels / placeholders (--fs-muted) */
-    --slate-600: 140 143 161; /* faint */
+    --slate-500: 104 107 126; /* muted / labels / placeholders — darkened to clear WCAG AA */
+    --slate-600: 122 125 144; /* faint — darkened for contrast */
     --slate-700: 166 168 182;
     --slate-800: 195 196 206;
     --slate-900: 220 221 227;

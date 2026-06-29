@@ -74,7 +74,7 @@ export function CommentsSection({ itemId }: { itemId: string }) {
         </Button>
       </div>
 
-      {error && <p className="text-xs text-status-overdue">{error}</p>}
+      {error && <p role="alert" className="text-xs text-status-overdue">{error}</p>}
     </div>
   );
 }
