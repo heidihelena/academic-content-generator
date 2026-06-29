@@ -20,11 +20,19 @@ export function useExpandableAction<TData>(
     if (activeId === source.id && !action.loading) {
       setActiveId(null);
       action.reset();
-      return;
+      return undefined;
     }
     setActiveId(source.id);
     action.reset();
-    void action.run(source);
+    return action.run(source);
+  };
+
+  // Re-run for the open source without the collapse-on-idle toggle behaviour —
+  // so an error-state "Retry" actually retries instead of closing the panel.
+  const retry = (source: Source) => {
+    setActiveId(source.id);
+    action.reset();
+    return action.run(source);
   };
 
   return {
@@ -33,5 +41,6 @@ export function useExpandableAction<TData>(
     busy: action.loading,
     error: action.error,
     toggle,
+    retry,
   };
 }

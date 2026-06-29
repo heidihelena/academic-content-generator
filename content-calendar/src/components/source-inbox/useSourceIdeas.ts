@@ -16,5 +16,6 @@ export function useSourceIdeas() {
     busy: action.busy,
     error: action.error,
     toggle: action.toggle,
+    retry: action.retry,
   };
 }
