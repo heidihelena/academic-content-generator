@@ -70,7 +70,7 @@ describe('ConnectionsView', () => {
 
     render(<ConnectionsView />);
 
-    await waitFor(() => expect(screen.getByText(/Backend unreachable/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/Working offline/)).toBeInTheDocument());
     expect(within(screen.getByLabelText('Content generators')).getAllByText('mock')).toHaveLength(4);
   });
 });

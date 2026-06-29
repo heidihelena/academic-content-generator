@@ -54,7 +54,7 @@ describe('AI idea generation', () => {
     const promise = generator.generate({ ...request, niche: '  ' });
     // Attach the rejection assertion before advancing timers so the rejection
     // is never observed as "unhandled".
-    const expectation = expect(promise).rejects.toThrow(/niche and a target audience/);
+    const expectation = expect(promise).rejects.toThrow(/topic and an audience/);
     await vi.runAllTimersAsync();
     await expectation;
   });

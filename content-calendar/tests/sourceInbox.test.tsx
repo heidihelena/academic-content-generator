@@ -124,7 +124,7 @@ describe('Source Inbox', () => {
     await screen.findByTestId('source-list');
 
     const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
-    fireEvent.click(within(treesItem).getByRole('button', { name: /Spark ideas/i }));
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Suggest angles/i }));
 
     const ideaList = await screen.findByTestId('idea-list');
     const ideaItems = within(ideaList).getAllByRole('listitem');
@@ -144,7 +144,7 @@ describe('Source Inbox', () => {
     await screen.findByTestId('source-list');
 
     const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
-    fireEvent.click(within(treesItem).getByRole('button', { name: /Make carousel/i }));
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Build slide deck/i }));
 
     const deck = await screen.findByTestId('carousel-deck');
     // cover + at least a CTA render as slide cards; cleared text appears.
@@ -159,7 +159,7 @@ describe('Source Inbox', () => {
     await screen.findByTestId('source-list');
 
     const treesItem = screen.getByText('Street trees and urban heat').closest('li')!;
-    fireEvent.click(within(treesItem).getByRole('button', { name: /Repurpose/i }));
+    fireEvent.click(within(treesItem).getByRole('button', { name: /Turn into posts/i }));
 
     const panel = await screen.findByTestId('repurpose-panel');
     expect(within(panel).getByTestId('repurpose-ideas')).toBeInTheDocument();

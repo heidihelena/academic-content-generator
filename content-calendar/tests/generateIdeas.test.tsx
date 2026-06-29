@@ -37,7 +37,7 @@ describe('GenerateIdeas UI', () => {
     gotoIdeas();
     expect(screen.getByLabelText('Research area / topic')).toBeInTheDocument();
     expect(screen.getByLabelText('Target audience')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tone')).toBeInTheDocument();
+    expect(screen.getByLabelText('Voice')).toBeInTheDocument();
   });
 
   it('generates and renders exactly 5 idea cards', async () => {
@@ -63,7 +63,7 @@ describe('GenerateIdeas UI', () => {
     fireEvent.click(screen.getByRole('button', { name: /Generate 5 ideas/i }));
 
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(/niche and a target audience/i);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/topic and an audience/i);
   });
 
   it('turns an idea into a draft post via "Use"', async () => {

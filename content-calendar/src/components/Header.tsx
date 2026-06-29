@@ -7,19 +7,19 @@ import { MoonIcon, SunIcon } from './icons';
 import { ConnectionStatus } from './ConnectionStatus';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
-  home: { title: 'Home', subtitle: 'Your getting-started steps and a snapshot of what’s in flight' },
-  board: { title: 'Pipeline', subtitle: 'Move each piece from brief to published — and learn' },
-  calendar: { title: 'Content Calendar', subtitle: 'Plan your research communication across every network' },
+  home: { title: 'Home', subtitle: 'Set up the app and see what needs your attention' },
+  board: { title: 'Pipeline', subtitle: 'Track each piece from draft to published' },
+  calendar: { title: 'Calendar', subtitle: 'See what’s scheduled, and when' },
   list: { title: 'All content', subtitle: 'Every post in one sortable, filterable table' },
-  inbox: { title: 'Source Inbox', subtitle: 'Your papers, notes, links and Obsidian vault in one place' },
-  studio: { title: 'Draft Studio', subtitle: 'Compose, review and export reviewed, audience-specific content' },
-  content: { title: 'Content', subtitle: 'One idea, many variants — schedule and publish each' },
-  campaigns: { title: 'Campaigns', subtitle: 'Group your content into themed series and track each one' },
-  ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
+  inbox: { title: 'Source Inbox', subtitle: 'Pick a paper or note to turn into posts' },
+  studio: { title: 'Draft Studio', subtitle: 'Write a post, check it for overclaims and missing citations, then approve it' },
+  content: { title: 'Content', subtitle: 'One idea, several versions — review and publish each' },
+  campaigns: { title: 'Campaigns', subtitle: 'Group related content into a series and track it' },
+  ideas: { title: 'Generate Ideas', subtitle: 'Get suggested angles for sharing a finding with an audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
-  connections: { title: 'Connections', subtitle: 'Connect accounts and wire up your generators and publishing destinations' },
-  outbox: { title: 'Outbox', subtitle: 'What’s published, scheduled and what failed — across every destination' },
-  settings: { title: 'Settings', subtitle: 'Local inputs & storage — your Obsidian vault path and content database' },
+  connections: { title: 'Connections', subtitle: 'Connect the accounts you’ll post to' },
+  outbox: { title: 'Outbox', subtitle: 'Posted, scheduled, and anything that failed' },
+  settings: { title: 'Settings', subtitle: 'Your Obsidian vault path and where content is stored on this Mac' },
 };
 
 interface HeaderProps {

@@ -49,8 +49,8 @@ export function ConnectionsView() {
         <>
           {state.mode === 'api' && !state.online && (
             <p className="rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
-              Backend unreachable — showing local defaults. Start the server or check
-              <code className="mx-1">VITE_API_URL</code>.
+              Working offline — the local server isn't running. Your data is safe;
+              reconnect to publish and sync.
             </p>
           )}
 

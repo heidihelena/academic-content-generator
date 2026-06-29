@@ -20,8 +20,8 @@ const TONES: Tone[] = ['professional', 'casual', 'witty', 'inspirational', 'educ
 export function GenerateIdeas() {
   const openEditorForNewPost = useStore((s) => s.openEditorForNewPost);
 
-  const [niche, setNiche] = useState('My research on urban heat & climate equity');
-  const [audience, setAudience] = useState('General public & policymakers');
+  const [niche, setNiche] = useState('');
+  const [audience, setAudience] = useState('');
   const [tone, setTone] = useState<Tone>('educational');
   const [platform, setPlatform] = useState<Platform>('bluesky');
 
@@ -83,14 +83,14 @@ export function GenerateIdeas() {
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label htmlFor="idea-niche" className="label">Research area / topic</label>
-            <input id="idea-niche" className="input" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder="e.g. Your field or a specific paper" />
+            <input id="idea-niche" className="input" value={niche} onChange={(e) => setNiche(e.target.value)} placeholder='Your paper, finding, or topic — e.g. "statin adherence in primary care"' />
           </div>
           <div>
             <label htmlFor="idea-audience" className="label">Target audience</label>
-            <input id="idea-audience" className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="e.g. General public, students, peers" />
+            <input id="idea-audience" className="input" value={audience} onChange={(e) => setAudience(e.target.value)} placeholder="Who is this for? e.g. clinicians, patients, the public" />
           </div>
           <div>
-            <label htmlFor="idea-tone" className="label">Tone</label>
+            <label htmlFor="idea-tone" className="label">Voice</label>
             <select id="idea-tone" className="input" value={tone} onChange={(e) => setTone(e.target.value as Tone)}>
               {TONES.map((t) => (
                 <option key={t} value={t}>{t[0].toUpperCase() + t.slice(1)}</option>
