@@ -20,6 +20,21 @@ const base = (props: IconProps) => ({
   ...props,
 });
 
+export const HomeIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 10.5 12 3l9 7.5" />
+    <path d="M5 9.5V21h14V9.5" />
+    <path d="M9 21v-6h6v6" />
+  </svg>
+);
+
+export const OutboxIcon = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M3 13h4l2 3h6l2-3h4" />
+    <path d="M3 13 6 5h12l3 8v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+  </svg>
+);
+
 export const CalendarIcon = (p: IconProps) => (
   <svg {...base(p)}>
     <rect x="3" y="4" width="18" height="18" rx="2" />

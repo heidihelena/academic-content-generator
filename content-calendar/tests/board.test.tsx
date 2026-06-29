@@ -40,7 +40,7 @@ describe('PipelineBoard', () => {
   beforeEach(resetStore);
 
   it('is the default view and renders a column per pipeline stage', () => {
-    render(<App />);
+    render(<App initialView="board" />);
     expect(screen.getByRole('region', { name: 'Pipeline board' })).toBeInTheDocument();
     for (const status of ['brief', 'draft', 'review', 'approved', 'scheduled', 'published', 'learn']) {
       expect(screen.getByTestId(`board-column-${status}`)).toBeInTheDocument();
@@ -48,14 +48,14 @@ describe('PipelineBoard', () => {
   });
 
   it('places a seeded post in its stage column', () => {
-    render(<App />);
+    render(<App initialView="board" />);
     // The paper-launch post is seeded in the Learn stage.
     const learn = screen.getByTestId('board-column-learn');
     expect(within(learn).getByText(/urban tree canopy/i)).toBeInTheDocument();
   });
 
   it('moves a card to a new stage when dropped on a column', () => {
-    render(<App />);
+    render(<App initialView="board" />);
     const post = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
     expect(post.status).toBe('learn');
 
@@ -72,7 +72,7 @@ describe('PipelineBoard', () => {
   });
 
   it('creates a brief from the "New brief" action', () => {
-    render(<App />);
+    render(<App initialView="board" />);
     fireEvent.click(screen.getByRole('button', { name: /New brief/i }));
     // The editor opens defaulting to the Brief stage.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -84,14 +84,14 @@ describe('Review/Approve gate', () => {
   beforeEach(resetStore);
 
   function openReviewPost() {
-    render(<App />);
+    render(<App initialView="board" />);
     const post = useStore.getState().posts.find((p) => p.status === 'review')!;
     fireEvent.click(screen.getByTestId(`post-card-${post.id}`));
     return post;
   }
 
   it('shows the review panel only for posts in Review', () => {
-    render(<App />);
+    render(<App initialView="board" />);
     // A drafting post has no review panel.
     const draftPost = useStore.getState().posts.find((p) => p.status === 'draft')!;
     fireEvent.click(screen.getByTestId(`post-card-${draftPost.id}`));

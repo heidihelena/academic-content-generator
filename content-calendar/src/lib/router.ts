@@ -10,6 +10,7 @@ import type { View } from '../components/Sidebar';
  * load, or tests that render a specific screen via the `initialView` prop.
  */
 export const VIEWS: View[] = [
+  'home',
   'board',
   'calendar',
   'list',
@@ -20,6 +21,7 @@ export const VIEWS: View[] = [
   'ideas',
   'analytics',
   'connections',
+  'outbox',
   'settings',
 ];
 
