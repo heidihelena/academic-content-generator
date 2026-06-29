@@ -1,19 +1,51 @@
 import { BoardIcon, BookIcon, CalendarIcon, ChartIcon, LinkIcon, ListIcon, PlugIcon, SparkleIcon } from './icons';
 
-export type View = 'board' | 'calendar' | 'list' | 'inbox' | 'studio' | 'content' | 'campaigns' | 'analytics' | 'accounts' | 'connections' | 'ideas';
+export type View =
+  | 'board'
+  | 'calendar'
+  | 'list'
+  | 'inbox'
+  | 'studio'
+  | 'content'
+  | 'campaigns'
+  | 'analytics'
+  | 'connections'
+  | 'ideas';
 
-const NAV: Array<{ id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element }> = [
-  { id: 'board', label: 'Pipeline', icon: BoardIcon },
-  { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-  { id: 'list', label: 'List', icon: ListIcon },
-  { id: 'inbox', label: 'Source Inbox', icon: LinkIcon },
-  { id: 'studio', label: 'Draft Studio', icon: BookIcon },
-  { id: 'content', label: 'Content', icon: ListIcon },
-  { id: 'campaigns', label: 'Campaigns', icon: CalendarIcon },
-  { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
-  { id: 'analytics', label: 'Analytics', icon: ChartIcon },
-  { id: 'accounts', label: 'Accounts', icon: PlugIcon },
-  { id: 'connections', label: 'Connections', icon: LinkIcon },
+type NavItem = { id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element };
+
+/**
+ * Primary navigation, grouped by the stage of the workflow it belongs to:
+ * Create your content, Plan/track it, Publish it, Measure it. Connections is the
+ * single home for accounts + publishing destinations (formerly two nav items).
+ */
+const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
+  {
+    label: 'Create',
+    items: [
+      { id: 'inbox', label: 'Source Inbox', icon: LinkIcon },
+      { id: 'studio', label: 'Draft Studio', icon: BookIcon },
+      { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
+    ],
+  },
+  {
+    label: 'Plan',
+    items: [
+      { id: 'board', label: 'Pipeline', icon: BoardIcon },
+      { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
+      { id: 'list', label: 'List', icon: ListIcon },
+      { id: 'content', label: 'Content', icon: ListIcon },
+      { id: 'campaigns', label: 'Campaigns', icon: CalendarIcon },
+    ],
+  },
+  {
+    label: 'Publish',
+    items: [{ id: 'connections', label: 'Connections', icon: PlugIcon }],
+  },
+  {
+    label: 'Measure',
+    items: [{ id: 'analytics', label: 'Analytics', icon: ChartIcon }],
+  },
 ];
 
 interface SidebarProps {
@@ -35,24 +67,31 @@ export function Sidebar({ view, onChange }: SidebarProps) {
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-row gap-1 md:flex-col" aria-label="Primary">
-        {NAV.map((item) => {
-          const active = view === item.id;
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.id}
-              aria-current={active ? 'page' : undefined}
-              onClick={() => onChange(item.id)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none md:justify-start ${
-                active ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
-              }`}
-            >
-              <Icon width={18} height={18} />
-              <span className="hidden md:inline">{item.label}</span>
-            </button>
-          );
-        })}
+      <nav className="flex flex-1 flex-row gap-1 md:flex-col md:gap-0" aria-label="Primary">
+        {SECTIONS.map((section) => (
+          <div key={section.label} className="flex flex-row gap-1 md:mb-3 md:flex-col md:gap-0.5">
+            <p className="hidden px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-600 md:block">
+              {section.label}
+            </p>
+            {section.items.map((item) => {
+              const active = view === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  aria-current={active ? 'page' : undefined}
+                  onClick={() => onChange(item.id)}
+                  className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none md:justify-start ${
+                    active ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+                  }`}
+                >
+                  <Icon width={18} height={18} />
+                  <span className="hidden md:inline">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </nav>
     </aside>
   );

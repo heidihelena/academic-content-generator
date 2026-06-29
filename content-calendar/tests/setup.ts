@@ -15,4 +15,7 @@ afterEach(() => {
   cleanup();
   vi.useRealTimers();
   localStorage.clear();
+  // Reset the hash router between tests so a navigation in one test doesn't
+  // leak into the next (which renders its own `initialView`).
+  window.location.hash = '';
 });
