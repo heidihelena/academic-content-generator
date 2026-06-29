@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root { color-scheme: light dark; }
+      html, body { margin: 0; height: 100%; }
+      body {
+        display: flex; align-items: center; justify-content: center;
+        font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+        background: #f6f6f2; color: #1a1b2e;
+        -webkit-app-region: drag; user-select: none;
+      }
+      .card { text-align: center; }
+      .mark { width: 46px; height: 46px; margin: 0 auto 14px; display: block; }
+      h1 { font-size: 14px; font-weight: 600; margin: 0 0 16px; letter-spacing: 0.2px; }
+      .steps { list-style: none; padding: 0; margin: 0 0 18px; font-size: 12px; color: #75788c; }
+      .steps li { margin: 5px 0; transition: color 0.2s ease; }
+      .steps li::before { content: "▸  "; }
+      .steps li.active { color: #1f726b; font-weight: 600; }
+      .steps li.done { color: #2e7d55; }
+      .steps li.done::before { content: "✓  "; }
+      .foot { font-size: 11px; color: #a6a8b6; }
+      @media (prefers-color-scheme: dark) {
+        body { background: #14151f; color: #ececf2; }
+        .steps { color: #8a8da0; }
+        .foot { color: #5e6076; }
+        .mark circle { fill: #ececf2; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <path d="M42.9 37.1 A12 12 0 1 1 42.9 26.9" stroke="#5b4fa6" stroke-width="3" stroke-linecap="round" />
+        <path d="M42.9 16.4 A19 19 0 0 1 42.9 47.6" stroke="#1f726b" stroke-width="3" stroke-linecap="round" />
+        <path d="M50.4 13.6 A26 26 0 0 1 50.4 50.4" stroke="#1f726b" stroke-width="3" stroke-linecap="round" opacity="0.55" />
+        <circle cx="32" cy="32" r="5" fill="#1a1b2e" />
+      </svg>
+      <h1>Starting your local workspace…</h1>
+      <ul class="steps">
+        <li id="s-engine" class="active">Starting engine</li>
+        <li id="s-data">Loading your data</li>
+        <li id="s-open">Opening</li>
+      </ul>
+      <div class="foot">Everything stays on this computer.</div>
+    </div>
+    <script>
+      // Driven from the main process via executeJavaScript.
+      window.__setStep = function (id) {
+        var order = ['s-engine', 's-data', 's-open'];
+        var idx = order.indexOf(id);
+        if (idx < 0) return;
+        order.forEach(function (key, i) {
+          var el = document.getElementById(key);
+          if (el) el.className = i < idx ? 'done' : i === idx ? 'active' : '';
+        });
+      };
+    </script>
+  </body>
+</html>
