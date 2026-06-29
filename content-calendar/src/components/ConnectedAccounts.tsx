@@ -5,6 +5,7 @@ import { useStore } from '../store/useStore';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS, CheckIcon, AlertIcon, PlugIcon } from './icons';
 import { Spinner } from './ui/Spinner';
+import { ConfirmDialog } from './ui/ConfirmDialog';
 
 /** Platforms that connect with a user-entered credential (not an OAuth redirect). */
 const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
@@ -41,6 +42,7 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
   const usesCredentials = CREDENTIAL_PLATFORMS.includes(platform);
 
   const [formOpen, setFormOpen] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const [creds, setCreds] = useState<PlatformCredentials>({});
 
   const set = (patch: Partial<PlatformCredentials>) => setCreds((c) => ({ ...c, ...patch }));
@@ -93,7 +95,7 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
               <Spinner size={16} />
             </span>
           ) : isConnected ? (
-            <button className="btn-secondary py-1.5 text-xs" onClick={() => disconnect(platform)}>
+            <button className="btn-secondary py-1.5 text-xs" onClick={() => setConfirmDisconnect(true)}>
               Disconnect
             </button>
           ) : usesCredentials ? (
@@ -167,6 +169,19 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
           </p>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDisconnect}
+        title={`Disconnect ${meta.name}?`}
+        message={`You'll need to re-enter your ${account.handle ?? meta.name} credentials to reconnect.`}
+        confirmLabel="Disconnect"
+        danger
+        onCancel={() => setConfirmDisconnect(false)}
+        onConfirm={() => {
+          setConfirmDisconnect(false);
+          void disconnect(platform);
+        }}
+      />
     </div>
   );
 }
