@@ -1,124 +1,18 @@
-import { useState } from 'react';
 import { THREAD_AUDIENCES, type ThreadAudience } from '../ai/threadTypes';
-import type { ShortsPlanResult } from '../ai/shortsTypes';
-import { planShortsFromVideo } from '../ai/shortsService';
-import { buildClipRecipe } from '../lib/clipRecipe';
-import { fetchTranscript } from '../lib/transcript';
-import { getPlatformMeta } from '../lib/platforms';
-import { useStore } from '../store/useStore';
-import { VideoIcon, PlusIcon } from './icons';
-import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea } from './ui';
+import { VideoIcon } from './icons';
+import { Button, Card, ErrorState, Field, Heading, Label, Select, Textarea } from './ui';
+import { ShortsPlan, TranscriptFetcher, useVideoToShorts } from './video-to-shorts';
 
 const COUNTS = [3, 4, 5, 6];
 
-/** Collapsible copy-paste recipe (yt-dlp + ffmpeg) to render one vertical clip. */
-function ClipRecipeBlock(props: { startSeconds: number; endSeconds: number; index: number; videoUrl?: string }) {
-  const [open, setOpen] = useState(false);
-  const recipe = buildClipRecipe(props);
-  const commands = [recipe.download, recipe.render].filter(Boolean).join('\n');
-
-  return (
-    <div className="mt-2">
-      <button
-        type="button"
-        className="text-[11px] text-brand-400 hover:underline"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-      >
-        {open ? '▾' : '▸'} Render recipe ({recipe.durationSeconds}s vertical clip)
-      </button>
-      {open && (
-        <div data-testid="clip-recipe" className="mt-1 space-y-1.5">
-          {!props.videoUrl && (
-            <p className="text-[10px] text-slate-500">Add the video URL above to include the download step.</p>
-          )}
-          <pre className="overflow-x-auto rounded bg-surface-950 p-2 text-[10px] leading-relaxed text-slate-300">
-            {commands}
-          </pre>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => navigator.clipboard?.writeText(commands)}
-          >
-            Copy commands
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 /**
  * "Video → Shorts plan" — paste a long-form transcript (ideally with the
- * timestamps YouTube provides) and get a plan of short clips: each with a
- * suggested cut range, title, hook and caption. "Add to Drafting" drops them on
- * the board as YouTube posts (deep-linked to each moment when a URL is given).
+ * timestamps YouTube provides) and get a plan of short clips. A presentational
+ * shell; the inputs, the two async actions, and adding to the calendar live in
+ * `useVideoToShorts`.
  */
 export function VideoToShorts() {
-  const createShortDrafts = useStore((s) => s.createShortDrafts);
-
-  const [videoUrl, setVideoUrl] = useState('');
-  const [transcript, setTranscript] = useState('');
-  const [count, setCount] = useState(4);
-  const [audience, setAudience] = useState<ThreadAudience>('general public');
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ShortsPlanResult | null>(null);
-  const [added, setAdded] = useState(false);
-
-  // Transcript fetch (verify-or-redo): pull captions from the URL, confirm we
-  // got them, and only then proceed — otherwise the user pastes manually.
-  const [fetching, setFetching] = useState(false);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-  const [fetchOk, setFetchOk] = useState<number | null>(null);
-
-  const onFetch = async () => {
-    if (!videoUrl.trim()) return;
-    setFetching(true);
-    setFetchError(null);
-    setFetchOk(null);
-    try {
-      const res = await fetchTranscript(videoUrl.trim());
-      setTranscript(res.transcript);
-      setFetchOk(res.cueCount); // verified: N captions
-    } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'Could not fetch transcript.');
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  const submit = async () => {
-    setLoading(true);
-    setError(null);
-    setAdded(false);
-    try {
-      const res = await planShortsFromVideo({
-        transcript,
-        videoUrl: videoUrl || undefined,
-        count,
-        audience,
-      });
-      setResult(res);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to plan shorts.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addToCalendar = () => {
-    if (!result) return;
-    createShortDrafts(
-      result.shorts.map((s) => ({ hook: s.hook, caption: s.caption, startSeconds: s.startSeconds })),
-      { platform: 'youtube', audience, videoUrl: videoUrl || undefined },
-    );
-    setAdded(true);
-  };
-
-  const limit = getPlatformMeta('youtube').characterLimit;
+  const vts = useVideoToShorts();
 
   return (
     <Card as="section" aria-label="Video to shorts" className="space-y-4 p-4">
@@ -132,43 +26,14 @@ export function VideoToShorts() {
         </div>
       </header>
 
-      <div>
-        <Label htmlFor="video-url">YouTube URL (optional)</Label>
-        <div className="flex gap-2">
-          <Input
-            id="video-url"
-            placeholder="https://www.youtube.com/watch?v=…"
-            value={videoUrl}
-            onChange={(e) => {
-              setVideoUrl(e.target.value);
-              setFetchOk(null);
-              setFetchError(null);
-            }}
-          />
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="shrink-0"
-            disabled={!videoUrl.trim()}
-            loading={fetching}
-            onClick={onFetch}
-          >
-            {!fetching && <VideoIcon width={14} height={14} />}
-            {fetching ? 'Fetching…' : 'Fetch transcript'}
-          </Button>
-        </div>
-        {fetchOk !== null && (
-          <p data-testid="fetch-ok" className="mt-1 text-[11px] text-status-published">
-            ✓ Verified — fetched {fetchOk} captions. Review below, then plan your shorts.
-          </p>
-        )}
-        {fetchError && (
-          <p data-testid="fetch-error" className="mt-1 text-[11px] text-status-brief">
-            {fetchError}
-          </p>
-        )}
-      </div>
+      <TranscriptFetcher
+        videoUrl={vts.videoUrl}
+        fetching={vts.fetching}
+        fetchOk={vts.fetchOk}
+        fetchError={vts.fetchError}
+        onUrlChange={vts.setVideoUrl}
+        onFetch={vts.fetchTranscriptFromUrl}
+      />
 
       <div>
         <Label htmlFor="transcript">
@@ -179,93 +44,51 @@ export function VideoToShorts() {
           rows={7}
           className="font-mono text-[11px]"
           placeholder={'0:00 Welcome back…\n0:42 The key finding is…\n2:15 Here\'s why it matters…'}
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
+          value={vts.transcript}
+          onChange={(e) => vts.setTranscript(e.target.value)}
         />
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="How many shorts" htmlFor="shorts-count">
-          <Select
-            id="shorts-count"
-            value={count}
-            onChange={(e) => setCount(Number(e.target.value))}
-          >
+          <Select id="shorts-count" value={vts.count} onChange={(e) => vts.setCount(Number(e.target.value))}>
             {COUNTS.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </Select>
         </Field>
         <Field label="Audience" htmlFor="shorts-audience">
           <Select
             id="shorts-audience"
-            value={audience}
-            onChange={(e) => setAudience(e.target.value as ThreadAudience)}
+            value={vts.audience}
+            onChange={(e) => vts.setAudience(e.target.value as ThreadAudience)}
           >
             {THREAD_AUDIENCES.map((a) => (
-              <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
+              <option key={a} value={a}>
+                {a[0].toUpperCase() + a.slice(1)}
+              </option>
             ))}
           </Select>
         </Field>
       </div>
 
-      <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
-        {!loading && <VideoIcon width={16} height={16} />}
-        {loading ? 'Planning…' : 'Plan shorts'}
+      <Button className="w-full sm:w-auto" onClick={vts.planShorts} loading={vts.planning}>
+        {!vts.planning && <VideoIcon width={16} height={16} />}
+        {vts.planning ? 'Planning…' : 'Plan shorts'}
       </Button>
 
-      {error && <ErrorState message={error} onRetry={submit} />}
+      {vts.planError && <ErrorState message={vts.planError} onRetry={vts.planShorts} />}
 
-      {result && !error && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">
-              {result.shorts.length} clip{result.shorts.length > 1 ? 's' : ''} · via {result.source}
-            </p>
-            <Button variant="secondary" size="sm" onClick={addToCalendar}>
-              <PlusIcon width={14} height={14} /> Add to Drafting
-            </Button>
-          </div>
-
-          <ol data-testid="shorts-plan" className="space-y-2">
-            {result.shorts.map((s, i) => (
-              <li key={s.id} className="rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-xs font-medium text-slate-200">
-                    <span className="flex h-5 w-5 items-center justify-center rounded bg-brand-600/20 text-[11px] text-brand-400">
-                      {i + 1}
-                    </span>
-                    {s.title}
-                  </span>
-                  {s.timeRange ? (
-                    <span className="shrink-0 rounded bg-surface-700 px-1.5 py-0.5 font-mono text-[10px] text-slate-300">
-                      {s.timeRange}
-                    </span>
-                  ) : (
-                    <span className="shrink-0 text-[10px] text-slate-500">no timestamps</span>
-                  )}
-                </div>
-                <p className="mt-1.5 text-xs italic text-slate-300">“{s.hook}”</p>
-                <p className="mt-1 line-clamp-3 text-[11px] leading-relaxed text-slate-400">{s.caption}</p>
-                <span className="mt-1 block text-[10px] text-slate-500">{s.caption.length}/{limit}</span>
-                {s.startSeconds !== undefined && s.endSeconds !== undefined && (
-                  <ClipRecipeBlock
-                    startSeconds={s.startSeconds}
-                    endSeconds={s.endSeconds}
-                    index={i + 1}
-                    videoUrl={videoUrl || undefined}
-                  />
-                )}
-              </li>
-            ))}
-          </ol>
-
-          {added && (
-            <p data-testid="shorts-added" className="text-xs text-status-published">
-              ✓ Added {result.shorts.length} YouTube short{result.shorts.length > 1 ? 's' : ''} to your Drafting column.
-            </p>
-          )}
-        </div>
+      {vts.result && !vts.planError && (
+        <ShortsPlan
+          result={vts.result}
+          limit={vts.limit}
+          videoUrl={vts.videoUrl || undefined}
+          added={vts.added}
+          onAdd={vts.addToCalendar}
+        />
       )}
     </Card>
   );
