@@ -1,245 +1,51 @@
-import { useEffect, useState } from 'react';
-import type { ContentItem, ContentItemWithVariants, ContentVariant } from '../content/contentTypes';
-import { VARIANT_CHANNELS, VARIANT_FORMATS, exportBlockers } from '../content/contentTypes';
-import { contentClient } from '../content/contentClient';
 import { VariantDrawer } from './VariantDrawer';
 import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
 import { ContentTable } from './ContentTable';
-import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
-import { Badge, Button, Card, ErrorState, Heading, LoadingState, Select } from './ui';
-import { downloadContentIcs } from '../lib/ics';
-import { downloadContentCsv } from '../lib/csv';
+import { ErrorState, LoadingState } from './ui';
+import { ContentItemsHeader, ItemCard, useContentItems } from './content-items';
 
 /**
  * Content view: one idea (ContentItem) with its many channel/format variants.
- * Clicking a variant opens the editor drawer on the right — the list stays
- * visible — where it can be edited, reviewed and (once cleared) exported.
+ * Clicking a variant opens the editor drawer on the right. A presentational
+ * shell; loading, the open variant, and edits live in `useContentItems`.
  */
 export function ContentItems() {
-  const [items, setItems] = useState<ContentItemWithVariants[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [refresh, setRefresh] = useState(0);
-  const [mode, setMode] = useState<'list' | 'board' | 'table'>('list');
-  const [campaigns, setCampaigns] = useState<Map<string, string>>(new Map());
+  const c = useContentItems();
 
-  useEffect(() => {
-    contentClient
-      .listCampaigns()
-      .then((cs) => setCampaigns(new Map(cs.map((c) => [c.id, c.title]))))
-      .catch(() => setCampaigns(new Map()));
-  }, []);
-
-  const load = () => {
-    setLoading(true);
-    setError(null);
-    contentClient
-      .listItems()
-      .then(setItems)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load content.'))
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(load, []);
-
-  const replaceVariant = (next: ContentVariant) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === next.contentItemId
-          ? { ...item, variants: item.variants.map((v) => (v.id === next.id ? next : v)) }
-          : item,
-      ),
-    );
-    setRefresh((n) => n + 1); // re-fetch the agenda (schedule/publish may have changed)
-  };
-
-  const addVariant = (next: ContentVariant) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === next.contentItemId ? { ...item, variants: [...item.variants, next] } : item,
-      ),
-    );
-    setOpenId(next.id); // open the new variant for editing
-  };
-
-  const open = items.flatMap((i) => i.variants.map((v) => ({ item: i, variant: v }))).find((p) => p.variant.id === openId);
-
-  if (loading) return <LoadingState label="Loading content…" />;
-  if (error) return <ErrorState message={error} onRetry={load} />;
+  if (c.loading) return <LoadingState label="Loading content…" />;
+  if (c.error) return <ErrorState message={c.error} onRetry={c.load} />;
 
   return (
     <div className="space-y-5">
-      <header className="flex items-center gap-2">
-        <SparkleIcon width={20} height={20} className="text-brand-400" />
-        <div>
-          <h1 className="text-base font-semibold text-slate-200">Content</h1>
-          <p className="text-xs text-slate-500">
-            One idea, many variants. Click a variant to edit, review and export it in the side panel.
-          </p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => downloadContentCsv(items)}
-            title="Export the content plan as a .csv spreadsheet"
-          >
-            Export .csv
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={async () => downloadContentIcs(await contentClient.calendarFeed())}
-            title="Export scheduled content as an .ics calendar"
-          >
-            Export .ics
-          </Button>
-          <div className="inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
-            {(['list', 'board', 'table'] as const).map((m) => (
-              <button
-                key={m}
-                role="tab"
-                aria-selected={mode === m}
-                onClick={() => setMode(m)}
-                className={`rounded-md px-2.5 py-1 text-xs capitalize ${
-                  mode === m ? 'bg-surface-700 text-slate-100' : 'text-slate-400'
-                }`}
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
+      <ContentItemsHeader mode={c.mode} onMode={c.setMode} onExportCsv={c.exportCsv} onExportIcs={c.exportIcs} />
 
-      <ScheduledAgenda refreshKey={refresh} onSelect={setOpenId} />
+      <ScheduledAgenda refreshKey={c.refresh} onSelect={c.setOpenId} />
 
-      {mode === 'board' && <ContentBoard items={items} onOpen={setOpenId} />}
+      {c.mode === 'board' && <ContentBoard items={c.items} onOpen={c.setOpenId} />}
 
-      {mode === 'table' && <ContentTable items={items} onOpen={setOpenId} campaigns={campaigns} />}
+      {c.mode === 'table' && <ContentTable items={c.items} onOpen={c.setOpenId} campaigns={c.campaigns} />}
 
-      {mode === 'list' && items.map((item) => (
-        <Card as="section" key={item.id} aria-label={item.title} className="space-y-3 p-4">
-          <div>
-            <Heading>{item.title}</Heading>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {item.campaignId && <Badge>📁 {campaigns.get(item.campaignId) ?? item.campaignId}</Badge>}
-              <Badge>{item.pillar}</Badge>
-              <Badge>{item.audience}</Badge>
-              <Badge>evidence: {item.evidenceLevel}</Badge>
-              <Badge>claim risk: {item.claimRisk}</Badge>
-            </div>
-          </div>
-          <ul className="space-y-2">
-            {item.variants.map((v) => {
-              const cleared = exportBlockers(v).length === 0;
-              return (
-                <li key={v.id}>
-                  <button
-                    data-testid="variant-row"
-                    onClick={() => setOpenId(v.id)}
-                    className="flex w-full flex-wrap items-center gap-2 rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2 text-left hover:border-vahtian-accent"
-                  >
-                    <span className="font-mono text-xs text-slate-300">{v.channel} · {v.format}</span>
-                    <span data-testid="variant-status" className="text-[11px] uppercase tracking-wide text-slate-500">{v.status}</span>
-                    {cleared ? (
-                      <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-status-published"><CheckIcon width={12} height={12} /> cleared</span>
-                    ) : (
-                      <span className="ml-auto inline-flex items-center gap-1 text-[11px] text-status-overdue"><AlertIcon width={12} height={12} /> blocked</span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          <AddVariant item={item} onAdded={addVariant} />
-        </Card>
-      ))}
+      {c.mode === 'list' &&
+        c.items.map((item) => (
+          <ItemCard
+            key={item.id}
+            item={item}
+            campaigns={c.campaigns}
+            onOpenVariant={c.setOpenId}
+            onVariantAdded={c.addVariant}
+          />
+        ))}
 
-      {open && (
+      {c.open && (
         <VariantDrawer
-          item={open.item}
-          variant={open.variant}
+          item={c.open.item}
+          variant={c.open.variant}
           open={true}
-          onClose={() => setOpenId(null)}
-          onChange={replaceVariant}
+          onClose={() => c.setOpenId(null)}
+          onChange={c.replaceVariant}
         />
       )}
-    </div>
-  );
-}
-
-/** Add a new channel/format variant to an item — optionally seeded from an existing one. */
-function AddVariant({
-  item,
-  onAdded,
-}: {
-  item: ContentItem & { variants: ContentVariant[] };
-  onAdded: (v: ContentVariant) => void;
-}) {
-  const [openForm, setOpenForm] = useState(false);
-  const [channel, setChannel] = useState('linkedin');
-  const [format, setFormat] = useState('post');
-  const [copyFrom, setCopyFrom] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const add = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const src = item.variants.find((v) => v.id === copyFrom);
-      onAdded(
-        await contentClient.addVariant(item.id, {
-          channel,
-          format,
-          body: src?.body ?? '',
-          hook: src?.hook,
-          hashtags: src?.hashtags,
-        }),
-      );
-      setOpenForm(false);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to add variant.');
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (!openForm) {
-    return (
-      <Button variant="secondary" size="sm" onClick={() => setOpenForm(true)}>
-        <PlusIcon width={13} height={13} /> Add variant
-      </Button>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-surface-600 p-2">
-      <label className="text-[11px] text-slate-400">
-        Channel
-        <Select className="mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
-          {VARIANT_CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
-        </Select>
-      </label>
-      <label className="text-[11px] text-slate-400">
-        Format
-        <Select className="mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
-          {VARIANT_FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </Select>
-      </label>
-      <label className="text-[11px] text-slate-400">
-        Copy text from
-        <Select className="mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
-          <option value="">(blank)</option>
-          {item.variants.map((v) => <option key={v.id} value={v.id}>{v.channel} · {v.format}</option>)}
-        </Select>
-      </label>
-      <Button size="sm" loading={busy} onClick={add}>Add</Button>
-      <Button variant="secondary" size="sm" onClick={() => setOpenForm(false)}>Cancel</Button>
-      {error && <span className="text-xs text-status-overdue">{error}</span>}
     </div>
   );
 }
