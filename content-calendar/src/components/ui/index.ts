@@ -18,6 +18,8 @@ export {
 } from './Card';
 export { Badge, type BadgeProps, type BadgeTone, type BadgeSize } from './Badge';
 export { Field, Label, Input, Textarea, Select } from './Field';
+export { ToggleGroup, type ToggleGroupProps, type ToggleOption } from './ToggleGroup';
+export { Callout, type CalloutProps, type CalloutTone } from './Callout';
 export { Heading, Text, type HeadingLevel, type TextVariant } from './Typography';
 
 // Existing primitives, surfaced through the same entry point.
