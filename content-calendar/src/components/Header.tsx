@@ -5,6 +5,7 @@ import type { View } from './Sidebar';
 import { getTheme, toggleTheme, type Theme } from '../lib/theme';
 import { MoonIcon, SunIcon } from './icons';
 import { ConnectionStatus } from './ConnectionStatus';
+import { Button } from './ui';
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
   home: { title: 'Home', subtitle: 'Set up the app and see what needs your attention' },
@@ -58,15 +59,15 @@ function ThemeToggle() {
   const [theme, setLocalTheme] = useState<Theme>(() => getTheme());
   const isDark = theme === 'dark';
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      className="px-2"
       onClick={() => setLocalTheme(toggleTheme())}
-      className="btn-ghost px-2"
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
       {isDark ? <SunIcon /> : <MoonIcon />}
-    </button>
+    </Button>
   );
 }
 

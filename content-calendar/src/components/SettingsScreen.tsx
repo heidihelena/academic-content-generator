@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ConnectionsReport, LocalSettings } from '../lib/api';
 import { fetchConnectionsState } from '../lib/connections';
 import { fetchSettings, saveSettings } from '../lib/settings';
-import { Card, ErrorState, Heading, LoadingState, Spinner } from './ui';
+import { Button, Card, ErrorState, Heading, Input, LoadingState, Select } from './ui';
 import { BookIcon, CheckIcon } from './icons';
 
 /**
@@ -124,10 +124,10 @@ function SettingsCard({
 
       {editable ? (
         <div className="flex items-center gap-3">
-          <button className="btn-primary py-1.5 text-xs" onClick={onSave} disabled={saving}>
-            {saving ? <Spinner size={14} label="Saving" /> : <CheckIcon width={14} height={14} />}
+          <Button size="sm" onClick={onSave} loading={saving}>
+            {!saving && <CheckIcon width={14} height={14} />}
             {saving ? 'Saving…' : 'Save settings'}
-          </button>
+          </Button>
           {saved && (
             <span className="text-[11px] text-emerald-400" role="status">
               Saved — restart the server to apply.
@@ -173,9 +173,8 @@ function TextField({
   return (
     <label className={span ? 'sm:col-span-2' : undefined}>
       <span className="text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-      <input
-        className="input mt-1 font-mono text-xs"
-        type="text"
+      <Input
+        className="mt-1 font-mono text-xs"
         aria-label={label}
         value={value}
         placeholder={placeholder}
@@ -202,8 +201,8 @@ function SelectField({
   return (
     <label>
       <span className="text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-      <select
-        className="input mt-1 text-xs"
+      <Select
+        className="mt-1 text-xs"
         aria-label={label}
         value={value}
         disabled={disabled}
@@ -214,7 +213,7 @@ function SelectField({
             {o}
           </option>
         ))}
-      </select>
+      </Select>
     </label>
   );
 }

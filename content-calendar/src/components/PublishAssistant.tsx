@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { ContentVariant, PublishLogEntry } from '../content/contentTypes';
 import { CheckIcon } from './icons';
-import { Spinner } from './ui/Spinner';
+import { Button, Input } from './ui';
 
 /**
  * Copy & record helper: copy the approved text out, post it by hand, then
@@ -77,23 +77,23 @@ export function PublishAssistant({ variant }: { variant: ContentVariant }) {
       </div>
 
       <div className="space-y-1.5">
-        <input
-          className="input w-full text-xs"
+        <Input
+          className="w-full text-xs"
           placeholder="Published URL (optional)"
           aria-label="Published URL"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
         />
-        <input
-          className="input w-full text-xs"
+        <Input
+          className="w-full text-xs"
           placeholder="Notes (optional)"
           aria-label="Publish notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
         />
-        <button className="btn-secondary py-1 text-xs" disabled={busy} onClick={record}>
-          {busy ? <Spinner size={12} label="Recording" /> : null} Mark published
-        </button>
+        <Button variant="secondary" size="sm" loading={busy} onClick={record}>
+          Mark published
+        </Button>
       </div>
 
       {error && <p className="text-xs text-status-overdue">{error}</p>}
@@ -120,8 +120,8 @@ export function PublishAssistant({ variant }: { variant: ContentVariant }) {
 
 function CopyButton({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
   return (
-    <button className="btn-secondary py-1 text-xs" onClick={onClick}>
+    <Button variant="secondary" size="sm" onClick={onClick}>
       {active ? <><CheckIcon width={12} height={12} /> Copied</> : label}
-    </button>
+    </Button>
   );
 }

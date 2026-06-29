@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { CommentEntry } from '../content/contentTypes';
-import { Spinner } from './ui/Spinner';
+import { Button, Textarea } from './ui';
 
 /**
  * The collaboration thread on a content item — review notes, hand-off context,
@@ -61,17 +61,17 @@ export function CommentsSection({ itemId }: { itemId: string }) {
       )}
 
       <div className="space-y-1.5">
-        <textarea
-          className="input w-full text-xs"
+        <Textarea
+          className="w-full text-xs"
           rows={2}
           placeholder="Add a note…"
           aria-label="Add a comment"
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
-        <button className="btn-secondary py-1 text-xs" disabled={busy || !body.trim()} onClick={add}>
-          {busy ? <Spinner size={12} label="Posting" /> : null} Comment
-        </button>
+        <Button variant="secondary" size="sm" disabled={!body.trim()} loading={busy} onClick={add}>
+          Comment
+        </Button>
       </div>
 
       {error && <p className="text-xs text-status-overdue">{error}</p>}

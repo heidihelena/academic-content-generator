@@ -7,7 +7,7 @@ import { fetchTranscript } from '../lib/transcript';
 import { getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { VideoIcon, PlusIcon } from './icons';
-import { Card, ErrorState, Heading, Spinner } from './ui';
+import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea } from './ui';
 
 const COUNTS = [3, 4, 5, 6];
 
@@ -35,13 +35,14 @@ function ClipRecipeBlock(props: { startSeconds: number; endSeconds: number; inde
           <pre className="overflow-x-auto rounded bg-surface-950 p-2 text-[10px] leading-relaxed text-slate-300">
             {commands}
           </pre>
-          <button
+          <Button
             type="button"
-            className="btn-ghost py-1 text-[11px]"
+            variant="ghost"
+            size="sm"
             onClick={() => navigator.clipboard?.writeText(commands)}
           >
             Copy commands
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -132,11 +133,10 @@ export function VideoToShorts() {
       </header>
 
       <div>
-        <label htmlFor="video-url" className="label">YouTube URL (optional)</label>
+        <Label htmlFor="video-url">YouTube URL (optional)</Label>
         <div className="flex gap-2">
-          <input
+          <Input
             id="video-url"
-            className="input"
             placeholder="https://www.youtube.com/watch?v=…"
             value={videoUrl}
             onChange={(e) => {
@@ -145,15 +145,18 @@ export function VideoToShorts() {
               setFetchError(null);
             }}
           />
-          <button
+          <Button
             type="button"
-            className="btn-secondary shrink-0 py-1.5 text-xs"
-            disabled={!videoUrl.trim() || fetching}
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            disabled={!videoUrl.trim()}
+            loading={fetching}
             onClick={onFetch}
           >
-            {fetching ? <Spinner size={14} label="Fetching" /> : <VideoIcon width={14} height={14} />}
+            {!fetching && <VideoIcon width={14} height={14} />}
             {fetching ? 'Fetching…' : 'Fetch transcript'}
-          </button>
+          </Button>
         </div>
         {fetchOk !== null && (
           <p data-testid="fetch-ok" className="mt-1 text-[11px] text-status-published">
@@ -168,13 +171,13 @@ export function VideoToShorts() {
       </div>
 
       <div>
-        <label htmlFor="transcript" className="label">
+        <Label htmlFor="transcript">
           Transcript <span className="font-normal text-slate-500">— paste with timestamps for real cut points</span>
-        </label>
-        <textarea
+        </Label>
+        <Textarea
           id="transcript"
           rows={7}
-          className="input resize-none font-mono text-[11px]"
+          className="font-mono text-[11px]"
           placeholder={'0:00 Welcome back…\n0:42 The key finding is…\n2:15 Here\'s why it matters…'}
           value={transcript}
           onChange={(e) => setTranscript(e.target.value)}
@@ -182,38 +185,34 @@ export function VideoToShorts() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="shorts-count" className="label">How many shorts</label>
-          <select
+        <Field label="How many shorts" htmlFor="shorts-count">
+          <Select
             id="shorts-count"
-            className="input"
             value={count}
             onChange={(e) => setCount(Number(e.target.value))}
           >
             {COUNTS.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="shorts-audience" className="label">Audience</label>
-          <select
+          </Select>
+        </Field>
+        <Field label="Audience" htmlFor="shorts-audience">
+          <Select
             id="shorts-audience"
-            className="input"
             value={audience}
             onChange={(e) => setAudience(e.target.value as ThreadAudience)}
           >
             {THREAD_AUDIENCES.map((a) => (
               <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       </div>
 
-      <button className="btn-primary w-full sm:w-auto" onClick={submit} disabled={loading}>
-        {loading ? <Spinner size={16} label="Planning" /> : <VideoIcon width={16} height={16} />}
+      <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
+        {!loading && <VideoIcon width={16} height={16} />}
         {loading ? 'Planning…' : 'Plan shorts'}
-      </button>
+      </Button>
 
       {error && <ErrorState message={error} onRetry={submit} />}
 
@@ -223,9 +222,9 @@ export function VideoToShorts() {
             <p className="text-xs text-slate-500">
               {result.shorts.length} clip{result.shorts.length > 1 ? 's' : ''} · via {result.source}
             </p>
-            <button className="btn-secondary py-1.5 text-xs" onClick={addToCalendar}>
+            <Button variant="secondary" size="sm" onClick={addToCalendar}>
               <PlusIcon width={14} height={14} /> Add to Drafting
-            </button>
+            </Button>
           </div>
 
           <ol data-testid="shorts-plan" className="space-y-2">

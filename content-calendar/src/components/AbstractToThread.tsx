@@ -5,7 +5,7 @@ import { draftThread } from '../ai/threadService';
 import { PLATFORMS, getPlatformMeta } from '../lib/platforms';
 import { useStore } from '../store/useStore';
 import { PLATFORM_GLYPHS, BookIcon, PlusIcon } from './icons';
-import { Card, ErrorState, Heading, Spinner } from './ui';
+import { Button, Card, ErrorState, Field, Heading, Input, Label, Select, Textarea } from './ui';
 
 /** Tomorrow at 09:00 local — a sensible default slot for a fresh draft thread. */
 function tomorrowMorning(): string {
@@ -75,46 +75,40 @@ export function AbstractToThread() {
         </div>
       </header>
 
-      <div>
-        <label htmlFor="abstract" className="label">Abstract</label>
-        <textarea
+      <Field label="Abstract" htmlFor="abstract">
+        <Textarea
           id="abstract"
           rows={6}
-          className="input resize-none"
           placeholder="Paste your paper abstract here…"
           value={abstract}
           onChange={(e) => setAbstract(e.target.value)}
         />
-      </div>
+      </Field>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="thread-audience" className="label">Audience</label>
-          <select
+        <Field label="Audience" htmlFor="thread-audience">
+          <Select
             id="thread-audience"
-            className="input"
             value={audience}
             onChange={(e) => setAudience(e.target.value as ThreadAudience)}
           >
             {THREAD_AUDIENCES.map((a) => (
               <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="thread-source" className="label">Source link (optional)</label>
-          <input
+          </Select>
+        </Field>
+        <Field label="Source link (optional)" htmlFor="thread-source">
+          <Input
             id="thread-source"
-            className="input"
             placeholder="https://doi.org/…"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
           />
-        </div>
+        </Field>
       </div>
 
       <div>
-        <span className="label">Platform</span>
+        <Label>Platform</Label>
         <div className="flex gap-1.5">
           {PLATFORMS.map((p) => {
             const Glyph = PLATFORM_GLYPHS[p];
@@ -135,10 +129,10 @@ export function AbstractToThread() {
         </div>
       </div>
 
-      <button className="btn-primary w-full sm:w-auto" onClick={submit} disabled={loading}>
-        {loading ? <Spinner size={16} label="Drafting" /> : <BookIcon width={16} height={16} />}
+      <Button className="w-full sm:w-auto" onClick={submit} loading={loading}>
+        {!loading && <BookIcon width={16} height={16} />}
         {loading ? 'Drafting…' : 'Draft thread'}
-      </button>
+      </Button>
 
       {error && <ErrorState message={error} onRetry={submit} />}
 
@@ -148,9 +142,9 @@ export function AbstractToThread() {
             <p className="text-xs text-slate-500">
               {result.parts.length}-part thread for {getPlatformMeta(platform).name} · via {result.source}
             </p>
-            <button className="btn-secondary py-1.5 text-xs" onClick={addToCalendar}>
+            <Button variant="secondary" size="sm" onClick={addToCalendar}>
               <PlusIcon width={14} height={14} /> Add to Drafting
-            </button>
+            </Button>
           </div>
 
           <ol data-testid="thread-preview" className="space-y-2">

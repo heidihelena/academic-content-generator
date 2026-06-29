@@ -2,6 +2,7 @@ import { useStore } from '../../store/useStore';
 import { formatWeekRange } from '../../lib/dateUtils';
 import { addDays, addMonths, formatDayLabel, formatMonthLabel } from '../../lib/calendarViews';
 import { ChevronLeft, ChevronRight } from '../icons';
+import { Button } from '../ui';
 
 /**
  * Prev / next / today + the current range label. Labels and the range testid
@@ -28,15 +29,15 @@ export function DateNavigator() {
 
   return (
     <div className="flex items-center gap-2">
-      <button className="btn-secondary px-2 py-1.5" aria-label={`Previous ${unit}`} onClick={() => step(-1)}>
+      <Button variant="secondary" size="sm" className="px-2" aria-label={`Previous ${unit}`} onClick={() => step(-1)}>
         <ChevronLeft />
-      </button>
-      <button className="btn-secondary px-2 py-1.5" aria-label={`Next ${unit}`} onClick={() => step(1)}>
+      </Button>
+      <Button variant="secondary" size="sm" className="px-2" aria-label={`Next ${unit}`} onClick={() => step(1)}>
         <ChevronRight />
-      </button>
-      <button className="btn-ghost text-xs" onClick={goToToday}>
+      </Button>
+      <Button variant="ghost" size="sm" onClick={goToToday}>
         Today
-      </button>
+      </Button>
       <h2 className="ml-1 text-sm font-semibold text-slate-200" data-testid={testid}>
         {label}
       </h2>

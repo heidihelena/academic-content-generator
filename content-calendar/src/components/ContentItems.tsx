@@ -7,7 +7,7 @@ import { ScheduledAgenda } from './ScheduledAgenda';
 import { ContentBoard } from './ContentBoard';
 import { ContentTable } from './ContentTable';
 import { SparkleIcon, CheckIcon, AlertIcon, PlusIcon } from './icons';
-import { Card, ErrorState, Heading, LoadingState } from './ui';
+import { Badge, Button, Card, ErrorState, Heading, LoadingState, Select } from './ui';
 import { downloadContentIcs } from '../lib/ics';
 import { downloadContentCsv } from '../lib/csv';
 
@@ -80,20 +80,22 @@ export function ContentItems() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button
-            className="btn-secondary py-1 text-xs"
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => downloadContentCsv(items)}
             title="Export the content plan as a .csv spreadsheet"
           >
             Export .csv
-          </button>
-          <button
-            className="btn-secondary py-1 text-xs"
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={async () => downloadContentIcs(await contentClient.calendarFeed())}
             title="Export scheduled content as an .ics calendar"
           >
             Export .ics
-          </button>
+          </Button>
           <div className="inline-flex rounded-lg border border-surface-700 p-0.5" role="tablist" aria-label="Content view">
             {(['list', 'board', 'table'] as const).map((m) => (
               <button
@@ -123,11 +125,11 @@ export function ContentItems() {
           <div>
             <Heading>{item.title}</Heading>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {item.campaignId && <Chip>📁 {campaigns.get(item.campaignId) ?? item.campaignId}</Chip>}
-              <Chip>{item.pillar}</Chip>
-              <Chip>{item.audience}</Chip>
-              <Chip>evidence: {item.evidenceLevel}</Chip>
-              <Chip>claim risk: {item.claimRisk}</Chip>
+              {item.campaignId && <Badge>📁 {campaigns.get(item.campaignId) ?? item.campaignId}</Badge>}
+              <Badge>{item.pillar}</Badge>
+              <Badge>{item.audience}</Badge>
+              <Badge>evidence: {item.evidenceLevel}</Badge>
+              <Badge>claim risk: {item.claimRisk}</Badge>
             </div>
           </div>
           <ul className="space-y-2">
@@ -166,12 +168,6 @@ export function ContentItems() {
         />
       )}
     </div>
-  );
-}
-
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full bg-surface-800 px-2 py-0.5 text-[11px] font-medium text-slate-400">{children}</span>
   );
 }
 
@@ -214,9 +210,9 @@ function AddVariant({
 
   if (!openForm) {
     return (
-      <button className="btn-secondary py-1 text-xs" onClick={() => setOpenForm(true)}>
+      <Button variant="secondary" size="sm" onClick={() => setOpenForm(true)}>
         <PlusIcon width={13} height={13} /> Add variant
-      </button>
+      </Button>
     );
   }
 
@@ -224,25 +220,25 @@ function AddVariant({
     <div className="flex flex-wrap items-end gap-2 rounded-lg border border-dashed border-surface-600 p-2">
       <label className="text-[11px] text-slate-400">
         Channel
-        <select className="input mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={channel} onChange={(e) => setChannel(e.target.value)}>
           {VARIANT_CHANNELS.map((c) => <option key={c} value={c}>{c}</option>)}
-        </select>
+        </Select>
       </label>
       <label className="text-[11px] text-slate-400">
         Format
-        <select className="input mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={format} onChange={(e) => setFormat(e.target.value)}>
           {VARIANT_FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
-        </select>
+        </Select>
       </label>
       <label className="text-[11px] text-slate-400">
         Copy text from
-        <select className="input mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
+        <Select className="mt-0.5 py-1 text-xs" value={copyFrom} onChange={(e) => setCopyFrom(e.target.value)}>
           <option value="">(blank)</option>
           {item.variants.map((v) => <option key={v.id} value={v.id}>{v.channel} · {v.format}</option>)}
-        </select>
+        </Select>
       </label>
-      <button className="btn-primary py-1 text-xs" disabled={busy} onClick={add}>Add</button>
-      <button className="btn-secondary py-1 text-xs" onClick={() => setOpenForm(false)}>Cancel</button>
+      <Button size="sm" loading={busy} onClick={add}>Add</Button>
+      <Button variant="secondary" size="sm" onClick={() => setOpenForm(false)}>Cancel</Button>
       {error && <span className="text-xs text-status-overdue">{error}</span>}
     </div>
   );

@@ -4,8 +4,7 @@ import { sourceMaterial } from '../sources/sourcesTypes';
 import type { StudioSeed } from '../studio/studioTypes';
 import { repurposeSource, type RepurposeResult } from '../repurpose/repurposeSource';
 import type { CarouselDeck } from '../carousel/carouselClient';
-import { Spinner } from './ui/Spinner';
-import { ErrorState } from './ui/States';
+import { Button, ErrorState, Spinner } from './ui';
 
 interface RepurposePanelProps {
   source: Source;
@@ -77,12 +76,14 @@ export function RepurposePanel({ source, onDraft }: RepurposePanelProps) {
                   </div>
                   <p className="mt-1 line-clamp-2 text-xs text-slate-400">{idea.hook}</p>
                 </div>
-                <button
-                  className="btn-secondary shrink-0 py-1 text-xs"
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="shrink-0"
                   onClick={() => onDraft({ title: idea.angle, material: `${idea.hook}\n\n${material}`, sourceId: source.id })}
                 >
                   Draft →
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -120,12 +121,13 @@ export function RepurposePanel({ source, onDraft }: RepurposePanelProps) {
             </ol>
             <div className="flex items-center justify-between gap-2">
               <p className="text-[11px] text-slate-500">{result.carousel.data.deck.slides.length} slides</p>
-              <button
-                className="btn-secondary py-1 text-xs"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => downloadDeck(result.carousel.status === 'ok' ? result.carousel.data.deck : ({} as CarouselDeck), source.title)}
               >
                 Download deck JSON
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -146,8 +148,9 @@ export function RepurposePanel({ source, onDraft }: RepurposePanelProps) {
                 </li>
               ))}
             </ol>
-            <button
-              className="btn-secondary py-1 text-xs"
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={() =>
                 onDraft({
                   title: source.title,
@@ -157,7 +160,7 @@ export function RepurposePanel({ source, onDraft }: RepurposePanelProps) {
               }
             >
               Draft from thread →
-            </button>
+            </Button>
           </div>
         )}
       </section>

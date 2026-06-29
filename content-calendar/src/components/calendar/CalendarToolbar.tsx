@@ -5,6 +5,7 @@ import { ViewSwitcher } from './ViewSwitcher';
 import { DateNavigator } from './DateNavigator';
 import { SearchBar } from './SearchBar';
 import { PlusIcon, AlertIcon, CalendarIcon } from '../icons';
+import { Button } from '../ui';
 
 interface Props {
   conflicts: ConflictPair[];
@@ -25,26 +26,24 @@ export function CalendarToolbar({ conflicts, onShowConflicts }: Props) {
       </div>
       <div className="flex items-center gap-2">
         <SearchBar />
-        <button
-          className="btn-secondary py-1.5 text-xs"
+        <Button
+          variant="secondary"
+          size="sm"
           title="Export the visible posts to your calendar (.ics)"
           onClick={() => downloadIcs(filteredPosts())}
         >
           <CalendarIcon width={14} height={14} /> Export .ics
-        </button>
+        </Button>
         {conflicts.length > 0 && (
-          <button
-            className="btn bg-status-failed/15 px-2.5 py-1.5 text-xs text-status-failed hover:bg-status-failed/25"
-            onClick={onShowConflicts}
-          >
+          <Button variant="danger" size="sm" className="px-2.5" onClick={onShowConflicts}>
             <AlertIcon width={14} height={14} />
             {conflicts.length} conflict{conflicts.length > 1 ? 's' : ''}
-          </button>
+          </Button>
         )}
         {canCreate && (
-          <button className="btn-primary py-1.5" onClick={() => openEditor()}>
+          <Button onClick={() => openEditor()}>
             <PlusIcon width={16} height={16} /> New post
-          </button>
+          </Button>
         )}
       </div>
     </div>

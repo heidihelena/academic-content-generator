@@ -2,6 +2,7 @@ import type { PostStatus } from '../types';
 import { useStore } from '../store/useStore';
 import { STAGE_ORDER, STAGE_META } from '../lib/pipeline';
 import { TrashIcon, CloseIcon } from './icons';
+import { Button, Select } from './ui';
 
 const STATUSES: PostStatus[] = [...STAGE_ORDER, 'failed'];
 
@@ -30,7 +31,7 @@ export function BulkActionBar() {
       </span>
 
       {permissions.canBulk && (
-        <select
+        <Select
           aria-label="Set status for selected"
           defaultValue=""
           onChange={(e) => {
@@ -39,7 +40,7 @@ export function BulkActionBar() {
               e.target.value = '';
             }
           }}
-          className="input w-auto py-1.5 text-xs"
+          className="w-auto py-1.5 text-xs"
         >
           <option value="" disabled>
             Mark as…
@@ -49,18 +50,18 @@ export function BulkActionBar() {
               {STAGE_META[s].label}
             </option>
           ))}
-        </select>
+        </Select>
       )}
 
       {permissions.canDelete && (
-        <button className="btn-danger py-1.5 text-xs" onClick={bulkDelete}>
+        <Button variant="danger" size="sm" onClick={bulkDelete}>
           <TrashIcon width={14} height={14} /> Delete
-        </button>
+        </Button>
       )}
 
-      <button className="btn-ghost py-1.5 text-xs" onClick={clearSelection} aria-label="Clear selection">
+      <Button variant="ghost" size="sm" onClick={clearSelection} aria-label="Clear selection">
         <CloseIcon width={14} height={14} /> Clear
-      </button>
+      </Button>
     </div>
   );
 }

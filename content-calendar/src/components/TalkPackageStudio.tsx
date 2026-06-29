@@ -6,7 +6,7 @@ import {
 } from '../ai/talkPackageTypes';
 import { exportTalkPackage, generateTalkPackage } from '../ai/talkPackageService';
 import { SparkleIcon, BookIcon, VideoIcon, CheckIcon, AlertIcon } from './icons';
-import { Card, ErrorState, Heading, Spinner } from './ui';
+import { Button, Card, ErrorState, Field, Heading, Input, Select, Textarea } from './ui';
 
 const DURATIONS = [
   { min: 5, label: '5 min — lightning' },
@@ -69,73 +69,63 @@ export function TalkPackageStudio() {
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="tp-title" className="label">Title</label>
-          <input
+        <Field label="Title" htmlFor="tp-title">
+          <Input
             id="tp-title"
-            className="input"
             placeholder="Street trees and urban heat"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-        </div>
-        <div>
-          <label htmlFor="tp-url" className="label">Link (optional)</label>
-          <input
+        </Field>
+        <Field label="Link (optional)" htmlFor="tp-url">
+          <Input
             id="tp-url"
-            className="input"
             placeholder="https://doi.org/…"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
-        </div>
+        </Field>
       </div>
 
-      <div>
-        <label htmlFor="tp-abstract" className="label">Paper abstract</label>
-        <textarea
+      <Field label="Paper abstract" htmlFor="tp-abstract">
+        <Textarea
           id="tp-abstract"
           rows={5}
-          className="input resize-none"
           placeholder="Paste your paper abstract here…"
           value={abstract}
           onChange={(e) => setAbstract(e.target.value)}
         />
-      </div>
+      </Field>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label htmlFor="tp-audience" className="label">Audience</label>
-          <select
+        <Field label="Audience" htmlFor="tp-audience">
+          <Select
             id="tp-audience"
-            className="input"
             value={audience}
             onChange={(e) => setAudience(e.target.value as TalkAudience)}
           >
             {TALK_AUDIENCES.map((a) => (
               <option key={a} value={a}>{a[0].toUpperCase() + a.slice(1)}</option>
             ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="tp-duration" className="label">Talk length</label>
-          <select
+          </Select>
+        </Field>
+        <Field label="Talk length" htmlFor="tp-duration">
+          <Select
             id="tp-duration"
-            className="input"
             value={durationMin}
             onChange={(e) => setDurationMin(Number(e.target.value))}
           >
             {DURATIONS.map((d) => (
               <option key={d.min} value={d.min}>{d.label}</option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </Field>
       </div>
 
-      <button className="btn-primary w-full sm:w-auto" onClick={generate} disabled={loading}>
-        {loading ? <Spinner size={16} label="Generating" /> : <SparkleIcon width={16} height={16} />}
+      <Button className="w-full sm:w-auto" onClick={generate} loading={loading}>
+        {!loading && <SparkleIcon width={16} height={16} />}
         {loading ? 'Generating…' : 'Generate talk + shorts'}
-      </button>
+      </Button>
 
       {error && <ErrorState message={error} onRetry={generate} />}
 
@@ -193,9 +183,9 @@ export function TalkPackageStudio() {
           </ol>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button className="btn-secondary py-1.5 text-xs" onClick={exportVault}>
+            <Button variant="secondary" size="sm" onClick={exportVault}>
               <BookIcon width={14} height={14} /> Export to vault
-            </button>
+            </Button>
             {exported && (
               <span data-testid="export-done" className="text-xs text-status-published">
                 ✓ Wrote {exported.length} note{exported.length === 1 ? '' : 's'} to the vault.
