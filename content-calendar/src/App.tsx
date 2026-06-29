@@ -5,15 +5,13 @@ import { useRoute } from './lib/router';
 import { Header } from './components/Header';
 import { LibraryScreen, isLibraryView } from './components/LibraryScreen';
 import { Analytics } from './components/Analytics';
-import { GenerateIdeas } from './components/GenerateIdeas';
+import { IdeasScreen } from './components/IdeasScreen';
 import { SourceInbox } from './components/SourceInbox';
 import { DraftStudio } from './components/DraftStudio';
 import type { StudioSeed } from './studio/studioTypes';
-import { AbstractToThread } from './components/AbstractToThread';
-import { TalkPackageStudio } from './components/TalkPackageStudio';
 import { CampaignsView } from './components/CampaignsView';
 import { ConnectionsView } from './components/ConnectionsView';
-import { VideoToShorts } from './components/VideoToShorts';
+import { SettingsScreen } from './components/SettingsScreen';
 import { PostEditorDrawer } from './components/PostEditorDrawer';
 import { LoadingState, ErrorState } from './components/ui/States';
 
@@ -79,11 +77,13 @@ export default function App({ initialView = 'board' }: { initialView?: View } = 
                 </div>
               )}
               {view === 'ideas' && (
-                <div className="mx-auto max-w-3xl space-y-6">
-                  <TalkPackageStudio />
-                  <AbstractToThread />
-                  <VideoToShorts />
-                  <GenerateIdeas />
+                <div className="mx-auto max-w-3xl">
+                  <IdeasScreen />
+                </div>
+              )}
+              {view === 'settings' && (
+                <div className="mx-auto max-w-3xl">
+                  <SettingsScreen />
                 </div>
               )}
             </div>

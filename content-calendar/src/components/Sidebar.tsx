@@ -10,6 +10,7 @@ export type View =
   | 'campaigns'
   | 'analytics'
   | 'connections'
+  | 'settings'
   | 'ideas';
 
 type NavItem = { id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element };
@@ -49,6 +50,10 @@ const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
   {
     label: 'Measure',
     items: [{ id: 'analytics', label: 'Analytics', icon: ChartIcon }],
+  },
+  {
+    label: 'Setup',
+    items: [{ id: 'settings', label: 'Settings', icon: BookIcon }],
   },
 ];
 

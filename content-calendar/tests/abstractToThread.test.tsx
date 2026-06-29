@@ -32,6 +32,7 @@ describe('Abstract → thread', () => {
 
   it('drafts a thread from an abstract and adds it to Drafting', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Abstract → thread' }));
 
     fireEvent.change(screen.getByLabelText('Abstract'), { target: { value: ABSTRACT } });
     fireEvent.change(screen.getByLabelText('Source link (optional)'), {
@@ -58,6 +59,7 @@ describe('Abstract → thread', () => {
 
   it('surfaces an error for an empty abstract', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Abstract → thread' }));
     fireEvent.click(screen.getByRole('button', { name: /Draft thread/i }));
     expect(await screen.findByText(/Paste an abstract/i)).toBeInTheDocument();
   });
