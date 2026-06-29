@@ -12,48 +12,60 @@
    */
   :root {
     color-scheme: light;
-    /* surface = backgrounds: clean warm paper, cards lift toward white */
-    --surface-950: 244 241 234; /* page (paper) */
-    --surface-900: 249 247 241;
-    --surface-850: 253 252 248; /* cards */
+    /* forskai brand — research-workspace base: soft off-white paper, navy-violet ink.
+       surface = backgrounds (page → inputs); cards lift toward white. */
+    --surface-950: 246 246 242; /* page (soft off-white, --fs-bg) */
+    --surface-900: 241 241 236;
+    --surface-850: 253 253 250; /* cards (--fs-surface ramp) */
     --surface-800: 255 255 255; /* inputs */
-    --surface-700: 223 218 205; /* borders */
-    --surface-600: 205 198 182; /* hover / strong border */
-    --surface-500: 184 176 158; /* muted divider */
-    /* slate = text: dark ink (100 = darkest heading → 950 = lightest) */
-    --slate-50: 10 15 13;
-    --slate-100: 20 32 27; /* primary headings */
-    --slate-200: 35 46 41; /* body text */
-    --slate-300: 58 70 63; /* strong secondary */
-    --slate-400: 86 97 90;
-    --slate-500: 110 120 114; /* muted / labels / placeholders */
-    --slate-600: 136 144 137; /* faint */
-    --slate-700: 166 172 164;
-    --slate-800: 195 199 191;
-    --slate-900: 220 223 217;
-    --slate-950: 236 238 233;
+    --surface-700: 225 226 218; /* borders (--fs-border) */
+    --surface-600: 212 213 203; /* hover / strong border */
+    --surface-500: 194 195 184; /* muted divider */
+    /* slate = text: deep navy-violet ink (100 = darkest heading → 950 = lightest) */
+    --slate-50: 14 15 26;
+    --slate-100: 26 27 46; /* primary headings (--fs-ink) */
+    --slate-200: 38 39 58; /* body text */
+    --slate-300: 76 78 102; /* strong secondary (--fs-ink-soft) */
+    --slate-400: 94 96 117;
+    --slate-500: 117 120 140; /* muted / labels / placeholders (--fs-muted) */
+    --slate-600: 140 143 161; /* faint */
+    --slate-700: 166 168 182;
+    --slate-800: 195 196 206;
+    --slate-900: 220 221 227;
+    --slate-950: 236 236 240;
+    /* brand accents — teal = create (Forskai), violet = verify (*vahti) */
+    --brand-400: 44 140 132;
+    --brand-500: 31 114 107;
+    --brand-600: 24 91 85;
+    --verify-400: 122 110 198;
+    --verify-500: 91 79 166;
   }
 
   .dark {
     color-scheme: dark;
-    --surface-950: 11 18 16; /* page (ink) */
-    --surface-900: 16 24 20;
-    --surface-850: 23 33 29; /* cards (ink-raised) */
-    --surface-800: 29 40 35; /* inputs */
-    --surface-700: 40 51 46; /* borders */
-    --surface-600: 56 68 62; /* hover / strong border */
-    --surface-500: 77 90 83; /* muted divider */
+    --surface-950: 20 21 31; /* page (--fs-bg dark) */
+    --surface-900: 24 25 37;
+    --surface-850: 28 30 43; /* cards (--fs-surface dark) */
+    --surface-800: 36 38 54; /* inputs (--fs-surface-2) */
+    --surface-700: 46 48 66; /* borders (--fs-border dark) */
+    --surface-600: 60 62 82; /* hover / strong border */
+    --surface-500: 77 79 102; /* muted divider */
     --slate-50: 255 255 255;
-    --slate-100: 244 241 234; /* paper — primary headings */
-    --slate-200: 228 225 216; /* body text */
-    --slate-300: 201 203 195; /* paper-dim — strong secondary */
-    --slate-400: 154 163 156;
-    --slate-500: 130 139 134; /* slate — muted / labels / placeholders */
-    --slate-600: 106 115 109; /* faint */
-    --slate-700: 86 96 89;
-    --slate-800: 58 68 62;
-    --slate-900: 40 51 46;
-    --slate-950: 23 33 29;
+    --slate-100: 236 236 242; /* --fs-ink dark — primary headings */
+    --slate-200: 214 215 226; /* body text */
+    --slate-300: 183 185 201; /* --fs-ink-soft dark — strong secondary */
+    --slate-400: 154 156 176;
+    --slate-500: 138 141 160; /* --fs-muted dark — muted / labels */
+    --slate-600: 116 119 140; /* faint */
+    --slate-700: 94 96 118;
+    --slate-800: 68 70 92;
+    --slate-900: 46 48 66;
+    --slate-950: 36 38 54;
+    --brand-400: 111 199 188;
+    --brand-500: 79 179 168; /* --fs-create dark */
+    --brand-600: 44 140 132;
+    --verify-400: 178 167 235;
+    --verify-500: 154 140 224; /* --fs-verify dark */
   }
 
   html,

@@ -37,11 +37,18 @@ export default {
           900: 'rgb(var(--slate-900) / <alpha-value>)',
           950: 'rgb(var(--slate-950) / <alpha-value>)',
         },
+        // brand = teal (create / Forskai). CSS vars flip per theme (see index.css).
         brand: {
-          DEFAULT: '#46a085',
-          400: '#5fb89b', // aurora-soft — links, rings, the "ai" dot
-          500: '#46a085', // aurora
-          600: '#3c8a72', // deep aurora — primary buttons
+          DEFAULT: 'rgb(var(--brand-500) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)', // links, rings, the "ai" dot
+          500: 'rgb(var(--brand-500) / <alpha-value>)', // create
+          600: 'rgb(var(--brand-600) / <alpha-value>)', // primary buttons
+        },
+        // verify = violet (review / evidence / the *vahti family).
+        verify: {
+          DEFAULT: 'rgb(var(--verify-500) / <alpha-value>)',
+          400: 'rgb(var(--verify-400) / <alpha-value>)',
+          500: 'rgb(var(--verify-500) / <alpha-value>)',
         },
         // Vahtian — the academic-integrity accent. Used for the review &
         // evidence surfaces (claim/citation/safety review, audit trail,
@@ -58,16 +65,17 @@ export default {
           linkedin: '#0a66c2',
           threads: '#a855f7',
         },
-        // Pipeline/status hues, kept within the brand (aurora / amber / red / slate).
+        // Pipeline/status hues mapped to the brand verdict triad
+        // (PASS=green / RISK=amber / FAIL=red) plus teal create & violet verify.
         status: {
-          brief: '#e0a34b', // amber — needs work
-          draft: '#828b86', // slate — neutral WIP
-          review: '#5fb89b', // aurora-soft — in review
-          approved: '#46a085', // aurora — cleared
-          scheduled: '#5fb89b', // aurora-soft — queued
-          published: '#46a085', // aurora — live (PASS)
-          learn: '#828b86', // slate
-          failed: '#b75a64', // red (FAIL)
+          brief: '#c0892d', // amber (RISK) — needs work
+          draft: '#75788c', // muted — neutral WIP
+          review: '#5b4fa6', // violet (verify) — in review
+          approved: '#2e7d55', // green (PASS) — cleared
+          scheduled: '#1f726b', // teal (create) — queued
+          published: '#2e7d55', // green (PASS) — live
+          learn: '#75788c', // muted
+          failed: '#b23a3a', // red (FAIL)
         },
       },
       fontFamily: {
