@@ -39,7 +39,7 @@ describe('Content view + editor drawer', () => {
     fireEvent.click(within(sleep).getByTestId('variant-row'));
 
     const drawer = await screen.findByRole('dialog', { name: /teaching · slide/i });
-    const exportBtn = within(drawer).getByRole('button', { name: /^Export/ });
+    const exportBtn = within(drawer).getByRole('button', { name: /^Approve for publishing/ });
     expect(exportBtn).not.toBeDisabled(); // sample is safety-cleared + human-reviewed
 
     fireEvent.click(exportBtn);
@@ -94,7 +94,7 @@ describe('Content view + editor drawer', () => {
     const sleep = await screen.findByRole('region', { name: /Slow-wave sleep/i });
     fireEvent.click(within(sleep).getByTestId('variant-row'));
     const drawer = await screen.findByRole('dialog', { name: /teaching · slide/i });
-    fireEvent.click(within(drawer).getByRole('button', { name: /^Export/ }));
+    fireEvent.click(within(drawer).getByRole('button', { name: /^Approve for publishing/ }));
     await waitFor(() => expect(within(drawer).getByText('exported')).toBeInTheDocument());
     fireEvent.click(within(drawer).getByRole('button', { name: /Close/i }));
 
@@ -120,6 +120,6 @@ describe('Content view + editor drawer', () => {
       expect(within(drawer).getByTestId('findings').textContent).toMatch(/cure|guarantee/i),
     );
     expect(within(drawer).getByTestId('export-blockers').textContent).toMatch(/blocking safety finding/i);
-    expect(within(drawer).getByRole('button', { name: /^Export/ })).toBeDisabled();
+    expect(within(drawer).getByRole('button', { name: /^Approve for publishing/ })).toBeDisabled();
   });
 });

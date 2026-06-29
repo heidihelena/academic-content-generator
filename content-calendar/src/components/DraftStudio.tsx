@@ -44,13 +44,13 @@ const STAGE_LABEL: Record<StudioStage, string> = {
   compose: 'Compose',
   draft: 'Draft',
   review: 'Review',
-  ready: 'Export',
+  ready: 'Approve',
 };
 
 const FORWARD_LABEL: Record<StudioStage, string> = {
   compose: 'Generate draft →',
   draft: 'Run review →',
-  review: 'Approve & export →',
+  review: 'Approve for publishing →',
   ready: '',
 };
 
@@ -62,9 +62,9 @@ const SEVERITY_CLASS: Record<SafetyFinding['severity'], string> = {
 
 /**
  * Draft Studio: the academic writing flow end to end — compose a source, draft,
- * review claims & medical safety, then export. The author is the human in the
+ * review claims & medical safety, then approve. The author is the human in the
  * loop: at every stage they can send the work **back** to revise or **forward**,
- * and the Review gate blocks export until the draft clears safety.
+ * and the Review gate blocks approval until the draft clears safety.
  */
 export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
   const createThreadFromParts = useStore((s) => s.createThreadFromParts);
@@ -173,7 +173,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
         <div>
           <h2 className="text-sm font-semibold text-slate-200">Draft Studio</h2>
           <p className="text-xs text-slate-500">
-            Compose → draft → review → export. Send work back to revise or forward when it&apos;s ready.
+            Compose → draft → review → approve. Send work back to revise or forward when it&apos;s ready.
           </p>
         </div>
       </header>
@@ -308,7 +308,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
             }`}
           >
             {review.cleared
-              ? 'Cleared — no blocking issues. You can export.'
+              ? 'Cleared — no blocking issues. You can approve it for publishing.'
               : 'Blocked — resolve the issues below, then send back to revise.'}
           </div>
 
@@ -354,7 +354,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
       {state.stage === 'ready' && (
         <div className="space-y-3">
           <p data-testid="ready-banner" className="text-sm font-medium text-status-published">
-            Approved. Export your content.
+            Approved — ready to publish. Save it to your calendar to schedule or publish.
           </p>
           <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-lg border border-surface-700 bg-surface-800/60 px-3 py-2 text-xs text-slate-300">
             {state.draft}
