@@ -32,6 +32,7 @@ describe('Video → Shorts plan', () => {
 
   it('plans shorts and adds them to Drafting as YouTube posts', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Video → shorts' }));
 
     fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
       target: { value: 'https://youtu.be/abc' },
@@ -57,12 +58,14 @@ describe('Video → Shorts plan', () => {
 
   it('shows an error for an empty transcript', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Video → shorts' }));
     fireEvent.click(screen.getByRole('button', { name: /Plan shorts/i }));
     expect(await screen.findByText(/Paste a transcript/i)).toBeInTheDocument();
   });
 
   it('reveals an ffmpeg render recipe for a timestamped clip', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Video → shorts' }));
     fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
       target: { value: 'https://youtu.be/abc' },
     });
@@ -79,6 +82,7 @@ describe('Video → Shorts plan', () => {
 
   it('falls back to manual paste when transcript fetch is unavailable (no backend)', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Video → shorts' }));
     fireEvent.change(screen.getByLabelText('YouTube URL (optional)'), {
       target: { value: 'https://youtu.be/dQw4w9WgXcQ' },
     });

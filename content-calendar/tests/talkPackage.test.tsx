@@ -46,6 +46,7 @@ describe('Talk package (magic button)', () => {
 
   it('generates a talk + one short per point, cleared by safety review', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Talk package' }));
     fillAndGenerate();
 
     const result = await screen.findByTestId('talk-package-result', {}, { timeout: 2000 });
@@ -57,6 +58,7 @@ describe('Talk package (magic button)', () => {
 
   it('flags an overclaim in the safety review', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Talk package' }));
     fillAndGenerate('Our method proves causation', 'It is 100% accurate and eliminates bias.');
 
     const badge = await screen.findByTestId('review-badge');
@@ -65,6 +67,7 @@ describe('Talk package (magic button)', () => {
 
   it('surfaces prior work on a second generation from the same source (reuse)', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Talk package' }));
     fillAndGenerate('Repeat source');
     await screen.findByTestId('talk-package-result');
 
@@ -75,6 +78,7 @@ describe('Talk package (magic button)', () => {
 
   it('requires an abstract', async () => {
     render(<App initialView="ideas" />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Talk package' }));
     const p = panel();
     fireEvent.change(p.getByLabelText('Title'), { target: { value: 'X' } });
     fireEvent.click(p.getByRole('button', { name: /Generate talk \+ shorts/i }));

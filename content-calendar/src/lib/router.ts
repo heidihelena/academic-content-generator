@@ -20,6 +20,7 @@ export const VIEWS: View[] = [
   'ideas',
   'analytics',
   'connections',
+  'settings',
 ];
 
 /** The View encoded in the URL hash, or null if absent/unknown. */

@@ -16,7 +16,8 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   campaigns: { title: 'Campaigns', subtitle: 'Group your content into themed series and track each one' },
   ideas: { title: 'Generate Ideas', subtitle: 'AI-assisted ways to share your research with any audience' },
   analytics: { title: 'Analytics', subtitle: 'See how your work is reaching peers and the public' },
-  connections: { title: 'Connections', subtitle: 'Connect accounts and wire up your inputs, generators and publishing destinations' },
+  connections: { title: 'Connections', subtitle: 'Connect accounts and wire up your generators and publishing destinations' },
+  settings: { title: 'Settings', subtitle: 'Local inputs & storage — your Obsidian vault path and content database' },
 };
 
 interface HeaderProps {
