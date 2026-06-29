@@ -1,4 +1,4 @@
-import { BoardIcon, BookIcon, CalendarIcon, ChartIcon, LinkIcon, ListIcon, PlugIcon, SparkleIcon } from './icons';
+import { BoardIcon, BookIcon, CalendarIcon, ChartIcon, LinkIcon, PlugIcon, SparkleIcon } from './icons';
 
 export type View =
   | 'board'
@@ -13,6 +13,12 @@ export type View =
   | 'ideas';
 
 type NavItem = { id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element };
+
+// The Library nav item (id 'board') stays highlighted for any of its sub-views.
+const LIBRARY_VIEWS: View[] = ['board', 'calendar', 'list', 'content'];
+function isActive(item: View, view: View): boolean {
+  return item === 'board' ? LIBRARY_VIEWS.includes(view) : item === view;
+}
 
 /**
  * Primary navigation, grouped by the stage of the workflow it belongs to:
@@ -31,10 +37,8 @@ const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
   {
     label: 'Plan',
     items: [
-      { id: 'board', label: 'Pipeline', icon: BoardIcon },
-      { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
-      { id: 'list', label: 'List', icon: ListIcon },
-      { id: 'content', label: 'Content', icon: ListIcon },
+      // Pipeline / Calendar / List / Content are view toggles inside Library.
+      { id: 'board', label: 'Library', icon: BoardIcon },
       { id: 'campaigns', label: 'Campaigns', icon: CalendarIcon },
     ],
   },
@@ -74,7 +78,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
               {section.label}
             </p>
             {section.items.map((item) => {
-              const active = view === item.id;
+              const active = isActive(item.id, view);
               const Icon = item.icon;
               return (
                 <button
