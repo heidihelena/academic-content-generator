@@ -1,8 +1,9 @@
 # vahtian Content Calendar — Server (NestJS)
 
 Backend for the content calendar: post storage + scheduling, social platform
-integrations (mock OAuth/publish), a **markdown/Obsidian vault with vector
-search**, and an **AI idea generator** grounded in the vault (RAG).
+integrations (real OAuth/token publishing, with local mocks for offline mode), a
+**markdown/Obsidian vault with vector search**, and an **AI idea generator**
+grounded in the vault (RAG).
 
 Built so every external dependency is swappable via config — it boots on a fresh
 checkout with **zero native dependencies and no API keys**.
@@ -85,9 +86,9 @@ npm run test:cov             # with coverage
 | `DELETE` | `/api/posts/:id` | Delete a post |
 | `POST` | `/api/posts/:id/publish` | Publish immediately |
 | `GET` | `/api/accounts` | Connected-account states |
-| `POST` | `/api/accounts/:platform/connect` | Connect directly (mock OAuth) |
+| `POST` | `/api/accounts/:platform/connect` | Connect configured token/app-password platforms |
 | `POST` | `/api/accounts/:platform/disconnect` | Disconnect |
-| `GET` | `/api/accounts/oauth/:platform/authorize` | Start OAuth → `{ authorizeUrl }` |
+| `GET` | `/api/accounts/oauth/:platform/authorize` | Start real OAuth → `{ authorizeUrl }` |
 | `GET` | `/api/accounts/oauth/callback?code=&state=` | OAuth redirect target → connects |
 | `POST` | `/api/media/upload` | Upload an image/video (multipart `file`) → media w/ public URL |
 | `POST` | `/api/vault/ingest` | (Re)index the markdown vault |
@@ -100,11 +101,12 @@ arrived via the integration layer.
 ### OAuth flow
 
 `GET /api/accounts/oauth/:platform/authorize` returns an `authorizeUrl` and a
-single-use `state`. Send the user there; the provider (the mock auto-approves)
-redirects back to `/api/accounts/oauth/callback`, which verifies `state`,
-exchanges the `code` for tokens via the integration, persists the account, and
-redirects to `FRONTEND_URL` (or returns JSON if unset). Tokens are stored in the
-`TokenStore`, never exposed to the client.
+single-use `state` only when that provider has real app credentials configured.
+Send the user there; the provider redirects back to
+`/api/accounts/oauth/callback`, which verifies `state`, exchanges the `code` for
+tokens via the integration, persists the account, and redirects to
+`FRONTEND_URL` (or returns JSON if unset). Tokens are stored in the `TokenStore`,
+never exposed to the client.
 
 ### Vault auto-reindex
 
@@ -116,12 +118,12 @@ deploys.
 
 Every seam is marked in code with `// --- REAL API INTEGRATION POINT ---`:
 
-- **Social platforms** — real Instagram, LinkedIn, and Threads clients are
-  implemented (`integrations/{instagram,linkedin,threads}.integration.ts`). Each
-  platform uses its real API when `*_CLIENT_ID`/`*_CLIENT_SECRET` are set, and
-  falls back to the mock otherwise — so you can go live one platform at a time.
-  The OAuth callback route is already wired. See **`docs/PLATFORM_SETUP.md`** for
-  app registration, scopes, the callback URL, and App Review notes.
+- **Social platforms** — real Bluesky, Mastodon, Instagram, LinkedIn, Threads,
+  and X clients are implemented. OAuth platforms start only when their
+  `*_CLIENT_ID`/`*_CLIENT_SECRET` values are set; Bluesky and Mastodon can also
+  be verified in-app with an app password/access token. See
+  **`docs/PLATFORM_SETUP.md`** for app registration, scopes, the callback URL,
+  and App Review notes.
 - **Persistence** — set `PERSISTENCE_DRIVER=sqlite` or `neon` (+ `DATABASE_URL`).
   For Neon, `pgvector` is enabled automatically on boot.
 - **Embeddings** — set `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY`

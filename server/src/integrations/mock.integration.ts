@@ -24,10 +24,9 @@ export class MockIntegration implements PlatformIntegration {
   ) {}
 
   authorizeUrl(redirectUri: string, state: string): string {
-    // The mock "consent screen" instantly approves: it points straight back at
-    // our callback with a fake code, so the full authorize→callback→connect loop
-    // is exercisable without a real provider. A real client returns the
-    // platform's hosted consent URL instead.
+    // Local/mock-only authorize helper. The API OAuth controller refuses to
+    // expose this when provider credentials are missing, so API mode does not
+    // fabricate real account connections.
     const params = new URLSearchParams({ code: `mock_code_${this.platform}`, state });
     return `${redirectUri}?${params.toString()}`;
   }

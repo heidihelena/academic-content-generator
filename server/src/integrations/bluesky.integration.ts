@@ -155,6 +155,7 @@ export class BlueskyIntegration implements PlatformIntegration {
       expiresAt: Date.now() + 1000 * 60 * 90,
       scopes: [],
       accountId: session.did,
+      serviceUrl: this.service.replace(/\/$/, ''),
     };
     const account: ConnectedAccount = {
       platform: 'bluesky',

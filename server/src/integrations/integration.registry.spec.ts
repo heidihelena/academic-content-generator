@@ -1,6 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { IntegrationRegistry } from './integration.registry';
 import { BlueskyIntegration } from './bluesky.integration';
+import { MastodonIntegration } from './mastodon.integration';
 import { XIntegration } from './x.integration';
 import { MockIntegration } from './mock.integration';
 import { MemoryTokenStore } from '../persistence/memory/memory.repositories';
@@ -46,11 +47,25 @@ describe('IntegrationRegistry.forPublish', () => {
     expect(configured.get('x')).toBeInstanceOf(XIntegration);
   });
 
-  it('falls back to the configured client for platforms a token alone cannot publish', async () => {
+  it('uses the real Mastodon client once an in-app token includes its instance URL', async () => {
+    const tokens = new MemoryTokenStore();
+    await tokens.set({
+      platform: 'mastodon',
+      accessToken: 't',
+      serviceUrl: 'https://fediscience.org',
+      expiresAt: Date.now() + 1e6,
+      scopes: [],
+    });
+    const reg = registry(tokens);
+
+    expect(await reg.forPublish('mastodon')).toBeInstanceOf(MastodonIntegration);
+  });
+
+  it('falls back to the configured client when a token lacks required host metadata', async () => {
     const tokens = new MemoryTokenStore();
     await tokens.set({ platform: 'mastodon', accessToken: 't', expiresAt: Date.now() + 1e6, scopes: [] });
     const reg = registry(tokens);
-    // Mastodon also needs its instance URL (not on the token) → stays mock here.
+    // Mastodon also needs its instance URL to choose the right API host.
     expect(await reg.forPublish('mastodon')).toBeInstanceOf(MockIntegration);
   });
 });

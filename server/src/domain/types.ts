@@ -119,6 +119,9 @@ export interface AccessToken {
   /** Platform-native account id / URN used when publishing (e.g. IG user id,
    *  LinkedIn person URN). Captured during the OAuth handshake. */
   accountId?: string;
+  /** Non-secret API origin needed to publish token-auth platforms that are
+   *  selected by host at runtime (Bluesky PDS, Mastodon instance). */
+  serviceUrl?: string;
 }
 
 /** A chunk of vault content with its embedding, for semantic retrieval. */

@@ -86,8 +86,9 @@ Every external service is swappable via config; mocks are the default so nothing
 is required to run:
 
 - **Persistence** — `PERSISTENCE_DRIVER=memory|sqlite|neon`
-- **Social platforms** — set `*_CLIENT_ID`/`*_CLIENT_SECRET` per platform (real
-  Instagram/LinkedIn/Threads clients, mock fallback otherwise)
+- **Social platforms** — set provider credentials per platform, then connect the
+  real account in the Connections screen (Bluesky/Mastodon app tokens;
+  Instagram/LinkedIn/Threads/X OAuth)
 - **AI ideas** — `IDEA_GENERATOR=llm` + `ANTHROPIC_API_KEY` (Claude)
 - **Embeddings** — `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY`
 
@@ -96,8 +97,8 @@ Details in [`server/README.md`](server/README.md) and
 
 ## Version 1 — private academic writing hub
 
-The first milestone is a **private, local-first writing hub** — no automatic
-publishing, no OAuth setup, no production system yet. The complete workflow:
+The first milestone is a **private, local-first writing hub** with optional real
+account connections when the backend is enabled. The core workflow:
 
 1. **Import** markdown / Obsidian notes into the source vault
 2. **Search** the vault
@@ -109,6 +110,6 @@ publishing, no OAuth setup, no production system yet. The complete workflow:
 8. **Save to the calendar**
 9. **Export** as markdown or copy-paste into social
 
-Tracked across the GitHub issues tagged `version-1`. Publishing, OAuth, and
-real-platform delivery come later — the default mode stays local-first and
-mock-based.
+Tracked across the GitHub issues tagged `version-1`. The default mode stays
+local-first and mock-based; real publishing is opt-in through configured
+provider credentials and connected accounts.

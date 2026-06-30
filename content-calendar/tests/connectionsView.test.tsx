@@ -13,7 +13,7 @@ const REPORT: ConnectionsReport = {
     video: { active: 'mock', live: false },
     embeddings: { active: 'mock', live: false },
   },
-  social: [{ platform: 'bluesky', method: 'app-password', configured: true }],
+  social: [{ platform: 'bluesky', method: 'app-password', configured: true, connected: true }],
 };
 
 function mockApi(report: ConnectionsReport, settings: LocalSettings = {}) {
@@ -61,7 +61,20 @@ describe('ConnectionsView', () => {
     expect(within(generators).getByText('elevenlabs')).toBeInTheDocument();
 
     const publishing = screen.getByLabelText('Publishing destinations');
-    expect(within(publishing).getByText('Configured')).toBeInTheDocument();
+    expect(within(publishing).getByText('Connected')).toBeInTheDocument();
+  });
+
+  it('distinguishes ready credentials from a connected publishing token', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:3000/api');
+    mockApi({
+      ...REPORT,
+      social: [{ platform: 'linkedin', method: 'oauth', configured: true, connected: false }],
+    });
+
+    render(<ConnectionsView />);
+
+    const publishing = await screen.findByLabelText('Publishing destinations');
+    expect(within(publishing).getByText('Ready')).toBeInTheDocument();
   });
 
   it('falls back to local defaults with a notice when the backend is offline', async () => {

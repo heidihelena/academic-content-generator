@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ApiClient } from '../src/lib/api';
 
-function fetchOk(captured: { headers?: Record<string, string> }) {
+function fetchOk(captured: { url?: string; headers?: Record<string, string> }) {
   return vi.fn().mockImplementation((_url: string, init: { headers?: Record<string, string> }) => {
+    captured.url = _url;
     captured.headers = init.headers;
     return Promise.resolve({ ok: true, text: async () => JSON.stringify({ ok: true }) });
   });
@@ -27,5 +28,13 @@ describe('ApiClient auth header', () => {
     // Explicit empty token (don't depend on import.meta.env in the test env).
     await new ApiClient('http://api', undefined).get('/posts');
     expect(captured.headers?.authorization).toBeUndefined();
+  });
+
+  it('starts OAuth through the authorize endpoint', async () => {
+    const captured: { url?: string; headers?: Record<string, string> } = {};
+    vi.stubGlobal('fetch', fetchOk(captured));
+
+    await new ApiClient('http://api', undefined).authorizeAccount('linkedin');
+    expect(captured.url).toBe('http://api/accounts/oauth/linkedin/authorize');
   });
 });

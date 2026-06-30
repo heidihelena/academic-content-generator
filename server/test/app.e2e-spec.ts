@@ -60,29 +60,19 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     await request(http).get(`/api/posts/${id}`).expect(404);
   });
 
-  it('completes the OAuth authorize → callback loop and then publishes', async () => {
+  it('does not start fake OAuth when provider credentials are missing', async () => {
     const authorize = await request(http)
       .get('/api/accounts/oauth/instagram/authorize')
-      .expect(200);
-    const url = new URL(authorize.body.authorizeUrl);
-    const code = url.searchParams.get('code')!;
-    const state = url.searchParams.get('state')!;
-    expect(code).toBeTruthy();
+      .expect(400);
+    expect(authorize.body.message).toMatch(/real provider credentials/i);
 
-    const callback = await request(http)
-      .get(`/api/accounts/oauth/callback?code=${code}&state=${state}`)
-      .expect(200);
-    expect(callback.body.status).toBe('connected');
-    expect(callback.body.platform).toBe('instagram');
-
-    // The account is now connected, so publishing succeeds.
     const post = await request(http)
       .post('/api/posts')
       .send({ platform: 'instagram', body: 'ship it', scheduledAt: '2030-01-01T09:00:00.000Z' })
       .expect(201);
     const published = await request(http).post(`/api/posts/${post.body.id}/publish`).expect(201);
-    expect(published.body.status).toBe('published');
-    expect(published.body.remoteId).toBeTruthy();
+    expect(published.body.status).toBe('failed');
+    expect(published.body.failureReason).toMatch(/No connected instagram/);
   });
 
   it('rejects an OAuth callback with bad state', async () => {

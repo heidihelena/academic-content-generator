@@ -4,7 +4,7 @@ import { getApiBaseUrl } from './connection';
 /**
  * The Connections panel's snapshot. In API mode it fetches `/api/connections`
  * from the backend; in local mode (no `VITE_API_URL`) it returns a sensible
- * all-mock default so the panel still renders the setup guidance offline.
+ * disconnected local default so the panel still renders offline.
  */
 export interface ConnectionsState {
   mode: 'local' | 'api';
@@ -13,7 +13,7 @@ export interface ConnectionsState {
   report: ConnectionsReport;
 }
 
-/** The default report shown in local mode (zero-config: everything mock). */
+/** The default report shown in local mode (zero-config, no real account tokens). */
 export const LOCAL_CONNECTIONS_REPORT: ConnectionsReport = {
   inputs: { vaultPath: './vault', persistenceDriver: 'memory', sqlitePath: '' },
   providers: {
@@ -23,11 +23,12 @@ export const LOCAL_CONNECTIONS_REPORT: ConnectionsReport = {
     embeddings: { active: 'mock', live: false },
   },
   social: [
-    { platform: 'bluesky', method: 'app-password', configured: false },
-    { platform: 'mastodon', method: 'access-token', configured: false },
-    { platform: 'linkedin', method: 'oauth', configured: false },
-    { platform: 'instagram', method: 'oauth', configured: false },
-    { platform: 'threads', method: 'oauth', configured: false },
+    { platform: 'bluesky', method: 'app-password', configured: false, connected: false },
+    { platform: 'mastodon', method: 'access-token', configured: false, connected: false },
+    { platform: 'linkedin', method: 'oauth', configured: false, connected: false },
+    { platform: 'instagram', method: 'oauth', configured: false, connected: false },
+    { platform: 'threads', method: 'oauth', configured: false, connected: false },
+    { platform: 'x', method: 'oauth', configured: false, connected: false },
   ],
 };
 

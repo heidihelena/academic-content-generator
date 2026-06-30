@@ -47,7 +47,7 @@ export function PostEditorFooter({
         <Button
           loading={isPublishing}
           disabled={!canPublish || isPublishing || isPublished}
-          title={accountConnected ? undefined : `Connect ${platform} on the Accounts screen to publish`}
+          title={accountConnected ? undefined : `Connect ${platform} on the Connections screen to publish`}
           onClick={onPublish}
         >
           {!isPublishing && <CheckIcon width={15} height={15} />}

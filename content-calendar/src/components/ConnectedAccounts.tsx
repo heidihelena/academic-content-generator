@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { ConnectedAccount, ConnectionStatus, Platform } from '../types';
 import type { PlatformCredentials } from '../lib/dataSource';
 import { useStore } from '../store/useStore';
+import { isApiMode } from '../lib/connection';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS, CheckIcon, AlertIcon, PlugIcon } from './icons';
 import { Button, Card, ConfirmDialog, Heading, Input, Spinner, Text } from './ui';
@@ -188,6 +189,7 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
 /** The connected-accounts management panel. */
 export function ConnectedAccounts() {
   const accounts = useStore((s) => s.accounts);
+  const apiMode = isApiMode();
 
   return (
     <Card as="section" aria-label="Connected accounts" className="p-4">
@@ -196,8 +198,9 @@ export function ConnectedAccounts() {
         <Heading>Connected accounts</Heading>
       </header>
       <Text variant="muted" className="mb-4">
-        Connect the accounts you'll post to. Until you connect one, the app runs in
-        demo mode and nothing is sent.
+        {apiMode
+          ? "Connect the real accounts you'll post to. Publishing uses the stored provider tokens."
+          : 'Demo mode: start the backend and set VITE_API_URL to connect real accounts.'}
       </Text>
       <div className="grid gap-2.5">
         {accounts.map((a) => (

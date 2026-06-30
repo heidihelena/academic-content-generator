@@ -68,6 +68,7 @@ export class MastodonIntegration implements PlatformIntegration {
       expiresAt: Date.now() + 1000 * 60 * 60 * 24 * 365, // Mastodon tokens are long-lived
       scopes: ['read', 'write'],
       accountId: host,
+      serviceUrl: this.instance.replace(/\/$/, ''),
     };
     const account: ConnectedAccount = {
       platform: 'mastodon',

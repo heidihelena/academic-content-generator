@@ -1,5 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import type { Platform } from '../domain/types';
+import {
+  ACCOUNTS_REPOSITORY,
+  TOKEN_STORE,
+  type AccountsRepository,
+  type TokenStore,
+} from '../persistence/repository.interfaces';
 
 export type ConnectMethod = 'oauth' | 'app-password' | 'access-token' | 'api-key';
 
@@ -11,10 +18,12 @@ export interface ProviderStatus {
 }
 
 export interface SocialStatus {
-  platform: string;
+  platform: Platform;
   method: ConnectMethod;
-  /** True when the credentials needed to connect for real are present. */
+  /** True when provider credentials/dev-app config exists, or a token is stored. */
   configured: boolean;
+  /** True when this run has a connected account and stored token for publishing. */
+  connected: boolean;
 }
 
 export interface ConnectionsReport {
@@ -38,14 +47,18 @@ export interface ConnectionsReport {
 /**
  * A secret-safe snapshot of every connection for the in-app Connections panel:
  * which content providers are live vs mock, which social platforms are
- * configured, and the local input/storage paths. Reports modes and booleans
- * only — never keys, tokens or passwords.
+ * configured/connected, and the local input/storage paths. Reports modes and
+ * booleans only — never keys, tokens or passwords.
  */
 @Injectable()
 export class ConnectionsService {
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    @Inject(ACCOUNTS_REPOSITORY) private readonly accounts: AccountsRepository,
+    @Inject(TOKEN_STORE) private readonly tokens: TokenStore,
+  ) {}
 
-  report(): ConnectionsReport {
+  async report(): Promise<ConnectionsReport> {
     const has = (path: string) => Boolean(this.config.get<string>(path));
 
     const generator = this.config.get<string>('ai.generator') ?? 'mock';
@@ -76,22 +89,40 @@ export class ConnectionsService {
         },
         embeddings: { active: embeddings, live: embeddings !== 'mock' && has('embeddings.voyageApiKey') },
       },
-      social: [
-        {
-          platform: 'bluesky',
-          method: 'app-password',
-          configured: has('integrations.bluesky.identifier') && has('integrations.bluesky.appPassword'),
-        },
-        {
-          platform: 'mastodon',
-          method: 'access-token',
-          configured: has('integrations.mastodon.instance') && has('integrations.mastodon.accessToken'),
-        },
-        { platform: 'linkedin', method: 'oauth', configured: has('integrations.linkedin.clientId') },
-        { platform: 'instagram', method: 'oauth', configured: has('integrations.instagram.clientId') },
-        { platform: 'threads', method: 'oauth', configured: has('integrations.threads.clientId') },
-        { platform: 'x', method: 'oauth', configured: has('integrations.x.clientId') },
-      ],
+      social: await Promise.all([
+        this.socialStatus(
+          'bluesky',
+          'app-password',
+          has('integrations.bluesky.identifier') && has('integrations.bluesky.appPassword'),
+        ),
+        this.socialStatus(
+          'mastodon',
+          'access-token',
+          has('integrations.mastodon.instance') && has('integrations.mastodon.accessToken'),
+        ),
+        this.socialStatus('linkedin', 'oauth', has('integrations.linkedin.clientId')),
+        this.socialStatus('instagram', 'oauth', has('integrations.instagram.clientId')),
+        this.socialStatus('threads', 'oauth', has('integrations.threads.clientId')),
+        this.socialStatus('x', 'oauth', has('integrations.x.clientId')),
+      ]),
+    };
+  }
+
+  private async socialStatus(
+    platform: Platform,
+    method: ConnectMethod,
+    configuredFromEnv: boolean,
+  ): Promise<SocialStatus> {
+    const [account, token] = await Promise.all([
+      this.accounts.findByPlatform(platform),
+      this.tokens.get(platform),
+    ]);
+    const connected = account?.status === 'connected' && Boolean(token);
+    return {
+      platform,
+      method,
+      configured: configuredFromEnv || connected,
+      connected,
     };
   }
 }

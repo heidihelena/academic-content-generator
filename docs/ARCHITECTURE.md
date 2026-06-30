@@ -80,7 +80,7 @@ The UI depends only on typed client facades, each switching on `VITE_API_URL`:
 | --- | --- | --- |
 | Content (items, variants, reviews, campaigns, publish log) | `src/content/contentClient.ts` | `LocalContentClient` ↔ `ApiContentClient` |
 | Posts / accounts (calendar) | `src/lib/dataSource.ts` | `LocalDataSource` ↔ `ApiDataSource` |
-| Connections snapshot | `src/lib/connections.ts` | all-mock default ↔ `GET /api/connections` |
+| Connections snapshot | `src/lib/connections.ts` | local default ↔ `GET /api/connections` |
 | Local settings | `src/lib/settings.ts` | API-mode only (`GET/PUT /api/settings`) |
 
 The Draft Studio is mirrored locally (`src/studio/`) so the compose + review
