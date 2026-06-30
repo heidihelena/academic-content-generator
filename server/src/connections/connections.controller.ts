@@ -8,7 +8,7 @@ export class ConnectionsController {
 
   /** GET /api/connections — secret-safe snapshot of providers, social and inputs. */
   @Get()
-  report(): ConnectionsReport {
+  report(): Promise<ConnectionsReport> {
     return this.connections.report();
   }
 }

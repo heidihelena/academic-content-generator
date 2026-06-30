@@ -44,11 +44,20 @@ export interface ProviderStatus {
   live: boolean;
 }
 
-/** A publishing destination and whether its credentials are configured. */
+/** A publishing destination's provider readiness and account-token state. */
 export interface SocialStatus {
   platform: string;
   method: ConnectMethod;
+  /** Provider app/env setup exists, or a connected token is already stored. */
   configured: boolean;
+  /** A real account token is stored and can be used for publishing. */
+  connected: boolean;
+}
+
+/** Response from the backend endpoint that starts a real provider OAuth flow. */
+export interface OAuthAuthorizeResponse {
+  authorizeUrl: string;
+  state: string;
 }
 
 /**
@@ -130,6 +139,11 @@ export class ApiClient {
   /** Secret-safe connection status — GET /connections on the backend. */
   connections(): Promise<ConnectionsReport> {
     return this.request<ConnectionsReport>('/connections');
+  }
+
+  /** Start provider OAuth — GET /accounts/oauth/:platform/authorize. */
+  authorizeAccount(platform: string): Promise<OAuthAuthorizeResponse> {
+    return this.request<OAuthAuthorizeResponse>(`/accounts/oauth/${platform}/authorize`);
   }
 
   /** The saved writable local settings — GET /settings on the backend. */

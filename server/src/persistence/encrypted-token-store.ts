@@ -8,9 +8,10 @@ import type { TokenStore } from './repository.interfaces';
  * driver's token store and encrypts the secret fields (`accessToken`,
  * `refreshToken`) with AES-256-GCM before they hit disk, decrypting on read.
  *
- * Non-secret fields (platform, expiresAt, scopes, accountId) stay in clear text
- * so the underlying store can still key/query/expire by them. Pure Node `crypto`
- * — no native modules — so it works under every driver and the desktop bundle.
+ * Non-secret fields (platform, expiresAt, scopes, accountId, serviceUrl) stay
+ * in clear text so the underlying store can still key/query/expire by them.
+ * Pure Node `crypto` — no native modules — so it works under every driver and
+ * the desktop bundle.
  *
  * Local-first, swap-by-config: this wrapper is only applied when
  * `TOKEN_ENCRYPTION_KEY` is set (see `maybeEncryptTokenStore`). Existing

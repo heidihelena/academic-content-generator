@@ -165,7 +165,10 @@ export class LocalDataSource implements DataSource {
 
 /** Remote data source backed by the NestJS API. */
 export class ApiDataSource implements DataSource {
-  constructor(private readonly api: ApiClient) {}
+  constructor(
+    private readonly api: ApiClient,
+    private readonly redirect: (url: string) => void = (url) => window.location.assign(url),
+  ) {}
 
   loadPosts(): Promise<Post[]> {
     return this.api.get<Post[]>('/posts');
@@ -190,10 +193,14 @@ export class ApiDataSource implements DataSource {
   deletePost(id: string): Promise<void> {
     return this.api.delete<void>(`/posts/${id}`);
   }
-  connectAccount(platform: Platform): Promise<ConnectedAccount> {
-    // Mock backend connects directly. For real OAuth, redirect the browser to
-    // `${VITE_API_URL}/accounts/oauth/${platform}/authorize` instead.
-    return this.api.post<ConnectedAccount>(`/accounts/${platform}/connect`);
+  async connectAccount(platform: Platform): Promise<ConnectedAccount> {
+    const { authorizeUrl } = await this.api.authorizeAccount(platform);
+    this.redirect(authorizeUrl);
+    return {
+      platform,
+      status: 'disconnected',
+      statusDetail: 'Redirecting to provider authorization...',
+    };
   }
   verifyAccount(platform: Platform, creds: PlatformCredentials): Promise<ConnectedAccount> {
     return this.api.post<ConnectedAccount>(`/accounts/${platform}/verify`, creds);

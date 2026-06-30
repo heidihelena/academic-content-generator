@@ -58,9 +58,9 @@ academic/sci-comm user the verdict calls out:
 - **Export to your calendar.** The posting plan exports as `.ics`, so it sits
   alongside teaching, grants and conferences.
 
-Still ahead for this user: a one-click **abstract → thread** AI drafter, a
-**List/table** view, altmetric-style reach in Analytics, and real
-Bluesky/Mastodon publishing (mock today).
+Still ahead for this user: a one-click **abstract → thread** AI drafter,
+altmetric-style reach in Analytics, and broader production hardening around
+real publishing.
 
 So the calendar/planning surface is real. The **gap is the operating system
 around it**: workflow, variants, campaigns, ownership, approval, and a

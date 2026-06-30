@@ -2,6 +2,7 @@ import { BadRequestException, Controller, Get, Param, Query, Req, Res } from '@n
 import { ConfigService } from '@nestjs/config';
 import type { Platform } from '../domain/types';
 import { IntegrationRegistry } from '../integrations/integration.registry';
+import { MockIntegration } from '../integrations/mock.integration';
 import { AccountsService } from './accounts.service';
 import { OAuthStateService } from './oauth-state.service';
 
@@ -10,8 +11,7 @@ import { OAuthStateService } from './oauth-state.service';
  *
  * Flow:
  *   1. Client hits  GET /api/accounts/oauth/:platform/authorize  → { authorizeUrl }
- *   2. Browser visits authorizeUrl (the provider's consent screen; the mock
- *      auto-approves and redirects straight back).
+ *   2. Browser visits authorizeUrl (the provider's real consent screen).
  *   3. Provider redirects to  GET /api/accounts/oauth/callback?code=&state=
  *   4. We verify `state`, exchange the `code` for tokens via the integration,
  *      persist the account, and redirect to FRONTEND_URL (or return JSON).
@@ -29,10 +29,18 @@ export class OAuthController {
 
   @Get(':platform/authorize')
   authorize(@Param('platform') platform: Platform, @Req() req: any) {
+    const integration = this.integrations.get(platform);
+    if (integration instanceof MockIntegration) {
+      throw new BadRequestException(
+        `${platform} needs real provider credentials before OAuth can start.`,
+      );
+    }
     const state = this.stateService.create(platform);
-    const authorizeUrl = this.integrations
-      .get(platform)
-      .authorizeUrl(this.callbackUrl(req), state, this.stateService.challengeFor(state));
+    const authorizeUrl = integration.authorizeUrl(
+      this.callbackUrl(req),
+      state,
+      this.stateService.challengeFor(state),
+    );
     return { authorizeUrl, state };
   }
 

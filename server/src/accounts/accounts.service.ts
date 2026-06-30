@@ -16,6 +16,7 @@ import { MastodonIntegration } from '../integrations/mastodon.integration';
 // app password / access token (no OAuth app needed), so they work on a fresh
 // local install — the others connect via an OAuth redirect.
 const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'instagram', 'linkedin', 'threads', 'x'];
+const OAUTH_PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads', 'x'];
 
 /** Credentials a user can supply in-app for the token/app-password platforms. */
 export interface PlatformCredentials {
@@ -54,10 +55,17 @@ export class AccountsService implements OnModuleInit {
 
   /**
    * Connects an account. In the real OAuth flow `code` + `redirectUri` arrive at
-   * the callback endpoint; the mock ignores them. Tokens are persisted in the
-   * TokenStore — never in the vault or returned to the client.
+   * the callback endpoint. Tokens are persisted in the TokenStore — never in the
+   * vault or returned to the client.
    */
   async connect(platform: Platform, params?: ConnectParams): Promise<ConnectedAccount> {
+    if (OAUTH_PLATFORMS.includes(platform) && !params?.code) {
+      return this.accounts.upsert({
+        platform,
+        status: 'error',
+        statusDetail: `Start OAuth at /api/accounts/oauth/${platform}/authorize before connecting.`,
+      });
+    }
     try {
       const { account, token } = await this.integrations.get(platform).connect(params);
       await this.tokens.set(token);

@@ -37,11 +37,12 @@ stays mock/local.
 | Embeddings (vector search) | `EMBEDDINGS_PROVIDER=voyage` + `VOYAGE_API_KEY` | Vault chunk text to embed | Voyage AI API |
 | Postgres/Neon persistence | `PERSISTENCE_DRIVER=neon` + `DATABASE_URL` | Posts, accounts, vectors | Your configured Postgres |
 | SQLite persistence | `PERSISTENCE_DRIVER=sqlite` (+ `SQLITE_PATH`) | Posts, accounts, vectors | Local disk file |
-| LinkedIn | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` | OAuth + published posts | LinkedIn |
-| Instagram | `INSTAGRAM_CLIENT_ID` / `INSTAGRAM_CLIENT_SECRET` | OAuth + published posts | Instagram |
-| Threads | `THREADS_CLIENT_ID` / `THREADS_CLIENT_SECRET` | OAuth + published posts | Threads |
-| Bluesky | `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD` | Published posts | Bluesky (AT Protocol) |
-| Mastodon | `MASTODON_INSTANCE` + `MASTODON_ACCESS_TOKEN` | Published posts | Your Mastodon instance |
+| LinkedIn | `LINKEDIN_CLIENT_ID` / `LINKEDIN_CLIENT_SECRET` + account OAuth | OAuth + published posts | LinkedIn |
+| Instagram | `INSTAGRAM_CLIENT_ID` / `INSTAGRAM_CLIENT_SECRET` + account OAuth | OAuth + published posts | Instagram |
+| Threads | `THREADS_CLIENT_ID` / `THREADS_CLIENT_SECRET` + account OAuth | OAuth + published posts | Threads |
+| X | `X_CLIENT_ID` / `X_CLIENT_SECRET` + account OAuth | OAuth + published posts | X API |
+| Bluesky | In-app app password, or `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD` | Published posts | Bluesky (AT Protocol) |
+| Mastodon | In-app access token, or `MASTODON_INSTANCE` + `MASTODON_ACCESS_TOKEN` | Published posts | Your Mastodon instance |
 | Media storage (S3) | `STORAGE_DRIVER=s3` + `S3_BUCKET`/`S3_REGION` | Uploaded media | Your S3 bucket |
 
 OAuth tokens and app passwords are persisted **server-side only** and are never

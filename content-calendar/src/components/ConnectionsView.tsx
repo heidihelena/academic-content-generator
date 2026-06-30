@@ -15,8 +15,8 @@ const PROVIDER_LABELS: Array<{ key: keyof ConnectionsReport['providers']; label:
 /**
  * Connections panel: how this run is wired up — connected accounts (the
  * interactive connect flow), content generators (live vs mock), and the
- * destination-credential status. Reads the secret-safe `GET /api/connections`
- * report in API mode; shows the all-mock default offline. Local inputs/storage
+ * publishing destination status. Reads the secret-safe `GET /api/connections`
+ * report in API mode; shows disconnected local defaults offline. Local inputs/storage
  * paths live on the separate Settings screen.
  */
 export function ConnectionsView() {
@@ -76,8 +76,7 @@ export function ConnectionsView() {
               <Heading>Publishing destinations</Heading>
             </header>
             <p className="text-xs text-slate-500">
-              Status of each destination's credentials (configure live posting in your
-              <code className="mx-1">.env</code>; connect accounts above).
+              Real posting uses a connected account token. OAuth app credentials only mark a destination ready.
             </p>
             <div className="grid gap-1.5 sm:grid-cols-2">
               {state.report.social.map((s) => (
@@ -104,12 +103,14 @@ function ProviderRow({ label, hint, status }: { label: string; hint: string; sta
 }
 
 function SocialRow({ status }: { status: SocialStatus }) {
+  const label = status.connected ? 'Connected' : status.configured ? 'Ready' : 'Not connected';
+  const tone = status.connected ? 'connected' : status.configured ? 'ready' : 'off';
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg border border-surface-700 bg-surface-850 px-3 py-2 text-xs">
       <span className="capitalize text-slate-300">{status.platform}</span>
       <span className="flex items-center gap-2">
         <span className="text-[10px] uppercase tracking-wide text-slate-600">{status.method}</span>
-        <Dot ok={status.configured} okLabel="Configured" offLabel="Not connected" />
+        <Dot tone={tone} label={label} />
       </span>
     </div>
   );
@@ -129,11 +130,13 @@ function StatusPill({ live, active }: { live: boolean; active: string }) {
   );
 }
 
-function Dot({ ok, okLabel, offLabel }: { ok: boolean; okLabel: string; offLabel: string }) {
+function Dot({ tone, label }: { tone: 'connected' | 'ready' | 'off'; label: string }) {
+  const color =
+    tone === 'connected' ? 'bg-emerald-400' : tone === 'ready' ? 'bg-amber-400' : 'bg-slate-500';
   return (
     <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400">
-      <span className={`h-1.5 w-1.5 rounded-full ${ok ? 'bg-emerald-400' : 'bg-slate-500'}`} />
-      {ok ? okLabel : offLabel}
+      <span className={`h-1.5 w-1.5 rounded-full ${color}`} />
+      {label}
     </span>
   );
 }

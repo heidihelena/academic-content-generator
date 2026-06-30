@@ -84,6 +84,23 @@ describe('AccountsService.verify', () => {
   });
 });
 
+describe('AccountsService.connect', () => {
+  it('does not fabricate an OAuth connection when no authorization code is provided', async () => {
+    const accounts = new MemoryAccountsRepository();
+    const tokens = new MemoryTokenStore();
+    const service = new AccountsService(accounts, tokens, registry);
+
+    const result = await service.connect('linkedin');
+
+    expect(result).toMatchObject({
+      platform: 'linkedin',
+      status: 'error',
+      statusDetail: expect.stringMatching(/OAuth/),
+    });
+    expect(await tokens.get('linkedin')).toBeNull();
+  });
+});
+
 describe('AccountsService.makeIntegration validation', () => {
   const service = new AccountsService(new MemoryAccountsRepository(), new MemoryTokenStore(), registry);
 

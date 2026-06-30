@@ -1,16 +1,26 @@
 # Connecting real social platforms
 
-The server uses **real** Bluesky, Instagram, LinkedIn, and Threads clients when
-their credentials are configured, and falls back to the **mock** per platform
-otherwise. You can go live one platform at a time — just add its env vars and
-restart.
+The server uses **real** Bluesky, Mastodon, Instagram, LinkedIn, Threads, and X
+clients when their credentials are configured. In API mode, OAuth destinations
+do **not** fake a connection when credentials are missing; the Connections button
+will fail until the provider app is configured. You can go live one platform at
+a time — just add its env vars and restart.
 
 ```
+FRONTEND_URL=http://localhost:5173
 BLUESKY_IDENTIFIER=…    BLUESKY_APP_PASSWORD=…     BLUESKY_SERVICE=https://bsky.social
 MASTODON_INSTANCE=…     MASTODON_ACCESS_TOKEN=…
 INSTAGRAM_CLIENT_ID=…   INSTAGRAM_CLIENT_SECRET=…
 LINKEDIN_CLIENT_ID=…    LINKEDIN_CLIENT_SECRET=…   LINKEDIN_VERSION=202401
 THREADS_CLIENT_ID=…     THREADS_CLIENT_SECRET=…
+X_CLIENT_ID=…           X_CLIENT_SECRET=…
+```
+
+The browser app must run in API mode so the Connections screen can start the
+real account flow:
+
+```
+VITE_API_URL=http://localhost:3000/api
 ```
 
 > **Bluesky is the easiest to go live with** — no App Review. Create an **app
@@ -123,8 +133,8 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
 
 > ⚠️ **Requires a PAID X developer app.** Posting needs an app on a **paid access
 > tier (Basic or higher)** with **OAuth 2.0** enabled and the **`tweet.write`**
-> scope. The free tier is read-limited and **cannot post**. Until configured, X is
-> listed and connectable in the UI but runs on the mock — nothing is sent.
+> scope. The free tier is read-limited and **cannot post**. Until configured, X
+> remains listed but OAuth will not start.
 
 - **App:** create at developer.x.com, enable **OAuth 2.0** (User authentication
   settings), set the callback to `…/api/accounts/oauth/callback`, and copy the

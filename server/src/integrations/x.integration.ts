@@ -15,8 +15,8 @@ import { FORM_HEADERS, apiFetch, formBody } from './http';
  * **Requires a paid X developer app.** Posting to X needs an app on a paid
  * access tier (Basic or higher) with OAuth 2.0 enabled and the `tweet.write`
  * scope; the free tier is read-limited and won't post. Configure
- * `X_CLIENT_ID` / `X_CLIENT_SECRET`; without them the registry falls back to the
- * mock and nothing is sent. See docs/PLATFORM_SETUP.md.
+ * `X_CLIENT_ID` / `X_CLIENT_SECRET`; without them API-mode OAuth will not start.
+ * See docs/PLATFORM_SETUP.md.
  *
  * Publishing is a single call: POST /2/tweets with a Bearer user token.
  */

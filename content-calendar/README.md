@@ -26,8 +26,7 @@ Source Inbox → Idea Lab → Draft Studio → Safety + Citation review → Cont
 | **Content** | One `ContentItem` → many `ContentVariant`s; edit → review → mark reviewed → schedule → publish each |
 | **Pipeline / List / Calendar** | The work-in-progress board, a sortable table, and the scheduled-content calendar |
 | **Campaigns** | Group content into themed series with a status rollup |
-| **Connections** | Local-run setup: Obsidian/SQLite paths, content-generator status (live vs mock), and publishing destinations |
-| **Accounts** | Connect / verify / disconnect social accounts (Bluesky & Mastodon by credential; others via OAuth) |
+| **Connections** | Connected accounts, content-generator status (live vs mock), and publishing destination readiness |
 | **Analytics** | Reach across networks, scheduled vs published, timing suggestions |
 
 Safety is first-class: variants carry a **medical-safety** review and a
@@ -112,7 +111,7 @@ tests/            # unit + component tests (Vitest + RTL)
 | --- | --- | --- |
 | Content (items, variants, reviews, campaigns, publish log) | `src/content/contentClient.ts` | `LocalContentClient` ↔ `ApiContentClient` |
 | Posts / accounts (calendar) | `src/lib/dataSource.ts` | `LocalDataSource` ↔ `ApiDataSource` |
-| Connections snapshot | `src/lib/connections.ts` | all-mock default ↔ `GET /api/connections` |
+| Connections snapshot | `src/lib/connections.ts` | local defaults ↔ `GET /api/connections` (provider readiness + connected tokens) |
 | Writable local settings | `src/lib/settings.ts` | API-mode only (`GET/PUT /api/settings`) |
 
 Each switches on `VITE_API_URL`, so nothing in the UI changes between modes.
