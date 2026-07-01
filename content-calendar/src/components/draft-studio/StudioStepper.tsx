@@ -22,7 +22,7 @@ export function StudioStepper({ stage }: { stage: StudioStage }) {
               data-active={active || undefined}
               className={`flex-1 rounded-lg px-2 py-1.5 text-center font-medium ${
                 active
-                  ? 'bg-brand-500/15 text-brand-400'
+                  ? 'bg-brand-500/15 text-brand-strong'
                   : done
                     ? 'bg-surface-800 text-slate-300'
                     : 'bg-surface-800/50 text-slate-500'

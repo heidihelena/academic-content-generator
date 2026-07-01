@@ -37,6 +37,9 @@
     --brand-400: 44 140 132;
     --brand-500: 31 114 107;
     --brand-600: 24 91 85;
+    /* active/selected text on a faint brand tint — dark in light mode, bright in
+       dark mode, so it clears WCAG AA either way (see Sidebar / Studio stepper) */
+    --brand-strong: 24 91 85;
     --verify-400: 122 110 198;
     --verify-500: 91 79 166;
   }
@@ -64,6 +67,7 @@
     --brand-400: 111 199 188;
     --brand-500: 79 179 168; /* --fs-create dark */
     --brand-600: 44 140 132;
+    --brand-strong: 111 199 188; /* bright teal so active text stays AA on dark */
     --verify-400: 178 167 235;
     --verify-500: 154 140 224; /* --fs-verify dark */
   }
