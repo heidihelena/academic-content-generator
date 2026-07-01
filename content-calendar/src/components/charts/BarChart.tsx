@@ -37,7 +37,7 @@ export function BarChart({ data, height = 160, ariaLabel }: BarChartProps) {
               title={`${d.label}: ${d.value}`}
             />
             <span className="text-[10px] text-slate-500">{d.label}</span>
-            {d.sublabel && <span className="text-[9px] text-slate-600">{d.sublabel}</span>}
+            {d.sublabel && <span className="text-[9px] text-slate-500">{d.sublabel}</span>}
           </div>
         );
       })}

@@ -18,7 +18,7 @@ import { ChartIcon } from './icons';
 function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
     <Card className="p-4">
-      <Heading as="h3">{title}</Heading>
+      <Heading as="h2">{title}</Heading>
       {subtitle && <Text variant="muted" className="mb-3 mt-0.5">{subtitle}</Text>}
       <div className={subtitle ? '' : 'mt-3'}>{children}</div>
     </Card>

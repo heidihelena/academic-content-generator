@@ -68,15 +68,18 @@ export default {
         },
         // Pipeline/status hues mapped to the brand verdict triad
         // (PASS=green / RISK=amber / FAIL=red) plus teal create & violet verify.
+        // Theme-aware CSS vars (see index.css) so `text-status-X` on a `/15`
+        // tint clears WCAG AA in both light and dark modes.
         status: {
-          brief: '#c0892d', // amber (RISK) — needs work
-          draft: '#75788c', // muted — neutral WIP
-          review: '#5b4fa6', // violet (verify) — in review
-          approved: '#2e7d55', // green (PASS) — cleared
-          scheduled: '#1f726b', // teal (create) — queued
-          published: '#2e7d55', // green (PASS) — live
-          learn: '#75788c', // muted
-          failed: '#b23a3a', // red (FAIL)
+          brief: 'rgb(var(--status-brief) / <alpha-value>)', // amber (RISK) — needs work
+          draft: 'rgb(var(--status-draft) / <alpha-value>)', // muted — neutral WIP
+          review: 'rgb(var(--status-review) / <alpha-value>)', // violet (verify) — in review
+          approved: 'rgb(var(--status-approved) / <alpha-value>)', // green (PASS) — cleared
+          scheduled: 'rgb(var(--status-scheduled) / <alpha-value>)', // teal (create) — queued
+          published: 'rgb(var(--status-published) / <alpha-value>)', // green (PASS) — live
+          learn: 'rgb(var(--status-learn) / <alpha-value>)', // muted
+          failed: 'rgb(var(--status-failed) / <alpha-value>)', // red (FAIL)
+          overdue: 'rgb(var(--status-overdue) / <alpha-value>)', // red — blocked / late
         },
       },
       fontFamily: {

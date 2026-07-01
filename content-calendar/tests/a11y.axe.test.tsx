@@ -29,9 +29,15 @@ function reset() {
   });
 }
 
+// The board's clickable cards nest a checkbox inside a role="button" surface
+// (nested-interactive). That's a real, separate fix (a card refactor + test
+// updates), tracked as a follow-up; deferred here so the board is still scanned
+// for everything else — crucially colour-contrast on its status badges.
+const DEFER = { rules: { 'nested-interactive': { enabled: false } } };
+
 /** Human-readable list of violations, so a failure shows what's wrong at a glance. */
-async function violations(container: HTMLElement): Promise<string[]> {
-  const results = await axe(container);
+async function violations(container: HTMLElement, options?: Parameters<typeof axe>[1]): Promise<string[]> {
+  const results = await axe(container, options);
   return results.violations.map((v) => `${v.id} (${v.impact}) — ${v.help} [${v.nodes.length} node(s)]`);
 }
 
@@ -54,5 +60,21 @@ describe('accessibility (axe · component level)', () => {
     const { container } = render(<App initialView="home" />);
     await screen.findByRole('heading', { level: 1 });
     expect(await violations(container)).toEqual([]);
+  });
+
+  // Broader sweep — screens that render status badges/callouts and the
+  // connection surfaces, so the theme-aware status tokens are exercised.
+  for (const view of ['list', 'connections', 'outbox', 'analytics', 'campaigns'] as const) {
+    it(`${view} screen has no structural a11y violations`, async () => {
+      const { container } = render(<App initialView={view} />);
+      await screen.findByRole('heading', { level: 1 });
+      expect(await violations(container)).toEqual([]);
+    });
+  }
+
+  it('board screen has no structural a11y violations (nested-interactive deferred)', async () => {
+    const { container } = render(<App initialView="board" />);
+    await screen.findByRole('heading', { level: 1 });
+    expect(await violations(container, DEFER)).toEqual([]);
   });
 });
