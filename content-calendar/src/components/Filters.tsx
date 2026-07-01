@@ -30,7 +30,7 @@ export function Filters() {
         aria-pressed={active}
         onClick={() => setPlatformFilter(value)}
         className={`btn px-3 py-1.5 text-xs ${
-          active ? 'bg-surface-600 text-white' : 'bg-surface-800 text-slate-400 hover:bg-surface-700'
+          active ? 'bg-surface-600 text-slate-100' : 'bg-surface-800 text-slate-400 hover:bg-surface-700'
         }`}
         style={active && color ? { color } : undefined}
       >
