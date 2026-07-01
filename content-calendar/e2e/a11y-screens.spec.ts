@@ -29,11 +29,9 @@ test.describe('App screens — accessibility (axe, real browser)', () => {
     await page.goto('/');
   });
 
-  // NOTE: nested-interactive on the board cards is now fixed (stretched-button
-  // refactor) and is scanned for in e2e/a11y.spec.ts. A full WCAG Library scan
-  // is still deferred here because the evidence-level chips (inline EVIDENCE_META
-  // colours) have pre-existing colour-contrast debt; add the Library scan back to
-  // this token sweep once that contrast is resolved.
+  // NOTE: the Library / Pipeline board gets its own full WCAG A/AA scan in
+  // e2e/a11y.spec.ts (nested-interactive on the cards is fixed, and the
+  // evidence chips now use theme-aware status tokens for colour-contrast).
 
   test('Connections passes WCAG A/AA', async ({ page }) => {
     await open(page, 'Connections', 'Connections');
