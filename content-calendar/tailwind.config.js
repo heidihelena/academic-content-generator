@@ -43,6 +43,7 @@ export default {
           400: 'rgb(var(--brand-400) / <alpha-value>)', // links, rings, the "ai" dot
           500: 'rgb(var(--brand-500) / <alpha-value>)', // create
           600: 'rgb(var(--brand-600) / <alpha-value>)', // primary buttons
+          strong: 'rgb(var(--brand-strong) / <alpha-value>)', // active text on a brand tint (AA both themes)
         },
         // verify = violet (review / evidence / the *vahti family).
         verify: {

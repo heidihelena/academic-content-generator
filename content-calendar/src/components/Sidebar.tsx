@@ -100,7 +100,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
           aria-current={view === 'home' ? 'page' : undefined}
           onClick={() => onChange('home')}
           className={`mb-0 flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:mb-3 md:flex-none md:justify-start ${
-            view === 'home' ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+            view === 'home' ? 'bg-brand-500/15 text-brand-strong' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
           }`}
         >
           <HomeIcon width={18} height={18} />
@@ -108,7 +108,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
         </button>
         {SECTIONS.map((section) => (
           <div key={section.label} className="flex flex-row gap-1 md:mb-3 md:flex-col md:gap-0.5">
-            <p className="hidden px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-600 md:block">
+            <p className="hidden px-3 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-slate-500 md:block">
               {section.label}
             </p>
             {section.items.map((item) => {
@@ -121,7 +121,7 @@ export function Sidebar({ view, onChange }: SidebarProps) {
                   aria-current={active ? 'page' : undefined}
                   onClick={() => onChange(item.id)}
                   className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors md:flex-none md:justify-start ${
-                    active ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+                    active ? 'bg-brand-500/15 text-brand-strong' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
                   }`}
                 >
                   <Icon width={18} height={18} />
