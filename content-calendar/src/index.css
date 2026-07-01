@@ -42,6 +42,17 @@
     --brand-strong: 24 91 85;
     --verify-400: 122 110 198;
     --verify-500: 91 79 166;
+    /* status/pipeline hues — theme-aware so `text-status-X` clears WCAG AA on
+       its own `/15` tint (dark enough here in light mode; bright in .dark). */
+    --status-brief: 138 96 0; /* amber — RISK / needs work */
+    --status-draft: 90 93 110; /* muted — WIP */
+    --status-review: 82 72 150; /* violet — in review */
+    --status-approved: 31 107 69; /* green — cleared */
+    --status-scheduled: 26 101 94; /* teal — queued */
+    --status-published: 31 107 69; /* green — live */
+    --status-learn: 90 93 110; /* muted */
+    --status-failed: 165 52 47; /* red — FAIL */
+    --status-overdue: 165 52 47; /* red — blocked / late */
   }
 
   .dark {
@@ -70,6 +81,16 @@
     --brand-strong: 111 199 188; /* bright teal so active text stays AA on dark */
     --verify-400: 178 167 235;
     --verify-500: 154 140 224; /* --fs-verify dark */
+    /* status hues — bright in dark mode so `text-status-X` stays AA on the tint */
+    --status-brief: 217 164 65; /* amber */
+    --status-draft: 154 157 176; /* muted */
+    --status-review: 154 140 224; /* violet */
+    --status-approved: 95 191 135; /* green */
+    --status-scheduled: 79 179 168; /* teal */
+    --status-published: 95 191 135; /* green */
+    --status-learn: 154 157 176; /* muted */
+    --status-failed: 224 122 116; /* red */
+    --status-overdue: 224 122 116; /* red */
   }
 
   html,

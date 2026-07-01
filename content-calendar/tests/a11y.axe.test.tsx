@@ -30,8 +30,8 @@ function reset() {
 }
 
 /** Human-readable list of violations, so a failure shows what's wrong at a glance. */
-async function violations(container: HTMLElement): Promise<string[]> {
-  const results = await axe(container);
+async function violations(container: HTMLElement, options?: Parameters<typeof axe>[1]): Promise<string[]> {
+  const results = await axe(container, options);
   return results.violations.map((v) => `${v.id} (${v.impact}) — ${v.help} [${v.nodes.length} node(s)]`);
 }
 
@@ -55,6 +55,16 @@ describe('accessibility (axe · component level)', () => {
     await screen.findByRole('heading', { level: 1 });
     expect(await violations(container)).toEqual([]);
   });
+
+  // Broader sweep — screens that render status badges/callouts and the
+  // connection surfaces, so the theme-aware status tokens are exercised.
+  for (const view of ['list', 'connections', 'outbox', 'analytics', 'campaigns'] as const) {
+    it(`${view} screen has no structural a11y violations`, async () => {
+      const { container } = render(<App initialView={view} />);
+      await screen.findByRole('heading', { level: 1 });
+      expect(await violations(container)).toEqual([]);
+    });
+  }
 
   it('Pipeline board has no structural a11y violations', async () => {
     // The board renders post cards, each of which contains both an "open editor"

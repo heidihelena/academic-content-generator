@@ -109,7 +109,7 @@ function SocialRow({ status }: { status: SocialStatus }) {
     <div className="flex items-center justify-between gap-2 rounded-lg border border-surface-700 bg-surface-850 px-3 py-2 text-xs">
       <span className="capitalize text-slate-300">{status.platform}</span>
       <span className="flex items-center gap-2">
-        <span className="text-[10px] uppercase tracking-wide text-slate-600">{status.method}</span>
+        <span className="text-[10px] uppercase tracking-wide text-slate-500">{status.method}</span>
         <Dot tone={tone} label={label} />
       </span>
     </div>
