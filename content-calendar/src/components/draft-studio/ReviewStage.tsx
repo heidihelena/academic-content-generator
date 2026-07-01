@@ -17,8 +17,8 @@ export function ReviewStage({ review }: { review: Review }) {
       <div
         data-testid="review-status"
         data-cleared={review.cleared || undefined}
-        className={`rounded-lg px-3 py-2 text-sm font-medium text-slate-100 ${
-          review.cleared ? 'bg-status-published/15' : 'bg-status-failed/15'
+        className={`rounded-lg px-3 py-2 text-sm font-medium ${
+          review.cleared ? 'bg-status-published/15 text-status-published' : 'bg-status-failed/15 text-status-failed'
         }`}
       >
         {review.cleared
