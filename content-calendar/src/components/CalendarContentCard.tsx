@@ -1,7 +1,7 @@
 import type { Post } from '../types';
 import { formatTime } from '../lib/dateUtils';
 import { useStore } from '../store/useStore';
-import { EVIDENCE_META, sourceLabel } from '../lib/evidence';
+import { EVIDENCE_META, EVIDENCE_BADGE_CLASS, sourceLabel } from '../lib/evidence';
 import { analyzeReach } from '../lib/reach';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
 import { ImageIcon, VideoIcon, AlertIcon, TagIcon, UserIcon, BookIcon } from './icons';
@@ -92,11 +92,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
         <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
           {post.evidenceLevel && (
             <span
-              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium"
-              style={{
-                color: EVIDENCE_META[post.evidenceLevel].color,
-                backgroundColor: `${EVIDENCE_META[post.evidenceLevel].color}1f`,
-              }}
+              className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium ${EVIDENCE_BADGE_CLASS[post.evidenceLevel]}`}
               title={EVIDENCE_META[post.evidenceLevel].description}
             >
               {EVIDENCE_META[post.evidenceLevel].label}

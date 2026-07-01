@@ -40,6 +40,19 @@ export const EVIDENCE_META: Record<EvidenceLevel, EvidenceMeta> = {
   },
 };
 
+/**
+ * Theme-aware badge classes per evidence level (tinted background + text),
+ * reusing the pipeline status tokens so the chip clears WCAG AA in both the
+ * light and dark palettes. Prefer this over the raw {@link EVIDENCE_META.color}
+ * for text-bearing chips — the fixed accent hex only meets contrast on a dark
+ * surface, not on the light "paper" theme.
+ */
+export const EVIDENCE_BADGE_CLASS: Record<EvidenceLevel, string> = {
+  opinion: 'bg-status-learn/15 text-status-learn',
+  preliminary: 'bg-status-brief/15 text-status-brief',
+  peer_reviewed: 'bg-status-approved/15 text-status-approved',
+};
+
 /** Levels for which a linked source is expected (peer-reviewed / preliminary). */
 export function evidenceExpectsSource(level: EvidenceLevel | undefined): boolean {
   return level === 'peer_reviewed' || level === 'preliminary';
