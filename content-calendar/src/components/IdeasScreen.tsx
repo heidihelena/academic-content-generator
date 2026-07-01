@@ -36,7 +36,7 @@ export function IdeasScreen() {
               aria-selected={selected}
               onClick={() => setActive(t.id)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                selected ? 'bg-brand-500/15 text-brand-400' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
+                selected ? 'bg-brand-500/15 text-brand-strong' : 'text-slate-400 hover:bg-surface-800 hover:text-slate-200'
               }`}
             >
               {t.label}
