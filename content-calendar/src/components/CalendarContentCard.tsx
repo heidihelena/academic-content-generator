@@ -16,8 +16,12 @@ interface Props {
  * A draggable post card used across all calendar views. Supports multi-select
  * (checkbox), shows a conflict flag, and opens the detail drawer on click.
  *
- * Rendered as a div (not a button) so the selection checkbox can live inside it
- * without nesting interactive elements.
+ * The card container is a plain div; the "open editor" action is a
+ * "stretched button" absolutely positioned to cover the card (z-0). The card
+ * content sits above it (z-10, pointer-events-none) so clicks fall through to
+ * the button, while the checkbox re-enables pointer events and lives as a
+ * *sibling* of the button — never nested inside it. This keeps the card
+ * keyboard-operable without nesting interactive controls (axe nested-interactive).
  */
 export function CalendarContentCard({ post, conflicted }: Props) {
   const openEditor = useStore((s) => s.openEditor);
@@ -39,10 +43,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
   return (
     <div
       data-testid={`post-card-${post.id}`}
-      role="button"
-      tabIndex={0}
       draggable
-      aria-label={`Edit post: ${post.body.slice(0, 40) || 'empty draft'}`}
       onDragStart={(e) => {
         e.dataTransfer.setData('text/plain', post.id);
         e.dataTransfer.effectAllowed = 'move';
@@ -50,16 +51,21 @@ export function CalendarContentCard({ post, conflicted }: Props) {
       }}
       onDragEnd={() => setDragging(null)}
       onClick={() => canEdit && openEditor(post.id)}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && canEdit) {
-          e.preventDefault();
-          openEditor(post.id);
-        }
-      }}
       className={`group relative w-full cursor-grab rounded-lg border bg-surface-800 p-2 text-left transition-colors hover:border-surface-500 active:cursor-grabbing ${
         selected ? 'border-brand-400 ring-1 ring-brand-400' : 'border-surface-700'
       }`}
     >
+      {/* Stretched button: covers the card (z-0) so any click on the card
+          opens the editor, while staying a sibling of the checkbox. */}
+      <button
+        type="button"
+        aria-label={`Edit post: ${post.body.slice(0, 40) || 'empty draft'}`}
+        onClick={() => canEdit && openEditor(post.id)}
+        className="absolute inset-0 z-0 cursor-grab rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400"
+      />
+      {/* Content overlay: above the button but transparent to pointer events so
+          clicks reach the button. Interactive children re-enable pointer events. */}
+      <div className="pointer-events-none relative z-10">
       <div className="mb-1.5 flex items-center justify-between gap-1">
         <PlatformBadge platform={post.platform} />
         <div className="flex items-center gap-1">
@@ -75,7 +81,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
             checked={selected}
             onClick={(e) => e.stopPropagation()}
             onChange={() => toggleSelected(post.id)}
-            className="h-3.5 w-3.5 cursor-pointer accent-brand-500"
+            className="pointer-events-auto h-3.5 w-3.5 cursor-pointer accent-brand-500"
           />
         </div>
       </div>
@@ -160,6 +166,7 @@ export function CalendarContentCard({ post, conflicted }: Props) {
             </span>
           )}
         </span>
+      </div>
       </div>
     </div>
   );

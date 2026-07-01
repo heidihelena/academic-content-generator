@@ -55,4 +55,13 @@ describe('accessibility (axe · component level)', () => {
     await screen.findByRole('heading', { level: 1 });
     expect(await violations(container)).toEqual([]);
   });
+
+  it('Pipeline board has no structural a11y violations', async () => {
+    // The board renders post cards, each of which contains both an "open editor"
+    // control and a selection checkbox. Guards against nested-interactive
+    // regressions (the card uses a stretched button, not a role="button" wrapper).
+    const { container } = render(<App initialView="board" />);
+    await screen.findByRole('region', { name: 'Pipeline board' });
+    expect(await violations(container)).toEqual([]);
+  });
 });
