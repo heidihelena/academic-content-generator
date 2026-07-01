@@ -2,6 +2,8 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { Audience, ContentChannel } from '../domain/academic';
 import { RateLimited } from '../rate-limit/rate-limited.decorator';
 import { DraftStudioRequest, DraftStudioService } from './draft-studio.service';
+import { TransformService } from './transform.service';
+import { TransformRequest } from './transform.types';
 
 interface HookRequest {
   sourceId: string;
@@ -12,7 +14,10 @@ interface HookRequest {
 @RateLimited()
 @Controller('draft-studio')
 export class DraftStudioController {
-  constructor(private readonly studio: DraftStudioService) {}
+  constructor(
+    private readonly studio: DraftStudioService,
+    private readonly transformer: TransformService,
+  ) {}
 
   /**
    * POST /api/draft-studio — generate a draft from a source for a channel +
@@ -27,5 +32,14 @@ export class DraftStudioController {
   @Post('hook')
   hook(@Body() req: HookRequest) {
     return this.studio.hook(req.sourceId, req.channel, req.audience);
+  }
+
+  /**
+   * POST /api/draft-studio/transform — rewrite/translate an existing draft
+   * (register-and-shape edits only; meaning and claims are preserved).
+   */
+  @Post('transform')
+  transform(@Body() req: TransformRequest) {
+    return this.transformer.transform(req);
   }
 }

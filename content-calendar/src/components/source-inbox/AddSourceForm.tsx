@@ -3,7 +3,7 @@ import { SOURCE_KINDS, type SourceKind } from '../../sources/sourcesTypes';
 import { Button, Field, Input, Select, Textarea } from '../ui';
 import type { NewSourceValues } from './useSourceList';
 
-const EMPTY = { title: '', kind: 'paper' as SourceKind, url: '', abstract: '' };
+const EMPTY = { title: '', kind: 'paper' as SourceKind, url: '', abstract: '', project: '', language: '' };
 
 interface AddSourceFormProps {
   /** Returns true when the source was created; the form then resets and closes. */
@@ -57,6 +57,24 @@ export function AddSourceForm({ onAdd, onDone }: AddSourceFormProps) {
           onChange={(e) => setForm({ ...form, abstract: e.target.value })}
         />
       </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Project (optional)" htmlFor="src-project">
+          <Input
+            id="src-project"
+            placeholder="e.g. Heat & health study"
+            value={form.project}
+            onChange={(e) => setForm({ ...form, project: e.target.value })}
+          />
+        </Field>
+        <Field label="Language (optional)" htmlFor="src-language">
+          <Input
+            id="src-language"
+            placeholder="e.g. English"
+            value={form.language}
+            onChange={(e) => setForm({ ...form, language: e.target.value })}
+          />
+        </Field>
+      </div>
       <Button type="submit" size="sm" disabled={!form.title.trim()}>
         Add to inbox
       </Button>
