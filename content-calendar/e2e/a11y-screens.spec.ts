@@ -29,11 +29,11 @@ test.describe('App screens — accessibility (axe, real browser)', () => {
     await page.goto('/');
   });
 
-  // NOTE: the Library/board scan is intentionally deferred — the board cards
-  // have their own cluster of a11y work (nested-interactive from the clickable
-  // card, plus contrast on the evidence-level chips that use inline
-  // EVIDENCE_META colours). Tracked as a follow-up so this token sweep stays
-  // focused; add the Library scan back once the card is refactored.
+  // NOTE: nested-interactive on the board cards is now fixed (stretched-button
+  // refactor) and is scanned for in e2e/a11y.spec.ts. A full WCAG Library scan
+  // is still deferred here because the evidence-level chips (inline EVIDENCE_META
+  // colours) have pre-existing colour-contrast debt; add the Library scan back to
+  // this token sweep once that contrast is resolved.
 
   test('Connections passes WCAG A/AA', async ({ page }) => {
     await open(page, 'Connections', 'Connections');

@@ -86,7 +86,8 @@ describe('Review/Approve gate', () => {
   function openReviewPost() {
     render(<App initialView="board" />);
     const post = useStore.getState().posts.find((p) => p.status === 'review')!;
-    fireEvent.click(screen.getByTestId(`post-card-${post.id}`));
+    const card = screen.getByTestId(`post-card-${post.id}`);
+    fireEvent.click(within(card).getByRole('button', { name: /Edit post/i }));
     return post;
   }
 
@@ -94,7 +95,8 @@ describe('Review/Approve gate', () => {
     render(<App initialView="board" />);
     // A drafting post has no review panel.
     const draftPost = useStore.getState().posts.find((p) => p.status === 'draft')!;
-    fireEvent.click(screen.getByTestId(`post-card-${draftPost.id}`));
+    const card = screen.getByTestId(`post-card-${draftPost.id}`);
+    fireEvent.click(within(card).getByRole('button', { name: /Edit post/i }));
     expect(screen.queryByTestId('review-panel')).not.toBeInTheDocument();
   });
 

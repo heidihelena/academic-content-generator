@@ -41,3 +41,17 @@ test.describe('Draft Studio — accessibility (axe, real browser)', () => {
     expect(await scan(page)).toEqual([]);
   });
 });
+
+test.describe('Library / Pipeline board — accessibility (axe, real browser)', () => {
+  test('post cards have no nested-interactive violations', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('navigation', { name: 'Primary' }).getByRole('button', { name: 'Library' }).click();
+    // The board renders post cards, each with a stretched "Edit post" button plus
+    // a "Select post" checkbox as siblings — no nested interactive controls.
+    await expect(page.getByRole('region', { name: 'Pipeline board' })).toBeVisible();
+    // Scoped to nested-interactive: the board still has pre-existing colour-contrast
+    // debt on card badges that is out of scope for this fix.
+    const results = await new AxeBuilder({ page }).withRules(['nested-interactive']).analyze();
+    expect(results.violations.map((v) => ({ id: v.id, nodes: v.nodes.map((n) => n.target.join(' ')) }))).toEqual([]);
+  });
+});

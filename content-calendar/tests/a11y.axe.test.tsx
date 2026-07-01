@@ -29,12 +29,6 @@ function reset() {
   });
 }
 
-// The board's clickable cards nest a checkbox inside a role="button" surface
-// (nested-interactive). That's a real, separate fix (a card refactor + test
-// updates), tracked as a follow-up; deferred here so the board is still scanned
-// for everything else — crucially colour-contrast on its status badges.
-const DEFER = { rules: { 'nested-interactive': { enabled: false } } };
-
 /** Human-readable list of violations, so a failure shows what's wrong at a glance. */
 async function violations(container: HTMLElement, options?: Parameters<typeof axe>[1]): Promise<string[]> {
   const results = await axe(container, options);
@@ -72,9 +66,12 @@ describe('accessibility (axe · component level)', () => {
     });
   }
 
-  it('board screen has no structural a11y violations (nested-interactive deferred)', async () => {
+  it('Pipeline board has no structural a11y violations', async () => {
+    // The board renders post cards, each of which contains both an "open editor"
+    // control and a selection checkbox. Guards against nested-interactive
+    // regressions (the card uses a stretched button, not a role="button" wrapper).
     const { container } = render(<App initialView="board" />);
-    await screen.findByRole('heading', { level: 1 });
-    expect(await violations(container, DEFER)).toEqual([]);
+    await screen.findByRole('region', { name: 'Pipeline board' });
+    expect(await violations(container)).toEqual([]);
   });
 });
