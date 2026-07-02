@@ -1,4 +1,4 @@
-import { STUDIO_AUDIENCES, STUDIO_CHANNELS, type StudioInput } from '../../studio/studioTypes';
+import { STUDIO_AUDIENCES, STUDIO_CHANNELS, STUDIO_CHANNEL_LABELS, type StudioInput } from '../../studio/studioTypes';
 import { Button, Field, Input, Label, Select, Textarea } from '../ui';
 
 interface ComposeStageProps {
@@ -38,7 +38,7 @@ export function ComposeStage({ input, hookBusy, onChange, onSuggestHook }: Compo
           >
             {STUDIO_CHANNELS.map((c) => (
               <option key={c} value={c}>
-                {c}
+                {STUDIO_CHANNEL_LABELS[c]}
               </option>
             ))}
           </Select>

@@ -11,8 +11,20 @@ export const STUDIO_CHANNELS = [
   'instagram',
   'newsletter',
   'teaching',
+  'video-script',
+  'explainer',
 ] as const;
 export type StudioChannel = (typeof STUDIO_CHANNELS)[number];
+
+export const STUDIO_CHANNEL_LABELS: Record<StudioChannel, string> = {
+  linkedin: 'LinkedIn post',
+  threads: 'Threads/X thread',
+  instagram: 'Instagram caption',
+  newsletter: 'Newsletter section',
+  teaching: 'Teaching explanation',
+  'video-script': 'Short video script',
+  explainer: 'Patient-safe explainer',
+};
 
 export const STUDIO_AUDIENCES = ['peers', 'students', 'patients', 'public'] as const;
 export type StudioAudience = (typeof STUDIO_AUDIENCES)[number];
@@ -45,12 +57,40 @@ export interface ReviewState {
   cleared: boolean;
 }
 
+/**
+ * The review-status ladder a draft climbs before it may be published. Every
+ * draft starts as a raw AI (or template) draft and must be human-edited and
+ * reviewed before it can be marked ready.
+ */
+export const DRAFT_REVIEW_STATUSES = [
+  'raw-ai',
+  'human-edited',
+  'claim-reviewed',
+  'citation-checked',
+  'ready',
+  'archived',
+] as const;
+export type DraftReviewStatus = (typeof DRAFT_REVIEW_STATUSES)[number];
+
+export const DRAFT_REVIEW_STATUS_LABELS: Record<DraftReviewStatus, string> = {
+  'raw-ai': 'Raw AI draft',
+  'human-edited': 'Human edited',
+  'claim-reviewed': 'Claim reviewed',
+  'citation-checked': 'Citation checked',
+  ready: 'Ready to publish',
+  archived: 'Archived',
+};
+
 /** A source handed off from the Source Inbox to pre-fill the Compose stage. */
 export interface StudioSeed {
   title: string;
   material: string;
   /** Backend source id, when the seed came from a stored source. */
   sourceId?: string;
+  /** Pre-selected channel/audience/hook, when the seed came from an Idea Lab idea. */
+  channel?: StudioChannel;
+  audience?: StudioAudience;
+  hook?: string;
 }
 
 /** What the author provides in the Compose stage. */
@@ -64,4 +104,6 @@ export interface StudioInput {
   hook: string;
   /** Backend source id when drafting from a stored source (enables API compose). */
   sourceId?: string;
+  /** Voice profile applied when composing/rewriting (stays local). */
+  voiceProfileId?: string;
 }

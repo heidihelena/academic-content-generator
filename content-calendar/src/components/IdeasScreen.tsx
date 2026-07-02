@@ -1,24 +1,27 @@
 import { useState } from 'react';
+import type { StudioSeed } from '../studio/studioTypes';
+import { IdeaLabScreen } from './IdeaLabScreen';
 import { GenerateIdeas } from './GenerateIdeas';
 import { AbstractToThread } from './AbstractToThread';
 import { TalkPackageStudio } from './TalkPackageStudio';
 import { VideoToShorts } from './VideoToShorts';
 
 /**
- * Idea tools, one hub. These four AI-assisted generators used to stack on a
- * single scroll; they're now tabs so each gets full focus and the screen isn't
- * a wall of forms. Each is independent — pick the output you want to start from.
+ * The Idea Lab hub. The primary tab turns one of your sources into five graded
+ * content ideas; the other AI-assisted generators (topic ideas, abstract →
+ * thread, talk package, video → shorts) live alongside it as tabs.
  */
-const TABS: Array<{ id: string; label: string; Component: () => JSX.Element }> = [
+const TABS: Array<{ id: string; label: string; Component?: () => JSX.Element }> = [
+  { id: 'source', label: 'From a source' },
   { id: 'ideas', label: 'Ideas', Component: GenerateIdeas },
   { id: 'thread', label: 'Abstract → thread', Component: AbstractToThread },
   { id: 'talk', label: 'Talk package', Component: TalkPackageStudio },
   { id: 'shorts', label: 'Video → shorts', Component: VideoToShorts },
 ];
 
-export function IdeasScreen() {
-  const [active, setActive] = useState('ideas');
-  const Active = (TABS.find((t) => t.id === active) ?? TABS[0]).Component;
+export function IdeasScreen({ onDraft }: { onDraft: (seed: StudioSeed) => void }) {
+  const [active, setActive] = useState('source');
+  const tab = TABS.find((t) => t.id === active) ?? TABS[0];
 
   return (
     <div className="space-y-4">
@@ -45,7 +48,7 @@ export function IdeasScreen() {
         })}
       </div>
 
-      <Active />
+      {tab.id === 'source' ? <IdeaLabScreen onDraft={onDraft} /> : tab.Component ? <tab.Component /> : null}
     </div>
   );
 }

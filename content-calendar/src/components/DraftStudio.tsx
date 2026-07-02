@@ -49,7 +49,13 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
           draft={state.draft}
           audience={state.input.audience}
           channel={state.input.channel}
+          voiceProfileId={state.input.voiceProfileId}
+          reviewStatus={studio.reviewStatus}
+          transformBusy={studio.transformBusy}
+          transformNote={studio.transformNote}
           onChange={studio.setDraft}
+          onVoiceChange={(voiceProfileId) => studio.setInput({ voiceProfileId })}
+          onTransform={(action, language) => void studio.applyTransform(action, language)}
         />
       )}
 
@@ -59,6 +65,8 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
         <ReadyStage
           draft={state.draft}
           saved={studio.saved}
+          reviewStatus={studio.reviewStatus}
+          onReviewStatus={studio.setReviewStatus}
           onSave={studio.saveToCalendar}
           onCopy={studio.copyDraft}
           onDownload={studio.downloadMarkdown}
