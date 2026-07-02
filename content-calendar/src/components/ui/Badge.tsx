@@ -16,7 +16,7 @@ const badge = cva('inline-flex items-center font-medium', {
   variants: {
     tone: {
       neutral: 'bg-surface-700 text-slate-300',
-      brand: 'bg-brand-500/15 text-brand-400',
+      brand: 'bg-brand-500/15 text-brand-strong',
       success: 'bg-status-published/15 text-status-published',
       warn: 'bg-status-brief/15 text-status-brief',
       danger: 'bg-status-failed/15 text-status-failed',

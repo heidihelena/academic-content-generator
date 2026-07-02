@@ -78,7 +78,7 @@ describe('Badge', () => {
       </Badge>,
     );
     const badge = screen.getByText('paper');
-    expect(badge).toHaveClass('text-brand-400', 'uppercase', 'rounded');
+    expect(badge).toHaveClass('text-brand-strong', 'uppercase', 'rounded');
   });
 
   it('carries the Vahtian accent for the review tone', () => {
