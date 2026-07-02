@@ -132,7 +132,10 @@ Every seam is marked in code with `// --- REAL API INTEGRATION POINT ---`:
   column.
 - **AI ideas** — set `IDEA_GENERATOR=llm` + `ANTHROPIC_API_KEY`. Uses
   `@anthropic-ai/sdk` with `claude-opus-4-8`, adaptive thinking, and structured
-  outputs.
+  outputs. Set `COMPOSER_MODE=agentic` to run Draft Studio composition as a
+  bounded compose → safety-review → revise loop (max 2 revision rounds) —
+  useful for weaker local models via `LLM_PROVIDER=ollama`; the default
+  `single` is one-shot.
 
 - **Media storage** — `POST /api/media/upload` stores files via the
   `StorageService`. Default `STORAGE_DRIVER=local` (served at `/uploads`); set

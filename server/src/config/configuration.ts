@@ -13,6 +13,9 @@ export type PersistenceDriver = 'memory' | 'file' | 'sqlite' | 'neon';
 export type EmbeddingsProvider = 'mock' | 'voyage';
 export type IdeaGeneratorKind = 'mock' | 'llm';
 export type LlmProvider = 'anthropic' | 'ollama';
+/** Draft composition: one-shot LLM call, or an agentic self-review loop
+ *  (compose → safety review → bounded revision). Applies when `generator==='llm'`. */
+export type ComposerMode = 'single' | 'agentic';
 export type VoiceProvider = 'mock' | 'elevenlabs';
 export type VideoProvider = 'mock' | 'heygen';
 export type StorageDriver = 'local' | 's3';
@@ -73,6 +76,8 @@ export interface AppConfig {
     /** Ollama (local LLM) connection, used when `provider==='ollama'`. */
     ollamaBaseUrl: string;
     ollamaModel: string;
+    /** How the Draft Studio composer uses the LLM (`single` = one-shot). */
+    composerMode: ComposerMode;
   };
   /** Media generation: voice-over (ElevenLabs) and avatar video (HeyGen).
    *  Mock by default; a real provider activates when its key is set. */
@@ -216,6 +221,7 @@ export default (): AppConfig => {
     anthropicModel: process.env.ANTHROPIC_MODEL ?? 'claude-opus-4-8',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
     ollamaModel: process.env.OLLAMA_MODEL ?? 'llama3.1',
+    composerMode: (process.env.COMPOSER_MODE as ComposerMode) ?? 'single',
   },
   media: {
     voice: {

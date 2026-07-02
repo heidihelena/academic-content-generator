@@ -1,4 +1,4 @@
-import { Audience, ContentChannel } from '../domain/academic';
+import { Audience, ContentChannel, SafetyFinding } from '../domain/academic';
 import { ComposeRequest } from './composer.types';
 
 /** Prompts + JSON schemas for the Claude-backed hook and draft composers. */
@@ -18,7 +18,7 @@ function isPatientFacing(audience: Audience): boolean {
   return audience === 'patients' || audience === 'public';
 }
 
-const SAFETY_RULES = `Safety rules:
+export const SAFETY_RULES = `Safety rules:
 - Never overstate: report associations as associations, not proof. Avoid "cure", "guaranteed", "100% effective".
 - No specific dosages or self-treatment instructions.
 - Do not present unproven or off-label treatments as established fact.
@@ -56,6 +56,47 @@ export function buildHookUserPrompt(req: ComposeRequest): string {
     '',
     'Write ONE compelling opening hook — a single sentence, no hashtags, stating the finding rather than the methods. Respond as JSON: { "hook": string }.',
   ].join('\n');
+}
+
+/**
+ * Revision prompt for the agentic composer: the model gets its own draft back
+ * together with the safety findings (and any claims still needing grounding)
+ * and is asked to resolve them without drifting from the source material.
+ */
+export function buildRevisionUserPrompt(
+  req: ComposeRequest,
+  draft: string,
+  findings: readonly SafetyFinding[],
+  uncitedClaims: readonly string[] = [],
+): string {
+  return [
+    `Channel: ${req.channel} (keep within ~${CHANNEL_LIMITS[req.channel]} characters)`,
+    `Audience: ${req.audience}`,
+    `Title: ${req.title}`,
+    '',
+    'Source material:',
+    req.material.trim() || '(none)',
+    '',
+    'Your previous draft:',
+    draft,
+    '',
+    'A safety review of that draft raised these findings:',
+    ...findings.map(
+      (f) =>
+        `- [${f.severity}] ${f.category}: ${f.message}${f.suggestion ? ` Suggestion: ${f.suggestion}` : ''}`,
+    ),
+    ...(uncitedClaims.length
+      ? ['', 'Claims that still need a citation or clear grounding in the source:', ...uncitedClaims.map((c) => `- ${c}`)]
+      : []),
+    '',
+    'Revise the draft to resolve every finding while preserving its meaning. Stay grounded in the source material — do not add new claims, and keep hedges and uncertainty.',
+    isPatientFacing(req.audience)
+      ? 'End the post with exactly: "This is general information, not medical advice. Talk to a qualified health professional about your situation."'
+      : '',
+    'Respond as JSON: { "body": string }.',
+  ]
+    .filter(Boolean)
+    .join('\n');
 }
 
 export function buildDraftUserPrompt(req: ComposeRequest): string {

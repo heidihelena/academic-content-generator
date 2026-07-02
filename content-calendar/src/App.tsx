@@ -10,6 +10,8 @@ import { Analytics } from './components/Analytics';
 import { IdeasScreen } from './components/IdeasScreen';
 import { SourceInbox } from './components/SourceInbox';
 import { DraftStudio } from './components/DraftStudio';
+import { ReviewQueueScreen } from './components/ReviewQueueScreen';
+import { VoiceProfilesScreen } from './components/VoiceProfilesScreen';
 import type { StudioSeed } from './studio/studioTypes';
 import { CampaignsView } from './components/CampaignsView';
 import { ConnectionsView } from './components/ConnectionsView';
@@ -71,13 +73,23 @@ export default function App({ initialView = 'home' }: { initialView?: View } = {
               )}
               {view === 'analytics' && <Analytics />}
               {view === 'inbox' && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-4xl">
                   <SourceInbox onDraft={draftFromSource} />
                 </div>
               )}
               {view === 'studio' && (
-                <div className="mx-auto max-w-3xl">
+                <div className="mx-auto max-w-5xl">
                   <DraftStudio seed={studioSeed} />
+                </div>
+              )}
+              {view === 'review' && (
+                <div className="mx-auto max-w-4xl">
+                  <ReviewQueueScreen />
+                </div>
+              )}
+              {view === 'voices' && (
+                <div className="mx-auto max-w-4xl">
+                  <VoiceProfilesScreen />
                 </div>
               )}
               {view === 'campaigns' && (
@@ -91,8 +103,8 @@ export default function App({ initialView = 'home' }: { initialView?: View } = {
                 </div>
               )}
               {view === 'ideas' && (
-                <div className="mx-auto max-w-3xl">
-                  <IdeasScreen />
+                <div className="mx-auto max-w-4xl">
+                  <IdeasScreen onDraft={draftFromSource} />
                 </div>
               )}
               {view === 'settings' && (

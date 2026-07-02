@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import { setSourceStatus, useSourceMetaMap, SOURCE_STATUSES, type SourceStatus } from '../sources/sourceMeta';
+import { SOURCE_KINDS, type SourceKind } from '../sources/sourcesTypes';
 import type { StudioSeed } from '../studio/studioTypes';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
 import { Button, Card, ErrorState, Heading, Input, Spinner, Text } from './ui';
 import {
   AddSourceForm,
   SourceCard,
+  SourceDropZone,
   VaultSearchPanel,
   useSourceDeck,
   useSourceIdeas,
@@ -17,19 +20,38 @@ interface SourceInboxProps {
   onDraft: (seed: StudioSeed) => void;
 }
 
+const DEFAULT_META = { status: 'new' as SourceStatus };
+
 /**
- * Source Inbox: browse and search your sources — manually-added papers/links
- * plus live Obsidian vault notes (in API mode) — and send one to the Draft
- * Studio. A presentational shell; each concern lives in its own hook/component.
+ * Source Inbox: collect and browse your research material — dropped files,
+ * manually-added papers/links and live Obsidian vault notes — with the review
+ * lifecycle (new → reviewed → used → archived) and filters to see what's still
+ * waiting to be reused. Everything works locally; nothing is uploaded.
  */
 export function SourceInbox({ onDraft }: SourceInboxProps) {
   const list = useSourceList();
   const vault = useVaultSearch();
   const ideas = useSourceIdeas();
   const deck = useSourceDeck();
+  const metaMap = useSourceMetaMap();
   const [showForm, setShowForm] = useState(false);
   const [showVault, setShowVault] = useState(false);
   const [repurposeId, setRepurposeId] = useState<string | null>(null);
+  const [kindFilter, setKindFilter] = useState<SourceKind | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<SourceStatus | 'all'>('all');
+
+  const metaFor = (id: string) => metaMap[id] ?? DEFAULT_META;
+  const visible = list.sources.filter((s) => {
+    const meta = metaFor(s.id);
+    if (kindFilter !== 'all' && s.kind !== kindFilter) return false;
+    if (statusFilter === 'all') return meta.status !== 'archived';
+    return meta.status === statusFilter;
+  });
+
+  const filterChip = (active: boolean) =>
+    `rounded px-2 py-0.5 text-[11px] font-medium transition-colors ${
+      active ? 'bg-brand-500/20 text-brand-strong' : 'bg-surface-800 text-slate-400 hover:text-slate-200'
+    }`;
 
   return (
     <Card as="section" aria-label="Source Inbox" className="space-y-4 p-5">
@@ -50,6 +72,13 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
           </Button>
         </div>
       </header>
+
+      <SourceDropZone onFiles={(files) => void list.addFiles(files)} />
+      {list.notice && (
+        <p role="status" data-testid="inbox-notice" className="text-xs text-brand-400">
+          {list.notice}
+        </p>
+      )}
 
       {showVault && (
         <VaultSearchPanel
@@ -78,22 +107,51 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
         </Button>
       </form>
 
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Filter by kind">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">Kind</span>
+          <button type="button" className={filterChip(kindFilter === 'all')} onClick={() => setKindFilter('all')}>
+            all
+          </button>
+          {SOURCE_KINDS.map((k) => (
+            <button key={k} type="button" className={filterChip(kindFilter === k)} onClick={() => setKindFilter(k)}>
+              {k}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Filter by status">
+          <span className="text-[11px] uppercase tracking-wide text-slate-500">Status</span>
+          <button type="button" className={filterChip(statusFilter === 'all')} onClick={() => setStatusFilter('all')}>
+            active
+          </button>
+          {SOURCE_STATUSES.map((s) => (
+            <button key={s} type="button" className={filterChip(statusFilter === s)} onClick={() => setStatusFilter(s)}>
+              {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {showForm && <AddSourceForm onAdd={list.addSource} onDone={() => setShowForm(false)} />}
 
       {list.loading ? (
         <Spinner />
       ) : list.error ? (
         <ErrorState title="Couldn't load sources" message={list.error} onRetry={() => list.reload(list.query)} />
-      ) : list.sources.length === 0 ? (
+      ) : visible.length === 0 ? (
         <p className="py-6 text-center text-xs text-slate-500">
-          No sources yet. Add a paper or note above, or set your Obsidian vault path in Settings to pull notes in.
+          {list.sources.length === 0
+            ? 'No sources yet. Drop a file above, add a paper or note, or set your Obsidian vault path in Settings.'
+            : 'Nothing matches these filters.'}
         </p>
       ) : (
         <ul className="space-y-2" data-testid="source-list">
-          {list.sources.map((s) => (
+          {visible.map((s) => (
             <SourceCard
               key={s.id}
               source={s}
+              meta={metaFor(s.id)}
+              onStatusChange={(status) => setSourceStatus(s.id, status)}
               onDraft={onDraft}
               repurpose={{
                 open: repurposeId === s.id,

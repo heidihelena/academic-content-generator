@@ -4,11 +4,13 @@ import {
   BookIcon,
   CalendarIcon,
   ChartIcon,
+  CheckIcon,
   HomeIcon,
   LinkIcon,
   OutboxIcon,
   PlugIcon,
   SparkleIcon,
+  UserIcon,
 } from './icons';
 
 export type View =
@@ -18,12 +20,14 @@ export type View =
   | 'list'
   | 'inbox'
   | 'studio'
+  | 'review'
   | 'content'
   | 'campaigns'
   | 'analytics'
   | 'connections'
   | 'outbox'
   | 'settings'
+  | 'voices'
   | 'ideas';
 
 type NavItem = { id: View; label: string; icon: (p: { width?: number; height?: number }) => JSX.Element };
@@ -44,8 +48,9 @@ const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
     label: 'Create',
     items: [
       { id: 'inbox', label: 'Source Inbox', icon: LinkIcon },
+      { id: 'ideas', label: 'Idea Lab', icon: SparkleIcon },
       { id: 'studio', label: 'Draft Studio', icon: BookIcon },
-      { id: 'ideas', label: 'Generate Ideas', icon: SparkleIcon },
+      { id: 'review', label: 'Review Queue', icon: CheckIcon },
     ],
   },
   {
@@ -69,7 +74,10 @@ const SECTIONS: Array<{ label: string; items: NavItem[] }> = [
   },
   {
     label: 'Setup',
-    items: [{ id: 'settings', label: 'Settings', icon: BookIcon }],
+    items: [
+      { id: 'voices', label: 'Voice Profiles', icon: UserIcon },
+      { id: 'settings', label: 'Settings', icon: BookIcon },
+    ],
   },
 ];
 

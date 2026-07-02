@@ -26,7 +26,8 @@ function resetStore() {
 }
 
 function gotoIdeas() {
-  fireEvent.click(screen.getByRole('button', { name: /Generate Ideas/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Idea Lab/i }));
+  fireEvent.click(screen.getByRole('tab', { name: 'Ideas' }));
 }
 
 describe('GenerateIdeas UI', () => {

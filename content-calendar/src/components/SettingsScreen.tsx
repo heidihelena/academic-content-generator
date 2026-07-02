@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { ConnectionsReport, LocalSettings } from '../lib/api';
 import { fetchConnectionsState } from '../lib/connections';
 import { fetchSettings, saveSettings } from '../lib/settings';
-import { Button, Card, ErrorState, Heading, Input, LoadingState, Select } from './ui';
+import { Badge, Button, Card, ErrorState, Heading, Input, LoadingState, Select, Text } from './ui';
 import { BookIcon, CheckIcon } from './icons';
 
 /**
@@ -42,9 +42,83 @@ export function SettingsScreen() {
 
   useEffect(load, []);
 
-  if (error) return <ErrorState message={error} onRetry={load} />;
-  if (!inputs) return <LoadingState label="Loading settings…" />;
-  return <SettingsCard inputs={inputs} editable={editable} />;
+  return (
+    <div className="space-y-4">
+      <PrivacyCard />
+      {error ? (
+        <ErrorState message={error} onRetry={load} />
+      ) : !inputs ? (
+        <LoadingState label="Loading settings…" />
+      ) : (
+        <SettingsCard inputs={inputs} editable={editable} />
+      )}
+    </div>
+  );
+}
+
+/** One row of the privacy model: what the data is, where it goes, and why. */
+interface PrivacyFlow {
+  what: string;
+  label: string;
+  tone: 'success' | 'warn' | 'neutral';
+  note?: string;
+}
+
+const PRIVACY_FLOWS: readonly PrivacyFlow[] = [
+  { what: 'Sources, drafts, notes', label: 'stays local', tone: 'success' },
+  { what: 'Voice profiles', label: 'stays local', tone: 'success' },
+  {
+    what: 'AI drafting & ideas',
+    label: 'stays local',
+    tone: 'success',
+    note: 'Sent to an LLM provider only if you enable one.',
+  },
+  {
+    what: 'Publishing',
+    label: 'opt-in',
+    tone: 'warn',
+    note: 'Sent to the social platform only when you press publish.',
+  },
+  { what: 'App database', label: 'stored on this computer', tone: 'neutral' },
+];
+
+/**
+ * Privacy — the data-flow model, up front. Local-first is the product's core
+ * promise, so the settings screen leads with a plain statement of what leaves
+ * this computer (by default: nothing) and under which explicit opt-ins.
+ */
+function PrivacyCard() {
+  const apiUrl = import.meta.env.VITE_API_URL as string | undefined;
+  return (
+    <Card as="section" aria-label="Privacy — what leaves this computer" className="space-y-3 p-4">
+      <header className="space-y-1">
+        <Heading>Privacy — what leaves this computer</Heading>
+        <Text variant="muted">
+          {apiUrl
+            ? 'Connected to your local server'
+            : 'Local mode — everything stays on this computer'}
+        </Text>
+      </header>
+
+      <ul className="divide-y divide-surface-700 rounded-lg border border-surface-700 bg-surface-800/60">
+        {PRIVACY_FLOWS.map((f) => (
+          <li key={f.what} className="flex items-start justify-between gap-3 px-3 py-2">
+            <div>
+              <p className="text-sm text-slate-200">{f.what}</p>
+              {f.note && <p className="text-[11px] text-status-brief">{f.note}</p>}
+            </div>
+            <Badge tone={f.tone} className="mt-0.5 shrink-0">
+              {f.label}
+            </Badge>
+          </li>
+        ))}
+      </ul>
+
+      <Text variant="tiny">
+        Nothing is sent anywhere without an explicit opt-in. Local mock mode is the default.
+      </Text>
+    </Card>
+  );
 }
 
 function SettingsCard({

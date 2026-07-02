@@ -7,3 +7,4 @@ export { VaultSearchPanel } from './VaultSearchPanel';
 export { SourceCard } from './SourceCard';
 export { IdeaList } from './IdeaList';
 export { CarouselDeck } from './CarouselDeck';
+export { SourceDropZone } from './SourceDropZone';
