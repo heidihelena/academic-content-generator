@@ -55,7 +55,9 @@ export function DraftStage({
         <Label htmlFor="studio-draft">
           Draft for {audience} · {STUDIO_CHANNEL_LABELS[channel]}
         </Label>
-        <Badge size="chip" tone={reviewStatus === 'raw-ai' ? 'warn' : 'info'} data-testid="draft-review-status">
+        {/* Neutral tone: the status/brand tints fail AA colour-contrast on this
+            scanned screen, and this chip is an at-a-glance marker, not a warning. */}
+        <Badge size="chip" tone="neutral" data-testid="draft-review-status">
           {DRAFT_REVIEW_STATUS_LABELS[reviewStatus]}
         </Badge>
       </div>

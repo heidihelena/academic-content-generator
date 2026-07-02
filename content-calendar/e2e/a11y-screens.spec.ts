@@ -48,8 +48,8 @@ test.describe('App screens — accessibility (axe, real browser)', () => {
     expect(await scan(page)).toEqual([]);
   });
 
-  test('Ideas passes WCAG A/AA', async ({ page }) => {
-    await open(page, 'Generate Ideas', 'Generate Ideas');
+  test('Idea Lab passes WCAG A/AA', async ({ page }) => {
+    await open(page, 'Idea Lab', 'Idea Lab');
     expect(await scan(page)).toEqual([]);
   });
 });
