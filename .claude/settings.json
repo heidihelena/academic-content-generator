@@ -1,4 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm install)",
+      "Bash(npx vitest run:*)",
+      "Bash(bash scripts/check.sh:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git fetch:*)",
+      "Bash(git show:*)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

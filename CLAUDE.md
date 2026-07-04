@@ -85,3 +85,18 @@ installs both workspaces' deps automatically.
   workflow (typecheck · lint · test · build). A docs-only change runs nothing.
 - After a PR merges, the remote branch is deleted; `git fetch --prune` then
   `git merge --ff-only origin/main` to continue on a clean base.
+
+## Working with Heidi (durable preferences)
+
+- She may write in Finnish; **reply in English** (her choice — fewer tokens).
+- The user merges PRs herself, usually fast — open draft PRs and leave the
+  merge to her. "Great improvement" / "much better" are the accept signals.
+- Environment: MacBook Pro M3 Max, macOS Tahoe; local repo at
+  `/Users/heidiandersen/academic-content-generator`.
+- **Local-first is the deployment target, not a mock**: SQLite locally,
+  Obsidian vault in iCloud, secrets in the macOS keychain, server bound to
+  `127.0.0.1` with restricted CORS. She wants a real local API.
+- Target end user: PhD student / clinician-researcher; the cite-and-modify
+  medical ethos and the safety review gate are load-bearing — never weaken
+  them in copy or flow changes.
+- Always Read a file before Write/Edit — no exceptions.
