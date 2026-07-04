@@ -11,6 +11,7 @@ import { LinkedInIntegration } from './linkedin.integration';
 import { BlueskyIntegration } from './bluesky.integration';
 import { XIntegration } from './x.integration';
 import { MastodonIntegration } from './mastodon.integration';
+import { YouTubeIntegration } from './youtube.integration';
 
 /**
  * Maps each platform to its integration. Per platform, a real client is used
@@ -36,13 +37,7 @@ export class IntegrationRegistry {
       linkedin: this.buildLinkedIn(config),
       threads: this.buildThreads(config),
       x: this.buildX(config),
-      // YouTube ships mock-only: Shorts are planned in-app and exported/uploaded
-      // manually (the Data API upload flow needs OAuth + quota review).
-      youtube: new MockIntegration('youtube', {
-        handle: '@heidi-does-science',
-        displayName: 'Heidi does science',
-        followers: 5400,
-      }),
+      youtube: this.buildYouTube(config),
     };
   }
 
@@ -79,6 +74,7 @@ export class IntegrationRegistry {
     // Meta developer app (Facebook) credentials power both Instagram and Threads.
     if (platform === 'instagram') return new InstagramIntegration(creds.clientId, creds.clientSecret);
     if (platform === 'threads') return new ThreadsIntegration(creds.clientId, creds.clientSecret);
+    if (platform === 'youtube') return new YouTubeIntegration(creds.clientId, creds.clientSecret);
     return null;
   }
 
@@ -151,6 +147,20 @@ export class IntegrationRegistry {
     }
     // Mock until a paid X developer app is configured (X_CLIENT_ID/SECRET).
     return new MockIntegration('x', { handle: '@vahtian', displayName: 'vahtian', followers: 1980 });
+  }
+
+  private buildYouTube(config: ConfigService): PlatformIntegration {
+    const id = config.get<string>('integrations.youtube.clientId');
+    const secret = config.get<string>('integrations.youtube.clientSecret');
+    if (id && secret) {
+      this.logger.log('YouTube: using real Data API v3 integration (resumable upload)');
+      return new YouTubeIntegration(id, secret);
+    }
+    return new MockIntegration('youtube', {
+      handle: '@heidi-does-science',
+      displayName: 'Heidi does science',
+      followers: 5400,
+    });
   }
 
   private buildLinkedIn(config: ConfigService): PlatformIntegration {

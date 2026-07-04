@@ -16,7 +16,7 @@ const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
 
 /** OAuth platforms whose developer-app credentials can be entered in the app.
  *  Instagram and Threads take a Meta (Facebook) developer app's ID/Secret. */
-const OAUTH_APP_PLATFORMS: Platform[] = ['linkedin', 'x', 'instagram', 'threads'];
+const OAUTH_APP_PLATFORMS: Platform[] = ['linkedin', 'x', 'instagram', 'threads', 'youtube'];
 
 /** What to call the developer app whose credentials a platform needs. */
 const APP_CREDS_SOURCE: Partial<Record<Platform, string>> = {
@@ -24,6 +24,7 @@ const APP_CREDS_SOURCE: Partial<Record<Platform, string>> = {
   x: "your paid X developer app's OAuth 2.0 Client ID & Secret",
   instagram: "your Meta (Facebook) developer app's App ID & Secret",
   threads: "your Meta (Facebook) developer app's App ID & Secret",
+  youtube: "your Google Cloud OAuth client's ID & Secret (YouTube Data API v3 enabled)",
 };
 
 /**

@@ -29,11 +29,11 @@ describe('ProviderCredentialsService', () => {
     process.env.PROVIDER_CREDENTIALS_PATH = freshPath();
     const store = new ProviderCredentialsService(configWith());
     expect(store.get('linkedin')).toBeNull();
-    expect(store.configured()).toEqual({ linkedin: false, x: false, instagram: false, threads: false });
+    expect(store.configured()).toEqual({ linkedin: false, x: false, instagram: false, threads: false, youtube: false });
 
     store.set('linkedin', { clientId: ' id-1 ', clientSecret: ' s3cret ' });
     expect(store.get('linkedin')).toEqual({ clientId: 'id-1', clientSecret: 's3cret' });
-    expect(store.configured()).toEqual({ linkedin: true, x: false, instagram: false, threads: false });
+    expect(store.configured()).toEqual({ linkedin: true, x: false, instagram: false, threads: false, youtube: false });
 
     store.delete('linkedin');
     expect(store.get('linkedin')).toBeNull();
