@@ -190,22 +190,47 @@ export class BlueskyIntegration implements PlatformIntegration {
       });
 
     let result: { uri: string; cid: string };
+    let refreshedToken: AccessToken | undefined;
     try {
       result = await create(token.accessToken);
     } catch (err) {
       // The access JWT may have expired — refresh once and retry.
       if (token.refreshToken && /\b401\b/.test(String(err))) {
-        const refreshed = await apiFetch<SessionResponse>(
-          'bluesky',
-          this.url('com.atproto.server.refreshSession'),
-          { method: 'POST', headers: { authorization: `Bearer ${token.refreshToken}` } },
-        );
+        let refreshed: SessionResponse;
+        try {
+          refreshed = await apiFetch<SessionResponse>(
+            'bluesky',
+            this.url('com.atproto.server.refreshSession'),
+            { method: 'POST', headers: { authorization: `Bearer ${token.refreshToken}` } },
+          );
+        } catch (refreshErr) {
+          // The stored refresh token is dead (rotated or revoked) — only a
+          // fresh login fixes this; tell the user exactly that.
+          throw new Error(
+            'Bluesky session expired — reconnect the account (Connections → Bluesky) to sign in again.',
+            { cause: refreshErr },
+          );
+        }
+        // refreshSession ROTATES the pair: the old refresh token is now dead.
+        // Hand the new pair back so the caller persists it, or the next
+        // publish fails with the stale token.
+        refreshedToken = {
+          ...token,
+          accessToken: refreshed.accessJwt,
+          refreshToken: refreshed.refreshJwt,
+          expiresAt: Date.now() + 1000 * 60 * 90,
+        };
         result = await create(refreshed.accessJwt);
       } else {
         throw err;
       }
     }
 
-    return { remoteId: result.uri, remoteCid: result.cid, permalink: blueskyPermalink(did, result.uri) };
+    return {
+      remoteId: result.uri,
+      remoteCid: result.cid,
+      permalink: blueskyPermalink(did, result.uri),
+      refreshedToken,
+    };
   }
 }

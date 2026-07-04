@@ -114,3 +114,74 @@ describe('BlueskyIntegration.publish guards', () => {
     ).rejects.toThrow(/DID/);
   });
 });
+
+describe('BlueskyIntegration.publish session refresh', () => {
+  const integ = new BlueskyIntegration('https://bsky.social', 'me.bsky.social', 'app-pass');
+  const post = {
+    id: 'p1',
+    platform: 'bluesky' as const,
+    body: 'hello',
+    scheduledAt: '',
+    status: 'scheduled' as const,
+    media: [],
+    createdAt: '',
+    updatedAt: '',
+  };
+  const token = {
+    platform: 'bluesky' as const,
+    accessToken: 'stale-access',
+    refreshToken: 'old-refresh',
+    expiresAt: Date.now() - 1000,
+    scopes: [],
+    accountId: 'did:plc:abc',
+  };
+  const realFetch = global.fetch;
+  afterEach(() => {
+    global.fetch = realFetch;
+  });
+
+  it('returns the rotated pair so the caller can persist it', async () => {
+    global.fetch = jest
+      .fn()
+      // 1) createRecord with the stale access JWT → 401
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'ExpiredToken' }), { status: 401 }))
+      // 2) refreshSession → rotated pair
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ accessJwt: 'new-access', refreshJwt: 'new-refresh' }), { status: 200 }),
+      )
+      // 3) retried createRecord → success
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ uri: 'at://did:plc:abc/app.bsky.feed.post/3k', cid: 'cid1' }),
+          { status: 200 },
+        ),
+      );
+
+    const result = await integ.publish(post, token);
+    expect(result.remoteId).toBe('at://did:plc:abc/app.bsky.feed.post/3k');
+    expect(result.refreshedToken?.accessToken).toBe('new-access');
+    expect(result.refreshedToken?.refreshToken).toBe('new-refresh');
+    // Identity fields survive the rotation.
+    expect(result.refreshedToken?.accountId).toBe('did:plc:abc');
+  });
+
+  it('explains reconnecting when the stored refresh token is dead', async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'ExpiredToken' }), { status: 401 }))
+      // refreshSession also rejects: the pair was rotated away by an earlier publish
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: 'ExpiredToken' }), { status: 401 }));
+
+    await expect(integ.publish(post, token)).rejects.toThrow(
+      /Bluesky session expired — reconnect the account/,
+    );
+  });
+
+  it('does not attach refreshedToken when the first attempt succeeds', async () => {
+    global.fetch = jest.fn().mockResolvedValueOnce(
+      new Response(JSON.stringify({ uri: 'at://x/app.bsky.feed.post/1', cid: 'c' }), { status: 200 }),
+    );
+    const result = await integ.publish(post, token);
+    expect(result.refreshedToken).toBeUndefined();
+  });
+});

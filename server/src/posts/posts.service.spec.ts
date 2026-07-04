@@ -4,7 +4,9 @@ import { MemoryPostsRepository, MemoryTokenStore } from '../persistence/memory/m
 import type { IntegrationRegistry } from '../integrations/integration.registry';
 import type { AccessToken } from '../domain/types';
 
-function makeService(publishImpl?: () => Promise<{ remoteId: string; permalink: string }>) {
+function makeService(
+  publishImpl?: () => Promise<{ remoteId: string; permalink: string; refreshedToken?: AccessToken }>,
+) {
   const posts = new MemoryPostsRepository();
   const tokens = new MemoryTokenStore();
   const integration = {
@@ -65,6 +67,27 @@ describe('PostsService', () => {
     expect(published.status).toBe('published');
     expect(published.remoteId).toBe('remote_1');
     expect(published.permalink).toBe('https://x/p/1');
+  });
+
+  it('persists a rotated session returned by the integration', async () => {
+    const rotated: AccessToken = {
+      platform: 'instagram',
+      accessToken: 'new-access',
+      refreshToken: 'new-refresh',
+      expiresAt: Date.now() + 1e6,
+      scopes: [],
+    };
+    const { service, tokens } = makeService(async () => ({
+      remoteId: 'remote_1',
+      permalink: 'https://x/p/1',
+      refreshedToken: rotated,
+    }));
+    await tokens.set(token);
+    const created = await service.create({ platform: 'instagram', body: 'x', scheduledAt: '2030-01-01T00:00:00.000Z' });
+    await service.publish(created.id);
+    // The store now holds the rotated pair, so the next publish uses it.
+    expect((await tokens.get('instagram'))?.accessToken).toBe('new-access');
+    expect((await tokens.get('instagram'))?.refreshToken).toBe('new-refresh');
   });
 
   it('records the failure reason when the integration throws', async () => {

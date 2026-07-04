@@ -10,6 +10,12 @@ export interface PublishResult {
   permalink: string;
   /** Content hash (Bluesky CID), if the platform returns one. */
   remoteCid?: string;
+  /**
+   * When the platform rotated the session mid-publish (e.g. Bluesky's
+   * refreshSession invalidates the old refresh token), the new pair the
+   * caller must persist — otherwise the next publish fails with a dead token.
+   */
+  refreshedToken?: AccessToken;
 }
 
 /** Reference to an already-published post, used to chain a thread reply. */
