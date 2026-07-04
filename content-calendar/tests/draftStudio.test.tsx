@@ -108,3 +108,15 @@ describe('Draft Studio', () => {
     expect(draft.value.toLowerCase()).toContain('not medical advice');
   });
 });
+
+describe('Draft Studio channels', () => {
+  beforeEach(resetStore);
+
+  it('offers Bluesky and Mastodon as drafting channels', () => {
+    render(<App initialView="studio" />);
+    const channel = screen.getByLabelText('Channel') as HTMLSelectElement;
+    const labels = Array.from(channel.options).map((o) => o.text);
+    expect(labels).toContain('Bluesky post');
+    expect(labels).toContain('Mastodon post');
+  });
+});

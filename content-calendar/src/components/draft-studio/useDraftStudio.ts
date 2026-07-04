@@ -20,6 +20,8 @@ import type { Platform } from '../../types';
 
 /** Map a content channel to the calendar platform it posts to. */
 const CHANNEL_PLATFORM: Record<StudioChannel, Platform> = {
+  bluesky: 'bluesky',
+  mastodon: 'mastodon',
   linkedin: 'linkedin',
   threads: 'threads',
   instagram: 'instagram',

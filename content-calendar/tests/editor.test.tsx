@@ -159,3 +159,25 @@ describe('PostEditorModal', () => {
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe('copy draft to all platforms', () => {
+  beforeEach(resetStore);
+
+  it('creates an editable draft copy for every other platform', () => {
+    render(<App initialView="calendar" />);
+    const target = useStore.getState().posts.find((p) => p.body.includes('urban tree canopy'))!;
+    fireEvent.click(screen.getByText(/urban tree canopy/i));
+    const before = useStore.getState().posts.length;
+
+    fireEvent.click(screen.getByRole('button', { name: /Copy to all platforms/i }));
+
+    const posts = useStore.getState().posts;
+    // One copy per other platform (7 platforms total → 6 copies).
+    expect(posts.length).toBe(before + 6);
+    const copies = posts.filter((p) => p.body === target.body && p.id !== target.id);
+    expect(new Set(copies.map((p) => p.platform)).size).toBe(6);
+    expect(copies.every((p) => p.status === 'draft')).toBe(true);
+    // The button reports what happened.
+    expect(screen.getByRole('button', { name: /Copied to 6 platforms/i })).toBeInTheDocument();
+  });
+});

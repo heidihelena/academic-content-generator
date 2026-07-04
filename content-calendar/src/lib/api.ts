@@ -146,6 +146,22 @@ export class ApiClient {
     return this.request<OAuthAuthorizeResponse>(`/accounts/oauth/${platform}/authorize`);
   }
 
+  /** Which OAuth platforms have app credentials saved — booleans only, never values. */
+  providerCredentials(): Promise<Partial<Record<string, boolean>>> {
+    return this.request<Partial<Record<string, boolean>>>('/accounts/provider-credentials');
+  }
+
+  /** Save a platform's developer-app Client ID/Secret (stored encrypted server-side). */
+  saveProviderCredentials(
+    platform: string,
+    creds: { clientId: string; clientSecret: string },
+  ): Promise<{ platform: string; configured: boolean }> {
+    return this.request(`/accounts/provider-credentials/${platform}`, {
+      method: 'PUT',
+      body: JSON.stringify(creds),
+    });
+  }
+
   /** The saved writable local settings — GET /settings on the backend. */
   settings(): Promise<LocalSettings> {
     return this.request<LocalSettings>('/settings');

@@ -19,6 +19,7 @@ describe('academic enums', () => {
     expect(CONTENT_CHANNELS).toEqual([
       'linkedin',
       'bluesky',
+      'mastodon',
       'threads',
       'instagram',
       'newsletter',

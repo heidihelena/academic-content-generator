@@ -44,6 +44,8 @@ export interface AppConfig {
     threads: PlatformCredentials;
     /** X (Twitter) v2 — OAuth2 PKCE. Needs a paid X developer app to post. */
     x: PlatformCredentials;
+    /** YouTube Data API v3 — a Google Cloud OAuth client (Web application). */
+    youtube: PlatformCredentials;
     /** Bluesky uses an app password (AT Protocol), not OAuth client creds. */
     bluesky: { service: string; identifier?: string; appPassword?: string };
     /** Mastodon uses a per-instance access token, not OAuth client creds. */
@@ -182,6 +184,10 @@ export default (): AppConfig => {
     x: {
       clientId: process.env.X_CLIENT_ID,
       clientSecret: process.env.X_CLIENT_SECRET,
+    },
+    youtube: {
+      clientId: process.env.YOUTUBE_CLIENT_ID,
+      clientSecret: process.env.YOUTUBE_CLIENT_SECRET,
     },
     bluesky: {
       service: process.env.BLUESKY_SERVICE ?? 'https://bsky.social',

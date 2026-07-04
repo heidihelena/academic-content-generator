@@ -150,6 +150,30 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
 
 ---
 
+## YouTube (Data API v3, Google OAuth 2.0)
+
+"Publishing" uploads the post's attached **video file** (resumable
+`videos.insert`), with the hook as the title and the body as the description —
+the flow the Shorts planner feeds.
+
+- **App:** in **console.cloud.google.com**, create a project → enable the
+  **YouTube Data API v3** → configure the OAuth consent screen (External;
+  add yourself as a test user, or publish to avoid 7-day refresh-token expiry
+  in Testing mode) → create an **OAuth client ID** (Web application) with the
+  callback `…/api/accounts/oauth/callback`. Supply the **Client ID/Secret**
+  via `YOUTUBE_CLIENT_ID` / `YOUTUBE_CLIENT_SECRET` or in-app
+  ("Add app credentials" on the YouTube row).
+- **Scopes:** `youtube.upload` + `youtube.readonly` (channel info);
+  `access_type=offline&prompt=consent` so a refresh token is always issued.
+- **Publishing:** resumable upload — initiate the session, `PUT` the bytes
+  from the post's uploaded media. Access tokens last ~1 h; the client
+  refreshes once on 401 and the new token is persisted automatically.
+- **Quota:** one upload costs **1600** of the default **10 000** daily units —
+  roughly six uploads/day. Fine for a personal cadence.
+- **Code:** `src/integrations/youtube.integration.ts`.
+
+---
+
 ## Notes
 
 - All clients implement the same `PlatformIntegration` interface

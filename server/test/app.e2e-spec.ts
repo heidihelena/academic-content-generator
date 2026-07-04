@@ -64,7 +64,7 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     const authorize = await request(http)
       .get('/api/accounts/oauth/instagram/authorize')
       .expect(400);
-    expect(authorize.body.message).toMatch(/real provider credentials/i);
+    expect(authorize.body.message).toMatch(/needs app credentials/i);
 
     const post = await request(http)
       .post('/api/posts')

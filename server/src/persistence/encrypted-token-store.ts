@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'crypto';
 import type { AccessToken } from '../domain/types';
 import type { TokenStore } from './repository.interfaces';
+import { decryptSecret, deriveKey, encryptSecret } from './secret-cipher';
 
 /**
  * Encryption-at-rest for the {@link TokenStore} — a decorator that wraps any
@@ -18,8 +18,6 @@ import type { TokenStore } from './repository.interfaces';
  * plaintext tokens are read through unchanged and re-encrypted on their next
  * write, so turning encryption on is a non-breaking migration.
  */
-const PREFIX = 'enc:v1:';
-
 export class EncryptedTokenStore implements TokenStore {
   private readonly key: Buffer;
   private readonly logger = new Logger(EncryptedTokenStore.name);
@@ -28,8 +26,7 @@ export class EncryptedTokenStore implements TokenStore {
     private readonly inner: TokenStore,
     secret: string,
   ) {
-    // Derive a fixed 32-byte key from the configured secret (any length input).
-    this.key = createHash('sha256').update(secret, 'utf8').digest();
+    this.key = deriveKey(secret);
   }
 
   async get(platform: AccessToken['platform']): Promise<AccessToken | null> {
@@ -62,19 +59,11 @@ export class EncryptedTokenStore implements TokenStore {
   }
 
   private encrypt(plain: string): string {
-    const iv = randomBytes(12); // 96-bit nonce, standard for GCM
-    const cipher = createCipheriv('aes-256-gcm', this.key, iv);
-    const ct = Buffer.concat([cipher.update(plain, 'utf8'), cipher.final()]);
-    const tag = cipher.getAuthTag();
-    return `${PREFIX}${iv.toString('base64')}:${tag.toString('base64')}:${ct.toString('base64')}`;
+    return encryptSecret(this.key, plain);
   }
 
   private decrypt(value: string): string {
-    if (!value.startsWith(PREFIX)) return value; // legacy plaintext — read through
-    const [iv, tag, ct] = value.slice(PREFIX.length).split(':');
-    const decipher = createDecipheriv('aes-256-gcm', this.key, Buffer.from(iv, 'base64'));
-    decipher.setAuthTag(Buffer.from(tag, 'base64'));
-    return Buffer.concat([decipher.update(Buffer.from(ct, 'base64')), decipher.final()]).toString('utf8');
+    return decryptSecret(this.key, value);
   }
 }
 

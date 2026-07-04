@@ -22,6 +22,7 @@ export type SourceKind = (typeof SOURCE_KINDS)[number];
 export const CONTENT_CHANNELS = [
   'linkedin',
   'bluesky',
+  'mastodon',
   'threads',
   'instagram',
   'newsletter',

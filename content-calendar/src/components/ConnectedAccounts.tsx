@@ -1,14 +1,119 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ConnectedAccount, ConnectionStatus, Platform } from '../types';
 import type { PlatformCredentials } from '../lib/dataSource';
 import { useStore } from '../store/useStore';
 import { isApiMode } from '../lib/connection';
 import { getPlatformMeta } from '../lib/platforms';
+import {
+  fetchProviderCredentialStatus,
+  saveProviderCredentials,
+} from '../lib/providerCredentials';
 import { PLATFORM_GLYPHS, CheckIcon, AlertIcon, PlugIcon } from './icons';
 import { Button, Card, ConfirmDialog, Heading, Input, Spinner, Text } from './ui';
 
 /** Platforms that connect with a user-entered credential (not an OAuth redirect). */
 const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
+
+/** OAuth platforms whose developer-app credentials can be entered in the app.
+ *  Instagram and Threads take a Meta (Facebook) developer app's ID/Secret. */
+const OAUTH_APP_PLATFORMS: Platform[] = ['linkedin', 'x', 'instagram', 'threads', 'youtube'];
+
+/** What to call the developer app whose credentials a platform needs. */
+const APP_CREDS_SOURCE: Partial<Record<Platform, string>> = {
+  linkedin: "your LinkedIn developer app's Client ID & Secret (Auth tab)",
+  x: "your paid X developer app's OAuth 2.0 Client ID & Secret",
+  instagram: "your Meta (Facebook) developer app's App ID & Secret",
+  threads: "your Meta (Facebook) developer app's App ID & Secret",
+  youtube: "your Google Cloud OAuth client's ID & Secret (YouTube Data API v3 enabled)",
+};
+
+/**
+ * One-time developer-app credentials (Client ID/Secret) for an OAuth platform.
+ * Saved to the local backend, stored encrypted on this Mac, never shown again —
+ * this is what lets the desktop app go live without editing server/.env.
+ */
+function AppCredentialsSection({
+  platform,
+  configured,
+  onSaved,
+}: {
+  platform: Platform;
+  configured: boolean;
+  onSaved: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await saveProviderCredentials(platform, { clientId, clientSecret });
+      setClientId('');
+      setClientSecret('');
+      setOpen(false);
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not save the app credentials.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2 border-t border-surface-700 pt-3" data-testid={`app-creds-${platform}`}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] text-slate-500">
+          {configured
+            ? 'App credentials saved on this Mac — Connect can start.'
+            : `Needs ${APP_CREDS_SOURCE[platform] ?? "your developer app's Client ID & Secret"}.`}
+        </p>
+        <Button variant="ghost" size="sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+          {configured ? 'Update app credentials' : 'Add app credentials'}
+        </Button>
+      </div>
+      {open && (
+        <div className="space-y-2">
+          <Input
+            className="text-xs"
+            aria-label={`${getPlatformMeta(platform).name} client ID`}
+            placeholder="Client ID"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+          />
+          <Input
+            className="text-xs"
+            type="password"
+            aria-label={`${getPlatformMeta(platform).name} client secret`}
+            placeholder="Client Secret"
+            value={clientSecret}
+            onChange={(e) => setClientSecret(e.target.value)}
+          />
+          <div className="flex items-center gap-2">
+            <Button size="sm" disabled={!clientId.trim() || !clientSecret.trim()} loading={saving} onClick={save}>
+              Save credentials
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+          {error && (
+            <p role="alert" className="text-[11px] text-status-failed">
+              {error}
+            </p>
+          )}
+          <p className="text-[11px] text-slate-500">
+            Stored encrypted on this Mac and never shown again. Saved once — then Connect opens the
+            {` ${getPlatformMeta(platform).name} `}consent screen.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   connected: 'Connected',
@@ -27,7 +132,15 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
   return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />;
 }
 
-function AccountRow({ account }: { account: ConnectedAccount }) {
+function AccountRow({
+  account,
+  appCredsConfigured = false,
+  onAppCredsSaved,
+}: {
+  account: ConnectedAccount;
+  appCredsConfigured?: boolean;
+  onAppCredsSaved?: () => void;
+}) {
   const platform = account.platform;
   const busy = useStore((s) => s.accountBusy[platform]);
   const error = useStore((s) => s.accountError[platform]);
@@ -110,6 +223,15 @@ function AccountRow({ account }: { account: ConnectedAccount }) {
         </div>
       </div>
 
+      {/* Developer-app credentials (LinkedIn / X): saved once, then OAuth can start. */}
+      {OAUTH_APP_PLATFORMS.includes(platform) && !isConnected && isApiMode() && (
+        <AppCredentialsSection
+          platform={platform}
+          configured={appCredsConfigured}
+          onSaved={() => onAppCredsSaved?.()}
+        />
+      )}
+
       {/* Credential form (Bluesky / Mastodon): enter → verify → connect, or redo. */}
       {usesCredentials && !isConnected && formOpen && (
         <div className="mt-3 space-y-2 border-t border-surface-700 pt-3">
@@ -191,6 +313,18 @@ export function ConnectedAccounts() {
   const accounts = useStore((s) => s.accounts);
   const apiMode = isApiMode();
 
+  // Which OAuth platforms already have app credentials saved (booleans only).
+  const [credStatus, setCredStatus] = useState<Partial<Record<string, boolean>>>({});
+  const refreshCredStatus = () => {
+    void fetchProviderCredentialStatus()
+      .then(setCredStatus)
+      .catch(() => setCredStatus({}));
+  };
+  useEffect(() => {
+    if (apiMode) refreshCredStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiMode]);
+
   return (
     <Card as="section" aria-label="Connected accounts" className="p-4">
       <header className="mb-3 flex items-center gap-2">
@@ -204,7 +338,12 @@ export function ConnectedAccounts() {
       </Text>
       <div className="grid gap-2.5">
         {accounts.map((a) => (
-          <AccountRow key={a.platform} account={a} />
+          <AccountRow
+            key={a.platform}
+            account={a}
+            appCredsConfigured={Boolean(credStatus[a.platform])}
+            onAppCredsSaved={refreshCredStatus}
+          />
         ))}
       </div>
     </Card>

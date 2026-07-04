@@ -6,6 +6,8 @@
  */
 
 export const STUDIO_CHANNELS = [
+  'bluesky',
+  'mastodon',
   'linkedin',
   'threads',
   'instagram',
@@ -17,6 +19,8 @@ export const STUDIO_CHANNELS = [
 export type StudioChannel = (typeof STUDIO_CHANNELS)[number];
 
 export const STUDIO_CHANNEL_LABELS: Record<StudioChannel, string> = {
+  bluesky: 'Bluesky post',
+  mastodon: 'Mastodon post',
   linkedin: 'LinkedIn post',
   threads: 'Threads/X thread',
   instagram: 'Instagram caption',
