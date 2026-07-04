@@ -89,6 +89,11 @@ export class PostsService {
       const reply = await this.resolveReply(post);
       const integration = await this.integrations.forPublish(post.platform);
       const result = await integration.publish(post, token, reply ? { reply } : undefined);
+      // Platforms that rotate sessions mid-publish (Bluesky) hand back the new
+      // pair; persist it or the next publish fails with the stale token.
+      if (result.refreshedToken) {
+        await this.tokens.set(result.refreshedToken);
+      }
       return this.posts.upsert({
         ...post,
         status: 'published',
