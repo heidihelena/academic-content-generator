@@ -3,6 +3,21 @@
  * non-2xx response throws an Error carrying the platform, status and body so
  * failures surface clearly in logs and on the post's `failureReason`.
  */
+
+const DETAIL_LIMIT = 300;
+
+/**
+ * Non-JSON error bodies are usually a website's error page (wrong host, proxy,
+ * captive portal) — never dump a page of HTML into an error the UI shows.
+ */
+export function summarizeErrorBody(platform: string, text: string): string {
+  const trimmed = text.trim();
+  if (/^<(!doctype|html)/i.test(trimmed)) {
+    return `got an HTML page instead of an API response — is that URL really a ${platform} server?`;
+  }
+  return trimmed.length > DETAIL_LIMIT ? `${trimmed.slice(0, DETAIL_LIMIT)}…` : trimmed;
+}
+
 export async function apiFetch<T = any>(
   platform: string,
   url: string,
@@ -17,7 +32,8 @@ export async function apiFetch<T = any>(
     body = text;
   }
   if (!res.ok) {
-    const detail = typeof body === 'string' ? body : JSON.stringify(body);
+    const detail =
+      typeof body === 'string' ? summarizeErrorBody(platform, body) : JSON.stringify(body);
     throw new Error(`${platform} API ${res.status}: ${detail}`);
   }
   return body as T;

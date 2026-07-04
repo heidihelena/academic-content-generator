@@ -50,15 +50,30 @@ export class MastodonIntegration implements PlatformIntegration {
   }
 
   async connect(_params?: ConnectParams): Promise<OAuthResult> {
-    const me = await apiFetch<{
+    let me: {
       username: string;
       acct: string;
       display_name?: string;
       followers_count?: number;
       url?: string;
-    }>('mastodon', this.url('/api/v1/accounts/verify_credentials'), {
-      headers: { authorization: `Bearer ${this.accessToken}` },
-    });
+    };
+    try {
+      me = await apiFetch('mastodon', this.url('/api/v1/accounts/verify_credentials'), {
+        headers: { authorization: `Bearer ${this.accessToken}` },
+      });
+    } catch (err) {
+      // A 404 or an HTML page means the URL isn't a Mastodon API at all —
+      // usually someone entered their own website instead of their instance.
+      const msg = err instanceof Error ? err.message : String(err);
+      if (/ 404:|HTML page/.test(msg)) {
+        throw new Error(
+          `${this.instance} doesn't look like a Mastodon server. Enter the instance that hosts ` +
+            `your account — the part after the second @ in your handle, e.g. https://mastodon.social.`,
+          { cause: err },
+        );
+      }
+      throw err;
+    }
 
     // Derive a fully-qualified handle (@user@instance) from the instance host.
     const host = this.instance.replace(/^https?:\/\//, '').replace(/\/$/, '');
