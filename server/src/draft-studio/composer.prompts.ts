@@ -6,6 +6,7 @@ import { ComposeRequest } from './composer.types';
 const CHANNEL_LIMITS: Record<ContentChannel, number> = {
   linkedin: 3000,
   bluesky: 300,
+  mastodon: 500,
   threads: 500,
   instagram: 2200,
   newsletter: 5000,

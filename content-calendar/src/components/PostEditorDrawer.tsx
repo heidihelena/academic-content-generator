@@ -72,6 +72,8 @@ export function PostEditorDrawer() {
     savePost,
     deletePost,
     createThread,
+    copyToAll,
+    copiedCount,
     closeEditor,
   } = editor;
 
@@ -90,6 +92,8 @@ export function PostEditorDrawer() {
             canPublish={canPublish}
             isPublishing={isPublishing}
             isPublished={isPublished}
+            onCopyToAll={copyToAll}
+            copiedCount={copiedCount}
             onDelete={() => setConfirm('delete')}
             onCancel={closeEditor}
             onSave={() => savePost(draft)}

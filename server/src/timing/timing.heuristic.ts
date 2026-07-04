@@ -23,6 +23,7 @@ interface Window {
 const CHANNEL_WINDOWS: Record<ContentChannel, Window> = {
   linkedin: { weekdays: MIDWEEK, hours: [8, 12] },
   bluesky: { weekdays: WEEKDAY, hours: [12, 17] },
+  mastodon: { weekdays: WEEKDAY, hours: [12, 17] },
   threads: { weekdays: WEEKDAY, hours: [12, 20] },
   instagram: { weekdays: [...WEEKDAY, 6], hours: [12, 20] },
   newsletter: { weekdays: [2, 4], hours: [8] },

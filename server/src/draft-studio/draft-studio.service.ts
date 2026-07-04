@@ -38,6 +38,7 @@ export interface DraftStudioRequest {
 const CHANNEL_FORMAT: Record<ContentChannel, VariantFormat> = {
   linkedin: 'post',
   bluesky: 'thread',
+  mastodon: 'post',
   threads: 'thread',
   instagram: 'post',
   newsletter: 'newsletter-paragraph',

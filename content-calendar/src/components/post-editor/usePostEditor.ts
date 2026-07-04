@@ -31,6 +31,7 @@ export function usePostEditor() {
   const approvePost = useStore((s) => s.approvePost);
   const requestChanges = useStore((s) => s.requestChanges);
   const createThread = useStore((s) => s.createThread);
+  const duplicateToOtherPlatforms = useStore((s) => s.duplicateToOtherPlatforms);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -38,6 +39,7 @@ export function usePostEditor() {
   const [changeNote, setChangeNote] = useState('');
   const [showNote, setShowNote] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmKind>(null);
+  const [copiedCount, setCopiedCount] = useState<number | null>(null);
 
   const existing = posts.find((p) => p.id === editingPostId);
 
@@ -76,7 +78,11 @@ export function usePostEditor() {
     setChangeNote('');
     setShowNote(false);
     setConfirm(null);
+    setCopiedCount(null);
   }
+
+  /** Fan the current draft out to every other platform as editable drafts. */
+  const copyToAll = () => setCopiedCount(duplicateToOtherPlatforms(draft));
 
   const update = <K extends keyof PostDraft>(key: K, value: PostDraft[K]) =>
     setDraft((d) => ({ ...d, [key]: value }));
@@ -227,6 +233,8 @@ export function usePostEditor() {
     savePost,
     deletePost,
     createThread,
+    copyToAll,
+    copiedCount,
     closeEditor,
   };
 }

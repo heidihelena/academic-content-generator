@@ -13,7 +13,7 @@ import type { MediaAttachment } from '../types';
 import type { PersistenceAdapter } from '../lib/persistence';
 import { createDataSource, LocalDataSource, type DataSource, type PlatformCredentials } from '../lib/dataSource';
 import { reschedulePost as computeReschedule } from '../lib/scheduling';
-import { getPlatformMeta } from '../lib/platforms';
+import { getPlatformMeta, PLATFORMS } from '../lib/platforms';
 import { splitIntoThread } from '../lib/thread';
 import { createId } from '../lib/id';
 
@@ -82,6 +82,12 @@ export interface StoreState {
   openEditorForNewPost: (platform: Platform, scheduledAt: string) => void;
   closeEditor: () => void;
   savePost: (draft: PostDraft) => void;
+  /**
+   * Copy a draft to every other platform as independent drafts (same copy and
+   * strategy fields) so one text can be adapted per platform. Returns how many
+   * drafts were created.
+   */
+  duplicateToOtherPlatforms: (draft: PostDraft) => number;
   /** Split the draft's copy into a numbered thread of posts (platform-sized). */
   createThread: (draft: PostDraft) => void;
   /** Create a thread from already-prepared parts (e.g. the abstract drafter). */
@@ -282,6 +288,35 @@ export const useStore = create<StoreState>((set, get) => ({
       set({ posts: [...get().posts, post], isEditorOpen: false, editingPostId: null });
       void dataSource.createPost(post).catch((err) => console.error('createPost failed', err));
     }
+  },
+
+  duplicateToOtherPlatforms: (draft) => {
+    const now = new Date().toISOString();
+    const targets = PLATFORMS.filter((p) => p !== draft.platform);
+    const copies: Post[] = targets.map((platform) => ({
+      id: createId('post'),
+      platform,
+      body: draft.body,
+      scheduledAt: draft.scheduledAt,
+      // Always land as editable drafts — each copy gets adapted per platform.
+      status: 'draft',
+      media: draft.media,
+      owner: draft.owner,
+      campaign: draft.campaign,
+      brief: draft.brief,
+      audience: draft.audience,
+      theme: draft.theme,
+      hook: draft.hook,
+      source: draft.source,
+      evidenceLevel: draft.evidenceLevel,
+      createdAt: now,
+      updatedAt: now,
+    }));
+    set({ posts: [...get().posts, ...copies] });
+    for (const copy of copies) {
+      void dataSource.createPost(copy).catch((err) => console.error('createPost failed', err));
+    }
+    return copies.length;
   },
 
   createThread: (draft) => {
