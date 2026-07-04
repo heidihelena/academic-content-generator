@@ -76,6 +76,9 @@ export class IntegrationRegistry {
       return new LinkedInIntegration(creds.clientId, creds.clientSecret, version);
     }
     if (platform === 'x') return new XIntegration(creds.clientId, creds.clientSecret);
+    // Meta developer app (Facebook) credentials power both Instagram and Threads.
+    if (platform === 'instagram') return new InstagramIntegration(creds.clientId, creds.clientSecret);
+    if (platform === 'threads') return new ThreadsIntegration(creds.clientId, creds.clientSecret);
     return null;
   }
 

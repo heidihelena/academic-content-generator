@@ -25,8 +25,9 @@ export interface ProviderCredentials {
   clientSecret: string;
 }
 
-/** OAuth platforms whose app credentials can be supplied in the app. */
-export const PROVIDER_CREDENTIAL_PLATFORMS: Platform[] = ['linkedin', 'x'];
+/** OAuth platforms whose app credentials can be supplied in the app.
+ *  Instagram and Threads use a Meta (Facebook) developer app's ID/Secret. */
+export const PROVIDER_CREDENTIAL_PLATFORMS: Platform[] = ['linkedin', 'x', 'instagram', 'threads'];
 
 export function providerCredentialsPath(): string {
   return (

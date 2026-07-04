@@ -14,8 +14,17 @@ import { Button, Card, ConfirmDialog, Heading, Input, Spinner, Text } from './ui
 /** Platforms that connect with a user-entered credential (not an OAuth redirect). */
 const CREDENTIAL_PLATFORMS: Platform[] = ['bluesky', 'mastodon'];
 
-/** OAuth platforms whose developer-app credentials can be entered in the app. */
-const OAUTH_APP_PLATFORMS: Platform[] = ['linkedin', 'x'];
+/** OAuth platforms whose developer-app credentials can be entered in the app.
+ *  Instagram and Threads take a Meta (Facebook) developer app's ID/Secret. */
+const OAUTH_APP_PLATFORMS: Platform[] = ['linkedin', 'x', 'instagram', 'threads'];
+
+/** What to call the developer app whose credentials a platform needs. */
+const APP_CREDS_SOURCE: Partial<Record<Platform, string>> = {
+  linkedin: "your LinkedIn developer app's Client ID & Secret (Auth tab)",
+  x: "your paid X developer app's OAuth 2.0 Client ID & Secret",
+  instagram: "your Meta (Facebook) developer app's App ID & Secret",
+  threads: "your Meta (Facebook) developer app's App ID & Secret",
+};
 
 /**
  * One-time developer-app credentials (Client ID/Secret) for an OAuth platform.
@@ -59,7 +68,7 @@ function AppCredentialsSection({
         <p className="text-[11px] text-slate-500">
           {configured
             ? 'App credentials saved on this Mac — Connect can start.'
-            : `Needs your ${getPlatformMeta(platform).name} developer app's Client ID & Secret (Auth tab).`}
+            : `Needs ${APP_CREDS_SOURCE[platform] ?? "your developer app's Client ID & Secret"}.`}
         </p>
         <Button variant="ghost" size="sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           {configured ? 'Update app credentials' : 'Add app credentials'}
