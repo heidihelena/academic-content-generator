@@ -1,6 +1,7 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { AccessToken, Platform } from '../domain/types';
+import { ProviderCredentialsService } from '../accounts/provider-credentials';
 import { TOKEN_STORE, type TokenStore } from '../persistence/repository.interfaces';
 import type { PlatformIntegration } from './integration.types';
 import { MockIntegration } from './mock.integration';
@@ -20,10 +21,13 @@ import { MastodonIntegration } from './mastodon.integration';
 export class IntegrationRegistry {
   private readonly logger = new Logger(IntegrationRegistry.name);
   private readonly integrations: Record<Platform, PlatformIntegration>;
+  /** Real clients built from in-app provider credentials (see get()). */
+  private readonly fromStore: Partial<Record<Platform, PlatformIntegration>> = {};
 
   constructor(
     private readonly config: ConfigService,
     @Inject(TOKEN_STORE) private readonly tokens: TokenStore,
+    @Optional() private readonly providerCreds?: ProviderCredentialsService,
   ) {
     this.integrations = {
       bluesky: this.buildBluesky(config),
@@ -43,7 +47,36 @@ export class IntegrationRegistry {
   }
 
   get(platform: Platform): PlatformIntegration {
-    return this.integrations[platform];
+    const base = this.integrations[platform];
+    // Env-configured real client always wins (swap-by-config precedence).
+    if (!(base instanceof MockIntegration)) return base;
+    // Otherwise, in-app provider credentials can upgrade the mock to a real
+    // client — this is how the desktop app (which never reads .env) goes live.
+    const cached = this.fromStore[platform];
+    if (cached) return cached;
+    const real = this.buildFromStoredCreds(platform);
+    if (real) {
+      this.logger.log(`${platform}: using real integration from in-app provider credentials`);
+      this.fromStore[platform] = real;
+      return real;
+    }
+    return base;
+  }
+
+  /** Drop the cached store-built client after credentials change. */
+  invalidate(platform: Platform): void {
+    delete this.fromStore[platform];
+  }
+
+  private buildFromStoredCreds(platform: Platform): PlatformIntegration | null {
+    const creds = this.providerCreds?.get(platform);
+    if (!creds) return null;
+    if (platform === 'linkedin') {
+      const version = this.config.get<string>('integrations.linkedin.version') ?? '202401';
+      return new LinkedInIntegration(creds.clientId, creds.clientSecret, version);
+    }
+    if (platform === 'x') return new XIntegration(creds.clientId, creds.clientSecret);
+    return null;
   }
 
   /**
@@ -58,7 +91,7 @@ export class IntegrationRegistry {
    * after the account is connected.
    */
   async forPublish(platform: Platform): Promise<PlatformIntegration> {
-    const configured = this.integrations[platform];
+    const configured = this.get(platform);
     if (!(configured instanceof MockIntegration)) return configured;
     const token = await this.tokens.get(platform);
     if (!token) return configured;

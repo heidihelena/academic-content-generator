@@ -32,7 +32,8 @@ export class OAuthController {
     const integration = this.integrations.get(platform);
     if (integration instanceof MockIntegration) {
       throw new BadRequestException(
-        `${platform} needs real provider credentials before OAuth can start.`,
+        `${platform} needs app credentials before OAuth can start — use "Add app credentials" ` +
+          `on the ${platform} row (Connections) to paste your developer app's Client ID & Secret.`,
       );
     }
     const state = this.stateService.create(platform);
