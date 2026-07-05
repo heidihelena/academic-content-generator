@@ -32,6 +32,11 @@ export interface PlatformCredentials {
 
 export interface AppConfig {
   port: number;
+  /**
+   * When set, a second HTTPS listener (self-signed, loopback) serves the OAuth
+   * callback for providers that refuse plain-http redirects (Instagram/Threads).
+   */
+  oauthHttpsPort?: number;
   frontendUrl?: string;
   persistence: {
     driver: PersistenceDriver;
@@ -158,6 +163,9 @@ export default (): AppConfig => {
   const local = readLocalSettings();
   return {
   port: parseInt(process.env.PORT ?? '3000', 10),
+  oauthHttpsPort: process.env.OAUTH_HTTPS_PORT
+    ? parseInt(process.env.OAUTH_HTTPS_PORT, 10)
+    : undefined,
   frontendUrl: process.env.FRONTEND_URL,
   persistence: {
     driver:

@@ -94,6 +94,8 @@ function startServer(): void {
       ...process.env,
       ELECTRON_RUN_AS_NODE: '1',
       PORT: String(PORT),
+      // Self-signed HTTPS listener for OAuth callbacks Meta refuses over http.
+      OAUTH_HTTPS_PORT: String(PORT + 1),
       PERSISTENCE_DRIVER: 'file',
       FILE_STORE_PATH: join(dataDir(), 'store.json'),
       UPLOADS_DIR: join(dataDir(), 'uploads'),
