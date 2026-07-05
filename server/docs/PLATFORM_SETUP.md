@@ -89,6 +89,14 @@ server exchanges the `code` for tokens and stores them in the `TokenStore`
 
 ## Instagram (Graph API with Instagram Login)
 
+> **Meta requires an HTTPS redirect** even on loopback ("Insecure Login
+> Blocked", error 1349187). The server runs a second, self-signed HTTPS
+> listener for exactly this (`OAUTH_HTTPS_PORT`; the desktop app uses port
+> **47616**). Register `https://127.0.0.1:47616/api/accounts/oauth/callback`
+> as the redirect URI for Instagram and Threads. During the OAuth hop the
+> browser warns once about the self-signed certificate — Advanced → proceed;
+> the flow never leaves your machine.
+
 - **Account:** Instagram **Professional** (Business or Creator).
 - **App:** create a Meta app at developers.facebook.com and add the Instagram
   product.

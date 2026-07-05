@@ -18,6 +18,13 @@ import { OAuthStateService } from './oauth-state.service';
  *
  * `req`/`res` are typed loosely to avoid a hard @types/express dependency.
  */
+
+/**
+ * Providers that refuse plain-http OAuth redirects even on loopback (Meta's
+ * "Insecure Login Blocked", error 1349187). When `oauthHttpsPort` is
+ * configured, their flows use the self-signed HTTPS listener instead.
+ */
+const HTTPS_CALLBACK_PLATFORMS: Platform[] = ['instagram', 'threads'];
 @Controller('accounts/oauth')
 export class OAuthController {
   constructor(
@@ -38,7 +45,7 @@ export class OAuthController {
     }
     const state = this.stateService.create(platform);
     const authorizeUrl = integration.authorizeUrl(
-      this.callbackUrl(req),
+      this.callbackUrl(req, platform),
       state,
       this.stateService.challengeFor(state),
     );
@@ -61,7 +68,7 @@ export class OAuthController {
     // The redirect URI must match the one used to start the flow (token exchange).
     const account = await this.accounts.connect(platform, {
       code,
-      redirectUri: this.callbackUrl(req),
+      redirectUri: this.callbackUrl(req, platform),
       codeVerifier,
     });
 
@@ -71,10 +78,28 @@ export class OAuthController {
       res.redirect(`${frontendUrl}/?${platform}=${status}`);
       return;
     }
-    res.json(account);
+    // No frontend origin to bounce to (the desktop app runs from file://):
+    // show a small human page instead of raw JSON.
+    const ok = account.status === 'connected';
+    res
+      .status(ok ? 200 : 502)
+      .type('html')
+      .send(
+        `<!doctype html><meta charset="utf-8"><title>forskai Studio</title>` +
+          `<body style="font-family:system-ui;display:grid;place-items:center;height:100vh;margin:0">` +
+          `<div style="text-align:center"><p style="font-size:40px;margin:0">${ok ? '✓' : '✕'}</p>` +
+          `<p>${ok ? `${platform} connected${account.handle ? ` as ${account.handle}` : ''}.` : `Connecting ${platform} failed${account.statusDetail ? `: ${account.statusDetail}` : '.'}`}</p>` +
+          `<p style="color:#777">You can close this tab and return to forskai Studio.</p></div>`,
+      );
   }
 
-  private callbackUrl(req: any): string {
+  private callbackUrl(req: any, platform: Platform): string {
+    // Meta refuses http redirects — route those platforms through the local
+    // self-signed HTTPS listener when it's configured.
+    const httpsPort = this.config.get<number>('oauthHttpsPort');
+    if (httpsPort && HTTPS_CALLBACK_PLATFORMS.includes(platform)) {
+      return `https://127.0.0.1:${httpsPort}/api/accounts/oauth/callback`;
+    }
     const proto = req.headers['x-forwarded-proto'] ?? req.protocol ?? 'http';
     const host = req.headers['x-forwarded-host'] ?? req.headers.host;
     return `${proto}://${host}/api/accounts/oauth/callback`;
