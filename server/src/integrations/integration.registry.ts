@@ -103,8 +103,24 @@ export class IntegrationRegistry {
   }
 
   /** A real client that can publish using only a stored token, or null if the
-   *  platform also needs configuration the token doesn't carry. */
+   *  platform also needs configuration the token doesn't carry. Every platform's
+   *  publish() is token-only — the client id/secret matter for OAuth, not for
+   *  posting — so a connected account must never fall back to the mock. */
   private realFromToken(platform: Platform, token: AccessToken): PlatformIntegration | null {
+    if (platform === 'linkedin') {
+      const version = this.config.get<string>('integrations.linkedin.version') ?? '202401';
+      return new LinkedInIntegration('', '', version);
+    }
+    if (platform === 'x') return new XIntegration('', '');
+    if (platform === 'instagram') return new InstagramIntegration('', '');
+    if (platform === 'threads') return new ThreadsIntegration('', '');
+    if (platform === 'youtube') {
+      // Uploads need the client pair for the mid-publish token refresh; use the
+      // stored provider credentials when env vars are absent.
+      const creds = this.providerCreds?.get('youtube');
+      if (creds) return new YouTubeIntegration(creds.clientId, creds.clientSecret);
+      return null;
+    }
     if (platform === 'bluesky') {
       const service =
         token.serviceUrl ??

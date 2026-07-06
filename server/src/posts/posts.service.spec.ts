@@ -1,7 +1,9 @@
 import { NotFoundException } from '@nestjs/common';
+import type { ConfigService } from '@nestjs/config';
 import { PostsService } from './posts.service';
 import { MemoryPostsRepository, MemoryTokenStore } from '../persistence/memory/memory.repositories';
 import type { IntegrationRegistry } from '../integrations/integration.registry';
+import { MockIntegration } from '../integrations/mock.integration';
 import type { AccessToken } from '../domain/types';
 
 function makeService(
@@ -67,6 +69,41 @@ describe('PostsService', () => {
     expect(published.status).toBe('published');
     expect(published.remoteId).toBe('remote_1');
     expect(published.permalink).toBe('https://x/p/1');
+  });
+
+  it('refuses to fake a publish through the mock on a durable driver', async () => {
+    // A connected account whose real client could not be resolved must FAIL,
+    // never report a fabricated success (the false-published bug).
+    const posts = new MemoryPostsRepository();
+    const tokens = new MemoryTokenStore();
+    const registry = {
+      forPublish: async () => new MockIntegration('linkedin', { handle: 'x', displayName: 'x', followers: 0 }),
+    } as unknown as IntegrationRegistry;
+    const config = { get: (k: string) => (k === 'persistence.driver' ? 'file' : undefined) } as unknown as ConfigService;
+    const service = new PostsService(posts, tokens, registry, config);
+    await tokens.set({ platform: 'linkedin', accessToken: 't', expiresAt: Date.now() + 1e6, scopes: [] });
+
+    const created = await service.create({ platform: 'linkedin', body: 'x', scheduledAt: '2030-01-01T00:00:00.000Z' });
+    const published = await service.publish(created.id);
+
+    expect(published.status).toBe('failed');
+    expect(published.failureReason).toMatch(/isn't fully connected/);
+    expect(published.permalink).toBeUndefined();
+  });
+
+  it('still allows the mock to simulate publishing in memory-driver demo mode', async () => {
+    const posts = new MemoryPostsRepository();
+    const tokens = new MemoryTokenStore();
+    const registry = {
+      forPublish: async () => new MockIntegration('linkedin', { handle: 'x', displayName: 'x', followers: 0 }),
+    } as unknown as IntegrationRegistry;
+    const config = { get: (k: string) => (k === 'persistence.driver' ? 'memory' : undefined) } as unknown as ConfigService;
+    const service = new PostsService(posts, tokens, registry, config);
+    await tokens.set({ platform: 'linkedin', accessToken: 't', expiresAt: Date.now() + 1e6, scopes: [] });
+
+    const created = await service.create({ platform: 'linkedin', body: 'x', scheduledAt: '2030-01-01T00:00:00.000Z' });
+    const published = await service.publish(created.id);
+    expect(published.status).toBe('published');
   });
 
   it('persists a rotated session returned by the integration', async () => {
