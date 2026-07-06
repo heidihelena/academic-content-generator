@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { randomUUID } from 'crypto';
 import type { Post } from '../domain/types';
 import {
@@ -8,6 +9,7 @@ import {
   type TokenStore,
 } from '../persistence/repository.interfaces';
 import { IntegrationRegistry } from '../integrations/integration.registry';
+import { MockIntegration } from '../integrations/mock.integration';
 import type { ReplyRef } from '../integrations/integration.types';
 import type { CreatePostDto, UpdatePostDto } from './dto/post.dto';
 
@@ -19,7 +21,17 @@ export class PostsService {
     @Inject(POSTS_REPOSITORY) private readonly posts: PostsRepository,
     @Inject(TOKEN_STORE) private readonly tokens: TokenStore,
     private readonly integrations: IntegrationRegistry,
+    private readonly config?: ConfigService,
   ) {}
+
+  /**
+   * A mock may only "publish" in throwaway demo mode (memory driver). On a real
+   * deployment a fake success is worse than any failure — it tells the user
+   * their work is live when it is not.
+   */
+  private mockPublishAllowed(): boolean {
+    return (this.config?.get<string>('persistence.driver') ?? 'memory') === 'memory';
+  }
 
   list(): Promise<Post[]> {
     return this.posts.list();
@@ -88,6 +100,14 @@ export class PostsService {
     try {
       const reply = await this.resolveReply(post);
       const integration = await this.integrations.forPublish(post.platform);
+      this.logger.log(`Publishing ${id} to ${post.platform} via ${integration.constructor.name}`);
+      if (integration instanceof MockIntegration && !this.mockPublishAllowed()) {
+        return this.markFailed(
+          post,
+          `${post.platform} isn't fully connected on this server, and faking a publish would be ` +
+            `worse than failing. Reconnect the account on the Connections screen and try again.`,
+        );
+      }
       const result = await integration.publish(post, token, reply ? { reply } : undefined);
       // Platforms that rotate sessions mid-publish (Bluesky) hand back the new
       // pair; persist it or the next publish fails with the stale token.

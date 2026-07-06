@@ -81,6 +81,24 @@ describe('IntegrationRegistry with in-app provider credentials', () => {
     expect(registry.get('linkedin')).toBeInstanceOf(MockIntegration);
   });
 
+  it('forPublish uses a real token-only client for a connected account even without app creds', async () => {
+    // Publishing is token-only on every platform — a connected account must
+    // never fall back to the mock (which fabricates a success).
+    process.env.PROVIDER_CREDENTIALS_PATH = freshPath();
+    const creds = new ProviderCredentialsService(configWith());
+    const linkedinToken = {
+      platform: 'linkedin' as const,
+      accessToken: 't',
+      expiresAt: Date.now() + 1e6,
+      scopes: [],
+      accountId: 'urn:li:person:abc',
+    };
+    const tokens = { get: async () => linkedinToken } as unknown as TokenStore;
+    const registry = new IntegrationRegistry(configWith() as ConfigService, tokens, creds);
+
+    expect(await registry.forPublish('linkedin')).toBeInstanceOf(LinkedInIntegration);
+  });
+
   it('env-configured credentials still win over the store', () => {
     process.env.PROVIDER_CREDENTIALS_PATH = freshPath();
     const creds = new ProviderCredentialsService(configWith());
