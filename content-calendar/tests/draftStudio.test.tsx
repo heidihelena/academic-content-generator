@@ -64,7 +64,7 @@ describe('Draft Studio', () => {
     expect(screen.getByTestId('studio-draft')).toBeInTheDocument();
   });
 
-  it('saves the reviewed draft to the content calendar as a draft post', async () => {
+  it('sends the reviewed draft to the Outbox as approved content', async () => {
     render(<App initialView="studio" />);
     compose('Street trees', 'Tree cover was associated with cooler streets.');
     fireEvent.click(screen.getByRole('button', { name: /Generate draft/i }));
@@ -75,13 +75,13 @@ describe('Draft Studio', () => {
     await screen.findByTestId('ready-banner');
 
     const before = useStore.getState().posts.length;
-    fireEvent.click(screen.getByRole('button', { name: /Save to calendar/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Send to Outbox/i }));
 
     expect(screen.getByTestId('studio-saved')).toBeInTheDocument();
     const posts = useStore.getState().posts;
     expect(posts.length).toBe(before + 1);
     const saved = posts[posts.length - 1];
-    expect(saved.status).toBe('draft');
+    expect(saved.status).toBe('approved');
     expect(saved.platform).toBe('linkedin');
     expect(saved.body).toContain('Street trees');
   });

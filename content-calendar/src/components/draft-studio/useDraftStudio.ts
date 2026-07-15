@@ -162,12 +162,12 @@ export function useDraftStudio(seed?: StudioSeed | null) {
     setState(initialState());
   };
 
-  /** Save the reviewed draft to the content calendar as a draft post. */
+  /** Send the reviewed draft to the Outbox as publish-ready content. */
   const saveToCalendar = () => {
     createThreadFromParts([state.draft], {
       platform: CHANNEL_PLATFORM[state.input.channel],
       scheduledAt: tomorrowMorning(),
-      status: 'draft',
+      status: 'approved',
       audience: state.input.audience,
     });
     // The source has now been reused — reflect that in the inbox lifecycle.

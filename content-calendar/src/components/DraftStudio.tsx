@@ -17,7 +17,13 @@ import {
  * workflow state machine and actions live in `useDraftStudio`, and each stage is
  * its own component.
  */
-export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
+export function DraftStudio({
+  seed,
+  onOpenOutbox,
+}: {
+  seed?: StudioSeed | null;
+  onOpenOutbox?: () => void;
+} = {}) {
   const studio = useDraftStudio(seed);
   const { state, error } = studio;
 
@@ -70,6 +76,7 @@ export function DraftStudio({ seed }: { seed?: StudioSeed | null } = {}) {
           onSave={studio.saveToCalendar}
           onCopy={studio.copyDraft}
           onDownload={studio.downloadMarkdown}
+          onOpenOutbox={onOpenOutbox}
           onReset={studio.reset}
         />
       )}

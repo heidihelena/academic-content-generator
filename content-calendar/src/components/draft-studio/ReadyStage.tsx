@@ -13,6 +13,7 @@ interface ReadyStageProps {
   onSave: () => void;
   onCopy: () => void;
   onDownload: () => void;
+  onOpenOutbox?: () => void;
   onReset: () => void;
 }
 
@@ -32,6 +33,7 @@ export function ReadyStage({
   onSave,
   onCopy,
   onDownload,
+  onOpenOutbox,
   onReset,
 }: ReadyStageProps) {
   const position = LADDER.indexOf(reviewStatus);
@@ -39,7 +41,7 @@ export function ReadyStage({
   return (
     <div className="space-y-3">
       <p data-testid="ready-banner" className="text-sm font-medium text-status-published">
-        Approved — ready to publish. Save it to your calendar to schedule or publish.
+        Approved — ready to publish. Send it to Outbox to schedule or post.
       </p>
 
       <div className="space-y-1.5">
@@ -82,8 +84,13 @@ export function ReadyStage({
       </pre>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={onSave} disabled={saved}>
-          {saved ? '✓ Saved to calendar' : 'Save to calendar'}
+          {saved ? 'Sent to Outbox' : 'Send to Outbox'}
         </Button>
+        {saved && onOpenOutbox && (
+          <Button variant="secondary" size="sm" onClick={onOpenOutbox}>
+            Open Outbox
+          </Button>
+        )}
         <Button variant="secondary" size="sm" onClick={onCopy}>
           Copy
         </Button>
@@ -96,7 +103,7 @@ export function ReadyStage({
       </div>
       {saved && (
         <p data-testid="studio-saved" className="text-xs text-status-published">
-          Saved as a draft on your content calendar.
+          Added to Outbox as approved content.
         </p>
       )}
     </div>

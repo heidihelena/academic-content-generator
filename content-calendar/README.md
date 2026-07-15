@@ -15,15 +15,16 @@ content. This is the frontend; the academic domain and APIs live in [`../server`
 The hub mirrors the backend's academic pipeline:
 
 ```
-Source Inbox → Idea Lab → Draft Studio → Safety + Citation review → Content (variants) → Schedule / Export
+Source Inbox → Idea Lab → Draft Studio → Safety + Citation review → Outbox → Schedule / Post
 ```
 
 | View | What it does |
 | --- | --- |
 | **Source Inbox** | Manual sources + live Obsidian vault notes — the input material |
 | **Generate Ideas** | 5 audience-specific ideas from a source; abstract→thread, talk packages, video→shorts |
-| **Draft Studio** | Compose a draft for a channel + audience, run the medical-safety + citation reviews, export |
+| **Draft Studio** | Compose a draft for a channel + audience, run the medical-safety + citation reviews, then send approved work to Outbox |
 | **Content** | One `ContentItem` → many `ContentVariant`s; edit → review → mark reviewed → schedule → publish each |
+| **Outbox** | Approved, scheduled, failed and published posts with edit, schedule and post-now actions |
 | **Pipeline / List / Calendar** | The work-in-progress board, a sortable table, and the scheduled-content calendar |
 | **Campaigns** | Group content into themed series with a status rollup |
 | **Connections** | Connected accounts, content-generator status (live vs mock), and publishing destination readiness |
@@ -41,6 +42,13 @@ exported until its blocking findings are resolved and it's marked human-reviewed
 cd content-calendar
 npm install      # install dependencies
 npm run dev      # start the dev server (http://localhost:5173)
+```
+
+From the repository root you can also run:
+
+```bash
+npm run setup
+npm run dev
 ```
 
 Other scripts:

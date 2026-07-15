@@ -1,0 +1,16 @@
+{
+  "name": "academic-content-generator",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local-first academic content drafting, review, scheduling and publishing hub.",
+  "scripts": {
+    "setup": "npm --prefix server install --no-audit --no-fund && npm --prefix content-calendar install --no-audit --no-fund",
+    "dev": "npm --prefix content-calendar run dev --",
+    "dev:frontend": "npm --prefix content-calendar run dev --",
+    "dev:server": "npm --prefix server run start:dev",
+    "dev:full": "docker compose up --build",
+    "check": "bash scripts/check.sh",
+    "check:frontend": "bash scripts/check.sh content-calendar",
+    "check:server": "bash scripts/check.sh server"
+  }
+}
