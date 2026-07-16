@@ -79,7 +79,7 @@ export default function App({ initialView = 'home' }: { initialView?: View } = {
               )}
               {view === 'studio' && (
                 <div className="mx-auto max-w-5xl">
-                  <DraftStudio seed={studioSeed} />
+                  <DraftStudio seed={studioSeed} onOpenOutbox={() => navigate('outbox')} />
                 </div>
               )}
               {view === 'review' && (

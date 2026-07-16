@@ -2,7 +2,7 @@ import { useStore } from '../store/useStore';
 import type { Post } from '../types';
 import { getPlatformMeta } from '../lib/platforms';
 import { PLATFORM_GLYPHS } from './icons';
-import { Card, Heading } from './ui';
+import { Button, Card, Heading } from './ui';
 
 /**
  * Outbox — one place to see what's gone out, what's queued, and what failed,
@@ -16,7 +16,21 @@ function fmt(iso?: string): string {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString();
 }
 
-function Row({ post }: { post: Post }) {
+function Row({
+  post,
+  onEdit,
+  onSchedule,
+  onPublish,
+  isPublishing,
+  canPublish,
+}: {
+  post: Post;
+  onEdit: (postId: string) => void;
+  onSchedule?: (postId: string) => void;
+  onPublish?: (postId: string) => void;
+  isPublishing?: boolean;
+  canPublish?: boolean;
+}) {
   const meta = getPlatformMeta(post.platform);
   const Glyph = PLATFORM_GLYPHS[post.platform];
   return (
@@ -43,12 +57,53 @@ function Row({ post }: { post: Post }) {
           </>
         )}
         {post.status === 'scheduled' && <div>{fmt(post.scheduledAt)}</div>}
+        {post.status !== 'published' && (
+          <div className="mt-2 flex flex-wrap justify-end gap-1.5">
+            <Button variant="ghost" size="sm" onClick={() => onEdit(post.id)}>
+              Edit
+            </Button>
+            {onSchedule && post.status === 'approved' && (
+              <Button variant="secondary" size="sm" onClick={() => onSchedule(post.id)}>
+                Schedule
+              </Button>
+            )}
+            {onPublish && (
+              <Button
+                size="sm"
+                loading={isPublishing}
+                disabled={!canPublish || isPublishing}
+                title={canPublish ? undefined : `Connect ${meta.name} before publishing`}
+                onClick={() => onPublish(post.id)}
+              >
+                Post now
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </li>
   );
 }
 
-function Group({ title, posts, empty }: { title: string; posts: Post[]; empty: string }) {
+function Group({
+  title,
+  posts,
+  empty,
+  onEdit,
+  onSchedule,
+  onPublish,
+  publishingId,
+  canPublish,
+}: {
+  title: string;
+  posts: Post[];
+  empty: string;
+  onEdit: (postId: string) => void;
+  onSchedule?: (postId: string) => void;
+  onPublish?: (postId: string) => void;
+  publishingId?: string | null;
+  canPublish?: (post: Post) => boolean;
+}) {
   return (
     <Card as="section" aria-label={title} className="space-y-2 p-4">
       <header className="flex items-center justify-between">
@@ -60,7 +115,15 @@ function Group({ title, posts, empty }: { title: string; posts: Post[]; empty: s
       ) : (
         <ul className="space-y-2">
           {posts.map((p) => (
-            <Row key={p.id} post={p} />
+            <Row
+              key={p.id}
+              post={p}
+              onEdit={onEdit}
+              onSchedule={onSchedule}
+              onPublish={onPublish}
+              isPublishing={publishingId === p.id}
+              canPublish={canPublish?.(p) ?? true}
+            />
           ))}
         </ul>
       )}
@@ -70,19 +133,55 @@ function Group({ title, posts, empty }: { title: string; posts: Post[]; empty: s
 
 export function OutboxScreen() {
   const posts = useStore((s) => s.posts);
+  const accounts = useStore((s) => s.accounts);
+  const openEditor = useStore((s) => s.openEditor);
+  const setPostStatus = useStore((s) => s.setPostStatus);
+  const publishPost = useStore((s) => s.publishPost);
+  const publishingId = useStore((s) => s.publishingId);
 
   const byTime = (a: Post, b: Post) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
+  const ready = posts.filter((p) => p.status === 'approved').sort(byTime);
   const published = posts.filter((p) => p.status === 'published').sort(byTime);
   const scheduled = posts
     .filter((p) => p.status === 'scheduled')
     .sort((a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''));
   const failed = posts.filter((p) => p.status === 'failed').sort(byTime);
+  const canPublish = (post: Post) =>
+    post.body.trim().length > 0 &&
+    post.body.length <= getPlatformMeta(post.platform).characterLimit &&
+    accounts.find((a) => a.platform === post.platform)?.status === 'connected';
 
   return (
     <div className="space-y-4" data-testid="outbox">
-      <Group title="Failed" posts={failed} empty="Nothing failed — good." />
-      <Group title="Scheduled" posts={scheduled} empty="Nothing scheduled yet." />
-      <Group title="Published" posts={published} empty="Nothing published yet." />
+      <Group
+        title="Ready to post"
+        posts={ready}
+        empty="Nothing approved yet."
+        onEdit={openEditor}
+        onSchedule={(id) => setPostStatus(id, 'scheduled')}
+        onPublish={(id) => void publishPost(id)}
+        publishingId={publishingId}
+        canPublish={canPublish}
+      />
+      <Group
+        title="Failed"
+        posts={failed}
+        empty="Nothing failed — good."
+        onEdit={openEditor}
+        onPublish={(id) => void publishPost(id)}
+        publishingId={publishingId}
+        canPublish={canPublish}
+      />
+      <Group
+        title="Scheduled"
+        posts={scheduled}
+        empty="Nothing scheduled yet."
+        onEdit={openEditor}
+        onPublish={(id) => void publishPost(id)}
+        publishingId={publishingId}
+        canPublish={canPublish}
+      />
+      <Group title="Published" posts={published} empty="Nothing published yet." onEdit={openEditor} />
     </div>
   );
 }

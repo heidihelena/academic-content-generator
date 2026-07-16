@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 /**
  * Full Draft Studio user flow in a real browser: navigate in from the sidebar,
- * compose → draft → review → approve → save, plus the safety-gate path. Driven
+ * compose → draft → review → approve → Outbox, plus the safety-gate path. Driven
  * by roles/labels/test-ids, never internal state.
  */
 test.describe('Draft Studio', () => {
@@ -12,7 +12,7 @@ test.describe('Draft Studio', () => {
     await expect(page.getByLabel('Source title')).toBeVisible();
   });
 
-  test('composes, reviews and approves a clean draft, then saves it to the calendar', async ({ page }) => {
+  test('composes, reviews and approves a clean draft, then sends it to Outbox', async ({ page }) => {
     await page.getByLabel('Source title').fill('Street trees and urban heat');
     await page.getByLabel('Source material (abstract / notes)').fill('Tree cover was associated with cooler streets.');
     await page.getByRole('button', { name: /Generate draft/i }).click();
@@ -25,8 +25,13 @@ test.describe('Draft Studio', () => {
     await page.getByRole('button', { name: /Approve for publishing/i }).click();
 
     await expect(page.getByTestId('ready-banner')).toBeVisible();
-    await page.getByRole('button', { name: /Save to calendar/i }).click();
+    await page.getByRole('button', { name: /Send to Outbox/i }).click();
     await expect(page.getByTestId('studio-saved')).toBeVisible();
+    await page.getByRole('button', { name: /Open Outbox/i }).click();
+
+    const ready = page.getByLabel('Ready to post');
+    await expect(ready).toBeVisible();
+    await expect(ready).toContainText('Street trees and urban heat');
   });
 
   test('blocks approval of unsafe copy and lets the author send it back to revise', async ({ page }) => {

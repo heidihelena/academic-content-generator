@@ -52,7 +52,9 @@ describe('Outbox', () => {
 
   it('groups posts by published / scheduled / failed with links and reasons', () => {
     useStore.setState({
+      accounts: [{ platform: 'bluesky', status: 'connected' }],
       posts: [
+        post({ id: 'p_ready', status: 'approved', body: 'ready' }),
         post({ id: 'p_pub', status: 'published', permalink: 'https://x.com/i/web/status/1', body: 'shipped' }),
         post({ id: 'p_sch', status: 'scheduled', body: 'queued' }),
         post({ id: 'p_fail', status: 'failed', statusDetail: 'No connected bluesky account', body: 'oops' }),
@@ -69,6 +71,11 @@ describe('Outbox', () => {
 
     expect(within(screen.getByLabelText('Scheduled')).getByText('queued')).toBeInTheDocument();
 
+    const ready = within(screen.getByLabelText('Ready to post'));
+    expect(ready.getByText('ready')).toBeInTheDocument();
+    fireEvent.click(ready.getByRole('button', { name: /Schedule/i }));
+    expect(useStore.getState().posts.find((p) => p.id === 'p_ready')?.status).toBe('scheduled');
+
     const failed = within(screen.getByLabelText('Failed'));
     expect(failed.getByText('oops')).toBeInTheDocument();
     expect(failed.getByText(/No connected bluesky account/)).toBeInTheDocument();
@@ -76,6 +83,7 @@ describe('Outbox', () => {
 
   it('shows empty-state copy when there is nothing in a group', () => {
     render(<OutboxScreen />);
+    expect(screen.getByText(/Nothing approved yet/)).toBeInTheDocument();
     expect(screen.getByText(/Nothing published yet/)).toBeInTheDocument();
     expect(screen.getByText(/Nothing failed/)).toBeInTheDocument();
   });

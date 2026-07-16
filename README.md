@@ -42,7 +42,19 @@ The default mode is local-first and mock-based. Real platform credentials, LLM p
 
 ## Quick start
 
-### Option A — full stack with Docker (one command)
+### Fastest local drafting loop
+
+```bash
+npm run setup
+npm run dev
+```
+
+- Dashboard → http://localhost:5173
+- Runs with sample data, local storage, mock publishing and local AI/review
+- Draft Studio can send approved drafts straight to Outbox, where you can edit,
+  schedule or post through a connected/mock account
+
+### Option A — full stack with Docker
 
 ```bash
 docker compose up --build
@@ -59,7 +71,7 @@ in `docker-compose.yml` to go live — see
 ### Option B — frontend only (zero config)
 
 ```bash
-cd content-calendar && npm install && npm run dev   # http://localhost:5173
+npm run dev   # http://localhost:5173
 ```
 
 Sample data + `localStorage`, mock integrations, client-side AI — no backend
