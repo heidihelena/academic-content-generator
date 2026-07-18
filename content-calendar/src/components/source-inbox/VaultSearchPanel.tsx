@@ -45,6 +45,12 @@ export function VaultSearchPanel({
           placeholder="e.g. tree canopy and heat…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSearch();
+            }
+          }}
         />
         <Button type="submit" className="shrink-0" disabled={busy || !query.trim()}>
           Search

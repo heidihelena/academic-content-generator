@@ -13,6 +13,7 @@ describe('composeDraft', () => {
 
     expect(body).toContain('A few notes for research peers:');
     expect(body).toContain('What I would value from colleagues');
+    expect(body.match(/Street trees and urban heat/g)).toHaveLength(1);
     expect(body).not.toContain('for peers');
     expect(body).not.toContain('· linkedin');
   });

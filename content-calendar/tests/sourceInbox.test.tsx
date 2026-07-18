@@ -120,6 +120,19 @@ describe('Source Inbox', () => {
     ).toContain('street trees shade pavement');
   });
 
+  it('searches the vault when Enter is pressed in the vault search box', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    fireEvent.click(screen.getByRole('button', { name: /Search vault/i }));
+    const vaultInput = screen.getByLabelText('Search your vault');
+    fireEvent.change(vaultInput, { target: { value: 'trees pavement' } });
+    fireEvent.keyDown(vaultInput, { key: 'Enter', code: 'Enter' });
+
+    const hits = await screen.findByTestId('vault-hits');
+    expect(within(hits).getByText('Canopy and heat')).toBeInTheDocument();
+  });
+
   it('drafts vault search passages without using chunk ids as source ids', async () => {
     const onDraft = vi.fn();
     render(<SourceInbox onDraft={onDraft} />);

@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useStore } from '../store/useStore';
 import type { Post } from '../types';
 import { getPlatformMeta } from '../lib/platforms';
+import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { PLATFORM_GLYPHS } from './icons';
-import { Button, Card, Heading } from './ui';
+import { Button, Card, Heading, Input, Label, Modal } from './ui';
 
 /**
  * Outbox — one place to see what's gone out, what's queued, and what failed,
@@ -135,9 +137,12 @@ export function OutboxScreen() {
   const posts = useStore((s) => s.posts);
   const accounts = useStore((s) => s.accounts);
   const openEditor = useStore((s) => s.openEditor);
-  const setPostStatus = useStore((s) => s.setPostStatus);
+  const schedulePost = useStore((s) => s.schedulePost);
   const publishPost = useStore((s) => s.publishPost);
   const publishingId = useStore((s) => s.publishingId);
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
+  const [scheduleValue, setScheduleValue] = useState('');
+  const schedulingPost = schedulingId ? posts.find((p) => p.id === schedulingId) ?? null : null;
 
   const byTime = (a: Post, b: Post) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
   const ready = posts.filter((p) => p.status === 'approved').sort(byTime);
@@ -150,6 +155,21 @@ export function OutboxScreen() {
     post.body.trim().length > 0 &&
     post.body.length <= getPlatformMeta(post.platform).characterLimit &&
     accounts.find((a) => a.platform === post.platform)?.status === 'connected';
+  const openSchedule = (id: string) => {
+    const post = posts.find((p) => p.id === id);
+    if (!post) return;
+    setSchedulingId(id);
+    setScheduleValue(toDateTimeLocalValue(post.scheduledAt));
+  };
+  const closeSchedule = () => {
+    setSchedulingId(null);
+    setScheduleValue('');
+  };
+  const confirmSchedule = () => {
+    if (!schedulingId || !scheduleValue) return;
+    schedulePost(schedulingId, fromDateTimeLocalValue(scheduleValue));
+    closeSchedule();
+  };
 
   return (
     <div className="space-y-4" data-testid="outbox">
@@ -158,7 +178,7 @@ export function OutboxScreen() {
         posts={ready}
         empty="Nothing approved yet."
         onEdit={openEditor}
-        onSchedule={(id) => setPostStatus(id, 'scheduled')}
+        onSchedule={openSchedule}
         onPublish={(id) => void publishPost(id)}
         publishingId={publishingId}
         canPublish={canPublish}
@@ -182,6 +202,42 @@ export function OutboxScreen() {
         canPublish={canPublish}
       />
       <Group title="Published" posts={published} empty="Nothing published yet." onEdit={openEditor} />
+      <Modal
+        open={Boolean(schedulingPost)}
+        title="Schedule post"
+        onClose={closeSchedule}
+        widthClass="max-w-lg"
+        footer={
+          <>
+            <Button variant="ghost" onClick={closeSchedule}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSchedule} disabled={!scheduleValue}>
+              Confirm schedule
+            </Button>
+          </>
+        }
+      >
+        {schedulingPost && (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-300">
+              Choose exactly when this {getPlatformMeta(schedulingPost.platform).name} post should move to Scheduled.
+            </p>
+            <div>
+              <Label htmlFor="outbox-schedule-at">Date and time</Label>
+              <Input
+                id="outbox-schedule-at"
+                type="datetime-local"
+                value={scheduleValue}
+                onChange={(e) => setScheduleValue(e.target.value)}
+              />
+            </div>
+            <p className="line-clamp-3 rounded-lg border border-surface-700 bg-surface-900/50 p-3 text-xs text-slate-400">
+              {schedulingPost.body || '(no text)'}
+            </p>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

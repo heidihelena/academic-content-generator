@@ -111,6 +111,8 @@ export interface StoreState {
   /** Live-publish a post to its platform now; resolves true when published. */
   publishPost: (postId: string) => Promise<boolean>;
   reschedulePost: (postId: string, targetDay: Date) => void;
+  /** Put an approved post onto the calendar at an explicit date/time. */
+  schedulePost: (postId: string, scheduledAt: string) => void;
   /** Move a single post to a pipeline stage (used by the board's drag-and-drop). */
   setPostStatus: (postId: string, status: PostStatus) => void;
   /** Approve a post in review → moves it to Approved and logs the decision. */
@@ -454,6 +456,15 @@ export const useStore = create<StoreState>((set, get) => ({
     void dataSource
       .updatePost(postId, { status, updatedAt })
       .catch((err) => console.error('setPostStatus failed', err));
+  },
+
+  schedulePost: (postId, scheduledAt) => {
+    const post = get().posts.find((p) => p.id === postId);
+    if (!post) return;
+    const updatedAt = new Date().toISOString();
+    const patch = { status: 'scheduled' as const, scheduledAt, updatedAt };
+    set({ posts: get().posts.map((p) => (p.id === postId ? { ...p, ...patch } : p)) });
+    void dataSource.updatePost(postId, patch).catch((err) => console.error('schedulePost failed', err));
   },
 
   approvePost: (postId, reviewer) => {

@@ -25,12 +25,19 @@ function compactMaterial(material: string, max = 520): string {
   return `${slice.trim()}...`;
 }
 
-function composeLinkedInDraft(input: StudioInput, title: string, material: string, hook: string): string {
+function defaultHook(input: StudioInput, title: string): string {
+  const hook = input.hook.trim();
+  if (hook) return hook;
+  if (input.channel !== 'linkedin') return `New from our work: ${title}`;
+  return input.audience === 'peers'
+    ? `A useful finding to test in other settings: ${title}`
+    : `A practical note from this work: ${title}`;
+}
+
+function composeLinkedInDraft(input: StudioInput, material: string, hook: string): string {
   const gist = compactMaterial(material);
   const lines = [
     hook,
-    '',
-    title,
     '',
     LINKEDIN_AUDIENCE_LEAD[input.audience],
   ];
@@ -50,11 +57,11 @@ function composeLinkedInDraft(input: StudioInput, title: string, material: strin
 export function composeDraft(input: StudioInput): string {
   const title = input.title.trim();
   const material = input.material.trim();
-  const hook = input.hook.trim() || `New from our work: ${title}`;
+  const hook = defaultHook(input, title);
   const gist = compactMaterial(material, 280);
 
   if (input.channel === 'linkedin') {
-    return composeLinkedInDraft(input, title, material, hook);
+    return composeLinkedInDraft(input, material, hook);
   }
 
   const lines = [hook, '', `${title}.`];
