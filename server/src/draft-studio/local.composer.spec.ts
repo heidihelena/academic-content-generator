@@ -25,6 +25,12 @@ describe('LocalDraftComposer', () => {
     expect(draft).toContain('Heatwaves hit unequally');
     expect(draft).toContain('equity');
     expect(draft).toContain('cooler streets');
-    expect(draft).toContain('peers · linkedin');
+    expect(draft).toContain('A few notes for research peers');
+    expect(draft).not.toContain('peers · linkedin');
+  });
+
+  it('does not duplicate the source title in the default LinkedIn draft', async () => {
+    const draft = await composer.composeDraft(req());
+    expect(draft.match(/Street trees and heat/g)).toHaveLength(1);
   });
 });

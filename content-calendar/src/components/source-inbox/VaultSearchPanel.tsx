@@ -45,6 +45,12 @@ export function VaultSearchPanel({
           placeholder="e.g. tree canopy and heat…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              onSearch();
+            }
+          }}
         />
         <Button type="submit" className="shrink-0" disabled={busy || !query.trim()}>
           Search
@@ -77,7 +83,7 @@ export function VaultSearchPanel({
               <Button
                 size="sm"
                 className="shrink-0"
-                onClick={() => onDraft({ title: h.title || h.source, material: h.content, sourceId: h.id })}
+                onClick={() => onDraft({ title: h.title || h.source, material: h.content })}
               >
                 Draft in Studio →
               </Button>

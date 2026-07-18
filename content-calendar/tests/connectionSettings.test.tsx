@@ -22,8 +22,8 @@ describe('Connection settings — verify & connect', () => {
     render(<ConnectedAccounts />);
     const row = screen.getByTestId('account-bluesky');
 
-    // Not connected yet.
-    expect(within(row).getByTestId('account-status-bluesky')).toHaveTextContent('Not connected');
+    // Local mode is demo-only, so disconnected accounts are clearly marked as demo off.
+    expect(within(row).getByTestId('account-status-bluesky')).toHaveTextContent('Demo off');
 
     // Open the credential form and fill it in.
     fireEvent.click(within(row).getByRole('button', { name: /Connect/i }));
@@ -32,9 +32,9 @@ describe('Connection settings — verify & connect', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Verify & connect/i }));
 
-    // Verified → the row flips to Connected (mock integration succeeds locally).
+    // Verified -> the row flips to connected demo mode (mock integration succeeds locally).
     await waitFor(() =>
-      expect(screen.getByTestId('account-status-bluesky')).toHaveTextContent('Connected'),
+      expect(screen.getByTestId('account-status-bluesky')).toHaveTextContent('Demo only'),
     );
   });
 

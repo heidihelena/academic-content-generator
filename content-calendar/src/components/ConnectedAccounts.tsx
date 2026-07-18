@@ -134,10 +134,12 @@ function StatusDot({ status }: { status: ConnectionStatus }) {
 
 function AccountRow({
   account,
+  demoOnly,
   appCredsConfigured = false,
   onAppCredsSaved,
 }: {
   account: ConnectedAccount;
+  demoOnly: boolean;
   appCredsConfigured?: boolean;
   onAppCredsSaved?: () => void;
 }) {
@@ -153,6 +155,15 @@ function AccountRow({
   const isConnected = account.status === 'connected';
   const isError = account.status === 'error' || account.status === 'expired';
   const usesCredentials = CREDENTIAL_PLATFORMS.includes(platform);
+  const statusLabel = demoOnly
+    ? isConnected
+      ? 'Demo only'
+      : account.status === 'disconnected'
+      ? 'Demo off'
+      : STATUS_LABEL[account.status]
+    : isConnected
+    ? 'Real connected'
+    : STATUS_LABEL[account.status];
 
   const [formOpen, setFormOpen] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -186,7 +197,7 @@ function AccountRow({
           </div>
           <div className="flex items-center gap-1.5 text-xs text-slate-500">
             <StatusDot status={account.status} />
-            <span data-testid={`account-status-${platform}`}>{STATUS_LABEL[account.status]}</span>
+            <span data-testid={`account-status-${platform}`}>{statusLabel}</span>
             {isConnected && account.handle && <span className="truncate"> · {account.handle}</span>}
             {isConnected && account.followers != null && (
               <span className="hidden sm:inline"> · {account.followers.toLocaleString()} followers</span>
@@ -322,7 +333,6 @@ export function ConnectedAccounts() {
   };
   useEffect(() => {
     if (apiMode) refreshCredStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiMode]);
 
   return (
@@ -334,13 +344,14 @@ export function ConnectedAccounts() {
       <Text variant="muted" className="mb-4">
         {apiMode
           ? "Connect the real accounts you'll post to. Publishing uses the stored provider tokens."
-          : 'Demo mode: start the backend and set VITE_API_URL to connect real accounts.'}
+          : 'Demo only: these sample accounts let you practice. They will not post anywhere.'}
       </Text>
       <div className="grid gap-2.5">
         {accounts.map((a) => (
           <AccountRow
             key={a.platform}
             account={a}
+            demoOnly={!apiMode}
             appCredsConfigured={Boolean(credStatus[a.platform])}
             onAppCredsSaved={refreshCredStatus}
           />

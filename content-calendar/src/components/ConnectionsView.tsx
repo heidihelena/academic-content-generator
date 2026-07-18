@@ -70,20 +70,34 @@ export function ConnectionsView() {
             </div>
           </Card>
 
-          <Card as="section" aria-label="Publishing destinations" className="space-y-3 p-4">
-            <header className="flex items-center gap-2">
-              <PlugIcon width={16} height={16} className="text-brand-400" />
-              <Heading>Publishing destinations</Heading>
-            </header>
-            <p className="text-xs text-slate-500">
-              Real posting uses a connected account token. OAuth app credentials only mark a destination ready.
-            </p>
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {state.report.social.map((s) => (
-                <SocialRow key={s.platform} status={s} />
-              ))}
-            </div>
-          </Card>
+          {state.mode === 'api' && state.online ? (
+            <Card as="section" aria-label="Publishing destinations" className="space-y-3 p-4">
+              <header className="flex items-center gap-2">
+                <PlugIcon width={16} height={16} className="text-brand-400" />
+                <Heading>Publishing destinations</Heading>
+              </header>
+              <p className="text-xs text-slate-500">
+                Real posting uses a connected account token. OAuth app credentials only mark a destination ready.
+              </p>
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                {state.report.social.map((s) => (
+                  <SocialRow key={s.platform} status={s} />
+                ))}
+              </div>
+            </Card>
+          ) : (
+            <Card as="section" aria-label="Publishing mode" className="space-y-2 p-4">
+              <header className="flex items-center gap-2">
+                <PlugIcon width={16} height={16} className="text-brand-400" />
+                <Heading>Publishing mode</Heading>
+              </header>
+              <p className="text-sm text-slate-300">Demo only</p>
+              <p className="text-xs text-slate-500">
+                The accounts above are sample accounts for practice. Start the backend and set
+                <code className="mx-1">VITE_API_URL</code> to connect real accounts.
+              </p>
+            </Card>
+          )}
         </>
       )}
     </div>
@@ -103,7 +117,7 @@ function ProviderRow({ label, hint, status }: { label: string; hint: string; sta
 }
 
 function SocialRow({ status }: { status: SocialStatus }) {
-  const label = status.connected ? 'Connected' : status.configured ? 'Ready' : 'Not connected';
+  const label = status.connected ? 'Real connected' : status.configured ? 'Ready' : 'Not connected';
   const tone = status.connected ? 'connected' : status.configured ? 'ready' : 'off';
   return (
     <div className="flex items-center justify-between gap-2 rounded-lg border border-surface-700 bg-surface-850 px-3 py-2 text-xs">

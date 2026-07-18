@@ -41,10 +41,10 @@ describe('ConnectionsView', () => {
     const generators = await screen.findByLabelText('Content generators');
     expect(within(generators).getAllByText('mock')).toHaveLength(4);
 
-    // Publishing destinations list the platforms and their connect method.
-    const publishing = screen.getByLabelText('Publishing destinations');
-    expect(within(publishing).getByText('bluesky')).toBeInTheDocument();
-    expect(within(publishing).getAllByText('Not connected').length).toBeGreaterThan(0);
+    // Local mode has one honest account truth: sample rows are demo-only, not real destinations.
+    expect(screen.getAllByText('Demo only').length).toBeGreaterThan(0);
+    expect(screen.getByLabelText('Publishing mode')).toHaveTextContent('Demo only');
+    expect(screen.queryByLabelText('Publishing destinations')).toBeNull();
 
     // Inputs & storage moved to the Settings screen — not rendered here anymore.
     expect(screen.queryByLabelText('Inputs and storage')).toBeNull();
@@ -61,7 +61,7 @@ describe('ConnectionsView', () => {
     expect(within(generators).getByText('elevenlabs')).toBeInTheDocument();
 
     const publishing = screen.getByLabelText('Publishing destinations');
-    expect(within(publishing).getByText('Connected')).toBeInTheDocument();
+    expect(within(publishing).getByText('Real connected')).toBeInTheDocument();
   });
 
   it('distinguishes ready credentials from a connected publishing token', async () => {
@@ -85,5 +85,6 @@ describe('ConnectionsView', () => {
 
     await waitFor(() => expect(screen.getByText(/Working offline/)).toBeInTheDocument());
     expect(within(screen.getByLabelText('Content generators')).getAllByText('mock')).toHaveLength(4);
+    expect(screen.getByLabelText('Publishing mode')).toHaveTextContent('Demo only');
   });
 });

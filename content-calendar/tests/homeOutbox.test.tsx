@@ -74,7 +74,18 @@ describe('Outbox', () => {
     const ready = within(screen.getByLabelText('Ready to post'));
     expect(ready.getByText('ready')).toBeInTheDocument();
     fireEvent.click(ready.getByRole('button', { name: /Schedule/i }));
+    expect(useStore.getState().posts.find((p) => p.id === 'p_ready')?.status).toBe('approved');
+
+    const dialog = screen.getByRole('dialog', { name: /Schedule post/i });
+    expect(within(dialog).getByLabelText('Date and time')).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Date and time'), {
+      target: { value: '2026-07-02T14:30' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Confirm schedule/i }));
     expect(useStore.getState().posts.find((p) => p.id === 'p_ready')?.status).toBe('scheduled');
+    expect(useStore.getState().posts.find((p) => p.id === 'p_ready')?.scheduledAt).toBe(
+      new Date('2026-07-02T14:30').toISOString(),
+    );
 
     const failed = within(screen.getByLabelText('Failed'));
     expect(failed.getByText('oops')).toBeInTheDocument();

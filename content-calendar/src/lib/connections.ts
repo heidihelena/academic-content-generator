@@ -29,6 +29,7 @@ export const LOCAL_CONNECTIONS_REPORT: ConnectionsReport = {
     { platform: 'instagram', method: 'oauth', configured: false, connected: false },
     { platform: 'threads', method: 'oauth', configured: false, connected: false },
     { platform: 'x', method: 'oauth', configured: false, connected: false },
+    { platform: 'youtube', method: 'oauth', configured: false, connected: false },
   ],
 };
 

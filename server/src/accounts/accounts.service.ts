@@ -15,8 +15,8 @@ import { MastodonIntegration } from '../integrations/mastodon.integration';
 // Connect control. Bluesky + Mastodon come first: they connect with an in-app
 // app password / access token (no OAuth app needed), so they work on a fresh
 // local install — the others connect via an OAuth redirect.
-const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'instagram', 'linkedin', 'threads', 'x'];
-const OAUTH_PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads', 'x'];
+const PLATFORMS: Platform[] = ['bluesky', 'mastodon', 'instagram', 'linkedin', 'threads', 'x', 'youtube'];
+const OAUTH_PLATFORMS: Platform[] = ['instagram', 'linkedin', 'threads', 'x', 'youtube'];
 
 /** Credentials a user can supply in-app for the token/app-password platforms. */
 export interface PlatformCredentials {

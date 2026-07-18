@@ -9,6 +9,7 @@ import { LocalIdeaLabClient, setIdeaLabClient } from '../src/idea-lab/ideaLabCli
 import { LocalCarouselClient, setCarouselClient } from '../src/carousel/carouselClient';
 import { MockThreadDrafter } from '../src/ai/mockThreadDrafter';
 import { setThreadDrafter } from '../src/ai/threadService';
+import { SourceInbox } from '../src/components/SourceInbox';
 import type { Source } from '../src/sources/sourcesTypes';
 
 const SEED: Source[] = [
@@ -117,6 +118,39 @@ describe('Source Inbox', () => {
     expect(
       (screen.getByLabelText('Source material (abstract / notes)') as HTMLTextAreaElement).value,
     ).toContain('street trees shade pavement');
+  });
+
+  it('searches the vault when Enter is pressed in the vault search box', async () => {
+    render(<App initialView="inbox" />);
+    await screen.findByTestId('source-list');
+
+    fireEvent.click(screen.getByRole('button', { name: /Search vault/i }));
+    const vaultInput = screen.getByLabelText('Search your vault');
+    fireEvent.change(vaultInput, { target: { value: 'trees pavement' } });
+    fireEvent.keyDown(vaultInput, { key: 'Enter', code: 'Enter' });
+
+    const hits = await screen.findByTestId('vault-hits');
+    expect(within(hits).getByText('Canopy and heat')).toBeInTheDocument();
+  });
+
+  it('drafts vault search passages without using chunk ids as source ids', async () => {
+    const onDraft = vi.fn();
+    render(<SourceInbox onDraft={onDraft} />);
+    await screen.findByTestId('source-list');
+
+    fireEvent.click(screen.getByRole('button', { name: /Search vault/i }));
+    const vaultInput = screen.getByLabelText('Search your vault');
+    fireEvent.change(vaultInput, { target: { value: 'trees pavement' } });
+    fireEvent.click(within(vaultInput.closest('form')!).getByRole('button', { name: 'Search' }));
+
+    const hits = await screen.findByTestId('vault-hits');
+    fireEvent.click(within(hits).getByRole('button', { name: /Draft in Studio/i }));
+
+    expect(onDraft).toHaveBeenCalledWith({
+      title: 'Canopy and heat',
+      material: expect.stringContaining('street trees shade pavement'),
+    });
+    expect(onDraft.mock.calls[0][0].sourceId).toBeUndefined();
   });
 
   it('sparks five source-grounded ideas and drafts from one', async () => {
