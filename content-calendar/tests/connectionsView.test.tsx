@@ -44,6 +44,7 @@ describe('ConnectionsView', () => {
     // Publishing destinations list the platforms and their connect method.
     const publishing = screen.getByLabelText('Publishing destinations');
     expect(within(publishing).getByText('bluesky')).toBeInTheDocument();
+    expect(within(publishing).getByText('youtube')).toBeInTheDocument();
     expect(within(publishing).getAllByText('Not connected').length).toBeGreaterThan(0);
 
     // Inputs & storage moved to the Settings screen — not rendered here anymore.

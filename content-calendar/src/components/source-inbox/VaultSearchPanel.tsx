@@ -77,7 +77,7 @@ export function VaultSearchPanel({
               <Button
                 size="sm"
                 className="shrink-0"
-                onClick={() => onDraft({ title: h.title || h.source, material: h.content, sourceId: h.id })}
+                onClick={() => onDraft({ title: h.title || h.source, material: h.content })}
               >
                 Draft in Studio →
               </Button>

@@ -104,6 +104,7 @@ export class ConnectionsService {
         this.socialStatus('instagram', 'oauth', has('integrations.instagram.clientId')),
         this.socialStatus('threads', 'oauth', has('integrations.threads.clientId')),
         this.socialStatus('x', 'oauth', has('integrations.x.clientId')),
+        this.socialStatus('youtube', 'oauth', has('integrations.youtube.clientId')),
       ]),
     };
   }

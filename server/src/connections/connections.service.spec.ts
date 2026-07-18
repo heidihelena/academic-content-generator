@@ -32,6 +32,12 @@ describe('ConnectionsService', () => {
       configured: false,
       connected: false,
     });
+    expect(r.social.find((s) => s.platform === 'youtube')).toEqual({
+      platform: 'youtube',
+      method: 'oauth',
+      configured: false,
+      connected: false,
+    });
     expect(r.inputs.persistenceDriver).toBe('memory');
   });
 
@@ -59,9 +65,11 @@ describe('ConnectionsService', () => {
       'integrations.bluesky.identifier': 'me.bsky.social',
       'integrations.bluesky.appPassword': 'app-pw',
       'integrations.linkedin.clientId': 'cid',
+      'integrations.youtube.clientId': 'yt-cid',
     }).report();
     expect(r.social.find((s) => s.platform === 'bluesky')?.configured).toBe(true);
     expect(r.social.find((s) => s.platform === 'linkedin')?.configured).toBe(true);
+    expect(r.social.find((s) => s.platform === 'youtube')?.configured).toBe(true);
     expect(r.social.find((s) => s.platform === 'mastodon')?.configured).toBe(false);
   });
 

@@ -10,9 +10,13 @@ import { join } from 'path';
 // (PersistenceModule.forRoot reads this at registration time).
 process.env.PERSISTENCE_DRIVER = 'memory';
 process.env.VAULT_WATCH = 'false';
+delete process.env.INSTAGRAM_CLIENT_ID;
+delete process.env.INSTAGRAM_CLIENT_SECRET;
 // Write uploads to a throwaway temp dir so tests don't litter the repo.
 const UPLOADS_DIR = mkdtempSync(join(tmpdir(), 'cc-uploads-'));
 process.env.UPLOADS_DIR = UPLOADS_DIR;
+process.env.VAULT_PATH = join(UPLOADS_DIR, 'missing-vault');
+process.env.PROVIDER_CREDENTIALS_PATH = join(UPLOADS_DIR, 'provider-credentials.json');
 
 import { AppModule } from '../src/app.module';
 
@@ -37,7 +41,7 @@ describe('Content Calendar API (e2e, memory driver)', () => {
     const res = await request(http).get('/api/accounts').expect(200);
     expect(res.body.every((a: any) => a.status === 'disconnected')).toBe(true);
     const platforms = res.body.map((a: any) => a.platform).sort();
-    expect(platforms).toEqual(['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads', 'x'].sort());
+    expect(platforms).toEqual(['bluesky', 'instagram', 'linkedin', 'mastodon', 'threads', 'x', 'youtube'].sort());
   });
 
   it('supports the post CRUD lifecycle', async () => {
@@ -80,7 +84,6 @@ describe('Content Calendar API (e2e, memory driver)', () => {
   });
 
   it('handles vault ingest and search with no vault present', async () => {
-    process.env.VAULT_PATH = './does-not-exist';
     const ingest = await request(http).post('/api/vault/ingest').expect(201);
     expect(ingest.body.files).toBe(0);
     const search = await request(http).get('/api/vault/search?q=anything').expect(200);
