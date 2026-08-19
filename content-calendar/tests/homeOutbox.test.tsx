@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import App from '../src/App';
 import { HomeScreen } from '../src/components/HomeScreen';
 import { OutboxScreen } from '../src/components/OutboxScreen';
@@ -97,5 +97,70 @@ describe('Outbox', () => {
     expect(screen.getByText(/Nothing approved yet/)).toBeInTheDocument();
     expect(screen.getByText(/Nothing published yet/)).toBeInTheDocument();
     expect(screen.getByText(/Nothing failed/)).toBeInTheDocument();
+  });
+
+  it('confirms before publishing and shows a success banner with the permalink', async () => {
+    const publishPost = vi.fn(async (id: string) => {
+      useStore.setState((s) => ({
+        posts: s.posts.map((p) =>
+          p.id === id
+            ? { ...p, status: 'published' as const, permalink: 'https://bsky.app/p/1' }
+            : p,
+        ),
+      }));
+      return true;
+    });
+    useStore.setState({
+      accounts: [{ platform: 'bluesky', status: 'connected' }],
+      posts: [post({ id: 'p_ready', status: 'approved', body: 'ready' })],
+      publishPost,
+    });
+    render(<OutboxScreen />);
+
+    // Publishing is guarded by a confirmation — clicking does not post yet.
+    fireEvent.click(within(screen.getByLabelText('Ready to post')).getByRole('button', { name: /Publish now/i }));
+    expect(publishPost).not.toHaveBeenCalled();
+    const dialog = screen.getByRole('dialog', { name: /Publish now\?/i });
+    expect(within(dialog).getByText(/posts publicly to Bluesky/i)).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(within(dialog).getByRole('button', { name: /Publish now/i }));
+      await vi.runAllTimersAsync();
+    });
+    const banner = screen.getByTestId('publish-success');
+    expect(banner).toHaveTextContent(/Published to Bluesky/i);
+    expect(within(banner).getByRole('link', { name: /View post/i })).toHaveAttribute('href', 'https://bsky.app/p/1');
+    expect(publishPost).toHaveBeenCalledWith('p_ready');
+  });
+
+  it('shows the failure at the point of action when a publish fails', async () => {
+    const publishPost = vi.fn(async () => {
+      useStore.setState({ publishError: 'Bluesky session expired — reconnect the account.' });
+      return false;
+    });
+    useStore.setState({
+      accounts: [{ platform: 'bluesky', status: 'connected' }],
+      posts: [post({ id: 'p_ready', status: 'approved', body: 'ready' })],
+      publishPost,
+    });
+    render(<OutboxScreen />);
+    fireEvent.click(within(screen.getByLabelText('Ready to post')).getByRole('button', { name: /Publish now/i }));
+    await act(async () => {
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Publish now/i }));
+      await vi.runAllTimersAsync();
+    });
+    expect(screen.getByTestId('publish-error')).toHaveTextContent(/session expired/i);
+  });
+
+  it('tells the user to connect the account before publishing is possible', () => {
+    useStore.setState({
+      accounts: [{ platform: 'bluesky', status: 'disconnected' }],
+      posts: [post({ id: 'p_ready', status: 'approved', platform: 'bluesky', body: 'ready' })],
+    });
+    render(<OutboxScreen />);
+    const banner = screen.getByTestId('connect-first');
+    expect(banner).toHaveTextContent(/Connect Bluesky before you can publish/i);
+    fireEvent.click(within(banner).getByRole('button', { name: /Connections/i }));
+    expect(window.location.hash).toBe('#/connections');
   });
 });

@@ -4,7 +4,7 @@ import type { Post } from '../types';
 import { getPlatformMeta } from '../lib/platforms';
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../lib/dateUtils';
 import { PLATFORM_GLYPHS } from './icons';
-import { Button, Card, Heading, Input, Label, Modal } from './ui';
+import { Button, Callout, Card, ConfirmDialog, Heading, Input, Label, Modal } from './ui';
 
 /**
  * Outbox — one place to see what's gone out, what's queued, and what failed,
@@ -77,7 +77,7 @@ function Row({
                 title={canPublish ? undefined : `Connect ${meta.name} before publishing`}
                 onClick={() => onPublish(post.id)}
               >
-                Post now
+                Publish now
               </Button>
             )}
           </div>
@@ -133,6 +133,11 @@ function Group({
   );
 }
 
+/** Result of the most recent publish, shown as a banner at the point of action. */
+type PublishOutcome =
+  | { kind: 'success'; platform: Post['platform']; permalink?: string }
+  | { kind: 'error'; platform: Post['platform']; message: string };
+
 export function OutboxScreen() {
   const posts = useStore((s) => s.posts);
   const accounts = useStore((s) => s.accounts);
@@ -142,7 +147,42 @@ export function OutboxScreen() {
   const publishingId = useStore((s) => s.publishingId);
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
   const [scheduleValue, setScheduleValue] = useState('');
+  // Publishing is public and irreversible — confirm before it fires (matching
+  // the post editor), then report the outcome so success/failure is never
+  // silently inferred from a row quietly changing groups.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<PublishOutcome | null>(null);
   const schedulingPost = schedulingId ? posts.find((p) => p.id === schedulingId) ?? null : null;
+  const confirmingPost = confirmingId ? posts.find((p) => p.id === confirmingId) ?? null : null;
+
+  const runPublish = async (postId: string) => {
+    const post = posts.find((p) => p.id === postId);
+    setConfirmingId(null);
+    setOutcome(null);
+    const ok = await publishPost(postId);
+    const platform = post?.platform ?? 'bluesky';
+    if (ok) {
+      const fresh = useStore.getState().posts.find((p) => p.id === postId);
+      setOutcome({ kind: 'success', platform, permalink: fresh?.permalink });
+    } else {
+      setOutcome({
+        kind: 'error',
+        platform,
+        message: useStore.getState().publishError ?? 'Publish failed.',
+      });
+    }
+  };
+
+  // Approved posts whose destination account isn't connected — the real reason
+  // "Publish now" is greyed out. Surface it as a banner, not just a tooltip.
+  const blockedPlatforms = Array.from(
+    new Set(
+      posts
+        .filter((p) => p.status === 'approved')
+        .filter((p) => accounts.find((a) => a.platform === p.platform)?.status !== 'connected')
+        .map((p) => p.platform),
+    ),
+  );
 
   const byTime = (a: Post, b: Post) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? '');
   const ready = posts.filter((p) => p.status === 'approved').sort(byTime);
@@ -173,13 +213,52 @@ export function OutboxScreen() {
 
   return (
     <div className="space-y-4" data-testid="outbox">
+      {outcome?.kind === 'success' && (
+        <Callout tone="good" data-testid="publish-success" className="flex items-center justify-between gap-3">
+          <span>Published to {getPlatformMeta(outcome.platform).name}.</span>
+          {outcome.permalink && (
+            <a className="shrink-0 underline" href={outcome.permalink} target="_blank" rel="noreferrer">
+              View post
+            </a>
+          )}
+        </Callout>
+      )}
+      {outcome?.kind === 'error' && (
+        <Callout tone="danger" data-testid="publish-error" className="flex items-center justify-between gap-3">
+          <span>
+            Couldn’t publish to {getPlatformMeta(outcome.platform).name}: {outcome.message}
+          </span>
+          <Button variant="ghost" size="sm" className="shrink-0" onClick={() => setOutcome(null)}>
+            Dismiss
+          </Button>
+        </Callout>
+      )}
+      {blockedPlatforms.length > 0 && (
+        <Callout tone="warn" data-testid="connect-first" className="flex items-center justify-between gap-3">
+          <span>
+            Connect{' '}
+            {blockedPlatforms.map((p) => getPlatformMeta(p).name).join(', ')}{' '}
+            before you can publish {blockedPlatforms.length === 1 ? 'that post' : 'those posts'}.
+          </span>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            onClick={() => {
+              window.location.hash = '#/connections';
+            }}
+          >
+            Connections →
+          </Button>
+        </Callout>
+      )}
       <Group
         title="Ready to post"
         posts={ready}
         empty="Nothing approved yet."
         onEdit={openEditor}
         onSchedule={openSchedule}
-        onPublish={(id) => void publishPost(id)}
+        onPublish={setConfirmingId}
         publishingId={publishingId}
         canPublish={canPublish}
       />
@@ -188,7 +267,7 @@ export function OutboxScreen() {
         posts={failed}
         empty="Nothing failed — good."
         onEdit={openEditor}
-        onPublish={(id) => void publishPost(id)}
+        onPublish={setConfirmingId}
         publishingId={publishingId}
         canPublish={canPublish}
       />
@@ -197,11 +276,23 @@ export function OutboxScreen() {
         posts={scheduled}
         empty="Nothing scheduled yet."
         onEdit={openEditor}
-        onPublish={(id) => void publishPost(id)}
+        onPublish={setConfirmingId}
         publishingId={publishingId}
         canPublish={canPublish}
       />
       <Group title="Published" posts={published} empty="Nothing published yet." onEdit={openEditor} />
+      <ConfirmDialog
+        open={Boolean(confirmingPost)}
+        title="Publish now?"
+        message={
+          confirmingPost
+            ? `This posts publicly to ${getPlatformMeta(confirmingPost.platform).name} right now. You can’t unpublish it from here.`
+            : ''
+        }
+        confirmLabel="Publish now"
+        onCancel={() => setConfirmingId(null)}
+        onConfirm={() => confirmingId && void runPublish(confirmingId)}
+      />
       <Modal
         open={Boolean(schedulingPost)}
         title="Schedule post"

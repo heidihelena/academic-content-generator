@@ -140,9 +140,9 @@ describe('PostEditorModal', () => {
     expect(screen.getByText(/Publish now\?/i)).toBeInTheDocument();
     expect(useStore.getState().posts.find((p) => p.id === post.id)!.status).not.toBe('published');
 
-    // Confirm "Post now" in the dialog → the real publish runs.
+    // Confirm "Publish now" in the dialog → the real publish runs.
     const dialog = screen.getByRole('dialog', { name: /Publish now\?/i });
-    fireEvent.click(within(dialog).getByRole('button', { name: /Post now/i }));
+    fireEvent.click(within(dialog).getByRole('button', { name: /Publish now/i }));
     await act(async () => {
       await vi.runAllTimersAsync();
     });

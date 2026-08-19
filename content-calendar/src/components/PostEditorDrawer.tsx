@@ -211,7 +211,7 @@ export function PostEditorDrawer() {
         open={confirm === 'publish'}
         title="Publish now?"
         message={`This posts publicly to ${publishTarget} right now. You can't unpublish it from here.`}
-        confirmLabel="Post now"
+        confirmLabel="Publish now"
         onCancel={() => setConfirm(null)}
         onConfirm={() => {
           setConfirm(null);
