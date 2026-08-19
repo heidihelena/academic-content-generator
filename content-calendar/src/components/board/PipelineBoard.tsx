@@ -46,7 +46,7 @@ export function PipelineBoard() {
           <SearchBar />
           {canCreate && (
             <Button onClick={() => openEditor()}>
-              <PlusIcon width={16} height={16} /> New brief
+              <PlusIcon width={16} height={16} /> New post
             </Button>
           )}
         </div>

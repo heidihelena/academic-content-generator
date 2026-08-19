@@ -11,6 +11,14 @@ import { useSyncExternalStore } from 'react';
 export const SOURCE_STATUSES = ['new', 'reviewed', 'used', 'archived'] as const;
 export type SourceStatus = (typeof SOURCE_STATUSES)[number];
 
+/** Plain-language names for the source lifecycle, shown on filter chips. */
+export const SOURCE_STATUS_LABELS: Record<SourceStatus, string> = {
+  new: 'New',
+  reviewed: 'Read',
+  used: 'Used',
+  archived: 'Archived',
+};
+
 export interface SourceMeta {
   status: SourceStatus;
   project?: string;

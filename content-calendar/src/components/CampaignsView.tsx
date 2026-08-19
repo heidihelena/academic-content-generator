@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { contentClient } from '../content/contentClient';
 import type { Campaign, ContentItemWithVariants, ContentStatus } from '../content/contentTypes';
-import { Card, ErrorState, Heading, LoadingState } from './ui';
+import { Button, Card, EmptyState, ErrorState, Heading, LoadingState } from './ui';
+import { CalendarIcon } from './icons';
 
 const STATUS_ORDER: ContentStatus[] = ['idea', 'draft', 'reviewed', 'scheduled', 'exported'];
 const STATUS_COLOR: Record<ContentStatus, string> = {
@@ -51,12 +52,21 @@ export function CampaignsView() {
       ))}
       {unassigned.length > 0 && (
         <CampaignCard
-          campaign={{ id: '', title: 'No campaign' }}
+          campaign={{ id: '', title: 'Not in a campaign' }}
           items={unassigned}
         />
       )}
       {campaigns.length === 0 && unassigned.length === 0 && (
-        <p className="text-sm text-slate-500">No campaigns yet.</p>
+        <EmptyState
+          icon={<CalendarIcon width={28} height={28} />}
+          title="No campaigns yet"
+          description="A campaign groups related posts into a series. Draft some posts first, then group them here."
+          action={
+            <Button size="sm" onClick={() => { window.location.hash = '#/studio'; }}>
+              Open Draft Studio →
+            </Button>
+          }
+        />
       )}
     </div>
   );

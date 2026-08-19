@@ -12,10 +12,10 @@ import { InsightsPanel } from './InsightsPanel';
  * back button still land on a specific lens.
  */
 export const LIBRARY_VIEWS: Array<{ id: View; label: string }> = [
-  { id: 'board', label: 'Pipeline' },
+  { id: 'board', label: 'Board' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'list', label: 'List' },
-  { id: 'content', label: 'Content' },
+  { id: 'content', label: 'Versions' },
 ];
 
 const LIBRARY_IDS = LIBRARY_VIEWS.map((v) => v.id);

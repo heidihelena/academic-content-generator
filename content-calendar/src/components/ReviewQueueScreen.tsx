@@ -1,10 +1,19 @@
 import { useMemo, useState } from 'react';
 import { classifyIssues, type IssueSeverity } from '../review/reviewIssues';
 import { useStore } from '../store/useStore';
+import { STAGE_META } from '../lib/pipeline';
 import type { StudioAudience } from '../studio/studioTypes';
 import type { Post } from '../types';
 import { CheckIcon } from './icons';
 import { Badge, Button, Card, Heading, Text } from './ui';
+
+/** Plain-language names for the safety severities shown on each issue. */
+const SEVERITY_LABEL: Record<IssueSeverity, string> = {
+  blocking: 'Must fix',
+  high: 'Important',
+  medium: 'Worth a look',
+  low: 'Minor',
+};
 
 /**
  * Review Queue — every draft that still needs a human look, with its claim and
@@ -45,7 +54,7 @@ function QueueEntry({ post }: { post: Post }) {
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge size="chip">{post.platform}</Badge>
-            <Badge size="chip">{post.status}</Badge>
+            <Badge size="chip">{STAGE_META[post.status]?.label ?? post.status}</Badge>
             {blocked ? (
               <Badge tone="danger" size="chip">
                 blocked
@@ -77,8 +86,8 @@ function QueueEntry({ post }: { post: Post }) {
         <ul className="space-y-1" data-testid="review-issues">
           {issues.map((issue, i) => (
             <li key={i} className="flex items-start gap-2 text-xs">
-              <span className={`shrink-0 rounded px-1.5 py-0.5 font-semibold uppercase ${SEVERITY_BADGE[issue.severity]}`}>
-                {issue.severity}
+              <span className={`shrink-0 rounded px-1.5 py-0.5 font-semibold ${SEVERITY_BADGE[issue.severity]}`}>
+                {SEVERITY_LABEL[issue.severity]}
               </span>
               <span className="text-slate-300">
                 <span className="text-slate-500">{issue.type}:</span> {issue.text}

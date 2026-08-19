@@ -123,7 +123,7 @@ describe('Home dashboard', () => {
     expect(ready.getByText(/1 approved post/)).toBeInTheDocument();
     expect(ready.getByText(/2 scheduled/)).toBeInTheDocument();
 
-    fireEvent.click(ready.getByRole('button', { name: /Publish queue →/ }));
+    fireEvent.click(ready.getByRole('button', { name: /Open Outbox →/ }));
     expect(onNavigate).toHaveBeenCalledWith('outbox');
     fireEvent.click(ready.getByRole('button', { name: /Calendar →/ }));
     expect(onNavigate).toHaveBeenCalledWith('calendar');

@@ -44,9 +44,9 @@ export const STAGE_ORDER: PostStatus[] = [
 export const STAGE_META: Record<PostStatus, StageMeta> = {
   brief: {
     status: 'brief',
-    label: 'Brief',
-    description: 'The assignment',
-    hint: 'Capture the objective, audience and the theme this post ladders up to, then start drafting.',
+    label: 'Idea',
+    description: 'What you want to say',
+    hint: 'Note who it is for and the point you want to make, then start writing.',
   },
   draft: {
     status: 'draft',
@@ -80,9 +80,9 @@ export const STAGE_META: Record<PostStatus, StageMeta> = {
   },
   learn: {
     status: 'learn',
-    label: 'Learn',
-    description: 'Results & lessons',
-    hint: 'Record the outcome and what you learned — it becomes input for the next brief.',
+    label: 'Results',
+    description: 'What happened',
+    hint: 'Note how it did and what you learned — it feeds your next idea.',
   },
   failed: {
     status: 'failed',

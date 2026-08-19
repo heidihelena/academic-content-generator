@@ -19,17 +19,17 @@ describe('Library screen', () => {
   it('consolidates Pipeline/Calendar/List/Content as view toggles', () => {
     render(<App initialView="board" />);
     expect(screen.getByRole('tablist', { name: /Library views/i })).toBeInTheDocument();
-    expect(tab(/Pipeline/)).toHaveAttribute('aria-selected', 'true');
-    for (const label of [/Calendar/, /List/, /Content/]) {
+    expect(tab(/Board/)).toHaveAttribute('aria-selected', 'true');
+    for (const label of [/Calendar/, /List/, /Versions/]) {
       expect(tab(label)).toBeInTheDocument();
     }
   });
 
   it('switches the active lens when a toggle is clicked', () => {
     render(<App initialView="board" />);
-    fireEvent.click(tab(/Content/));
-    expect(tab(/Content/)).toHaveAttribute('aria-selected', 'true');
-    expect(tab(/Pipeline/)).toHaveAttribute('aria-selected', 'false');
+    fireEvent.click(tab(/Versions/));
+    expect(tab(/Versions/)).toHaveAttribute('aria-selected', 'true');
+    expect(tab(/Board/)).toHaveAttribute('aria-selected', 'false');
   });
 
   it('deep-links straight to a sub-lens via the route', () => {

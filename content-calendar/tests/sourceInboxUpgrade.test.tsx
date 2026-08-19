@@ -38,9 +38,9 @@ describe('SourceInbox upgrade', () => {
     await waitFor(() => expect(screen.getAllByTestId('source-status')).toHaveLength(1));
 
     // …and shows up under the archived filter.
-    fireEvent.click(screen.getByRole('button', { name: 'archived' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Archived' }));
     await waitFor(() => expect(screen.getAllByTestId('source-status')).toHaveLength(1));
-    expect(screen.getByTestId('source-status')).toHaveTextContent('archived');
+    expect(screen.getByTestId('source-status')).toHaveTextContent('Archived');
   });
 
   it('shows extracted key points for a source', async () => {
