@@ -6,7 +6,7 @@ import { analyzeReach } from '../lib/reach';
 import { PlatformBadge, StatusBadge } from './PlatformBadge';
 import { Filters } from './Filters';
 import { SearchBar } from './calendar/SearchBar';
-import { Card, EmptyState } from './ui';
+import { Button, Card, EmptyState } from './ui';
 import { AlertIcon, BookIcon, ListIcon } from './icons';
 import { onActivate } from '../lib/a11y';
 
@@ -52,11 +52,24 @@ export function ListView() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState
-          icon={<ListIcon width={28} height={28} />}
-          title="No posts match these filters"
-          description="Adjust the platform, stage or search filters to see content here."
-        />
+        allPosts.length === 0 ? (
+          <EmptyState
+            icon={<ListIcon width={28} height={28} />}
+            title="No posts yet"
+            description="Write your first post in Draft Studio — it’ll show up here."
+            action={
+              <Button size="sm" onClick={() => { window.location.hash = '#/studio'; }}>
+                Open Draft Studio →
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            icon={<ListIcon width={28} height={28} />}
+            title="No posts match these filters"
+            description="Adjust the platform, stage or search filters to see posts here."
+          />
+        )
       ) : (
         <Card className="overflow-x-auto p-0">
           <table className="w-full border-collapse text-left text-xs">

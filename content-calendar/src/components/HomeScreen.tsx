@@ -4,6 +4,7 @@ import { listSources } from '../sources/sourcesClient';
 import { getSourceMeta, useSourceMetaMap } from '../sources/sourceMeta';
 import type { Source } from '../sources/sourcesTypes';
 import { reviewDraft } from '../studio/studioReview';
+import { STAGE_META } from '../lib/pipeline';
 import type { View } from './Sidebar';
 import { CheckIcon } from './icons';
 import { Badge, Button, Callout, Card, Heading, Text } from './ui';
@@ -129,7 +130,7 @@ export function HomeScreen({ onNavigate }: { onNavigate: (view: View) => void })
             <ul className="space-y-1.5">
               {needsReview.slice(0, 3).map((p) => (
                 <li key={p.id} className="flex items-center gap-2 text-sm text-slate-300">
-                  <Badge size="chip">{p.status}</Badge>
+                  <Badge size="chip">{STAGE_META[p.status]?.label ?? p.status}</Badge>
                   <span className="truncate">{p.hook || p.body || 'Untitled draft'}</span>
                 </li>
               ))}
@@ -148,7 +149,7 @@ export function HomeScreen({ onNavigate }: { onNavigate: (view: View) => void })
                 {approved} approved {approved === 1 ? 'post' : 'posts'}
               </span>
               <Button variant="ghost" size="sm" onClick={() => onNavigate('outbox')}>
-                Publish queue →
+                Open Outbox →
               </Button>
             </li>
             <li className="flex items-center justify-between gap-2 text-sm text-slate-300">

@@ -71,9 +71,9 @@ describe('PipelineBoard', () => {
     expect(within(reviewColumn).getByTestId(`post-card-${post.id}`)).toBeInTheDocument();
   });
 
-  it('creates a brief from the "New brief" action', () => {
+  it('creates a brief from the "New post" action', () => {
     render(<App initialView="board" />);
-    fireEvent.click(screen.getByRole('button', { name: /New brief/i }));
+    fireEvent.click(screen.getByRole('button', { name: /New post/i }));
     // The editor opens defaulting to the Brief stage.
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect((screen.getByLabelText('Stage') as HTMLSelectElement).value).toBe('brief');

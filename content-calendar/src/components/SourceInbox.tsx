@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { setSourceStatus, useSourceMetaMap, SOURCE_STATUSES, type SourceStatus } from '../sources/sourceMeta';
+import { setSourceStatus, useSourceMetaMap, SOURCE_STATUSES, SOURCE_STATUS_LABELS, type SourceStatus } from '../sources/sourceMeta';
 import { SOURCE_KINDS, type SourceKind } from '../sources/sourcesTypes';
 import type { StudioSeed } from '../studio/studioTypes';
 import { LinkIcon, PlusIcon, SparkleIcon } from './icons';
@@ -64,10 +64,10 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="sm" onClick={() => setShowVault((v) => !v)} aria-expanded={showVault}>
+          <Button variant="ghost" size="sm" onClick={() => setShowVault((v) => !v)} aria-expanded={showVault}>
             <SparkleIcon width={14} height={14} /> Search vault
           </Button>
-          <Button variant="secondary" size="sm" onClick={() => setShowForm((v) => !v)} aria-expanded={showForm}>
+          <Button size="sm" onClick={() => setShowForm((v) => !v)} aria-expanded={showForm}>
             <PlusIcon width={14} height={14} /> Add source
           </Button>
         </div>
@@ -122,11 +122,11 @@ export function SourceInbox({ onDraft }: SourceInboxProps) {
         <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Filter by status">
           <span className="text-[11px] uppercase tracking-wide text-slate-500">Status</span>
           <button type="button" className={filterChip(statusFilter === 'all')} onClick={() => setStatusFilter('all')}>
-            active
+            All
           </button>
           {SOURCE_STATUSES.map((s) => (
             <button key={s} type="button" className={filterChip(statusFilter === s)} onClick={() => setStatusFilter(s)}>
-              {s}
+              {SOURCE_STATUS_LABELS[s]}
             </button>
           ))}
         </div>

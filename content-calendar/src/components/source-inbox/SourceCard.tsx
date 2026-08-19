@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { AcademicIdea } from '../../idea-lab/ideaLabClient';
 import type { CarouselResult } from '../../carousel/carouselClient';
 import { extractKeyPoints } from '../../sources/keyPoints';
-import { SOURCE_STATUSES, type SourceMeta, type SourceStatus } from '../../sources/sourceMeta';
+import { SOURCE_STATUSES, SOURCE_STATUS_LABELS, type SourceMeta, type SourceStatus } from '../../sources/sourceMeta';
 import { isVaultSource, sourceMaterial, type Source } from '../../sources/sourcesTypes';
 import type { StudioSeed } from '../../studio/studioTypes';
 import { Badge, Button } from '../ui';
@@ -50,7 +50,7 @@ export function SourceCard({ source, meta, onStatusChange, onDraft, repurpose, i
           <div className="flex flex-wrap items-center gap-1.5">
             <Badge size="chip">{source.kind}</Badge>
             <Badge size="chip" tone={STATUS_TONE[meta.status]} data-testid="source-status">
-              {meta.status}
+              {SOURCE_STATUS_LABELS[meta.status]}
             </Badge>
             {isVaultSource(source) && (
               <Badge tone="brand" size="chip">

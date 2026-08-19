@@ -118,7 +118,7 @@ function AppCredentialsSection({
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   connected: 'Connected',
   disconnected: 'Not connected',
-  expired: 'Token expired',
+  expired: 'Session expired — reconnect',
   error: 'Connection error',
 };
 
@@ -155,15 +155,10 @@ function AccountRow({
   const isConnected = account.status === 'connected';
   const isError = account.status === 'error' || account.status === 'expired';
   const usesCredentials = CREDENTIAL_PLATFORMS.includes(platform);
-  const statusLabel = demoOnly
-    ? isConnected
-      ? 'Demo only'
-      : account.status === 'disconnected'
-      ? 'Demo off'
-      : STATUS_LABEL[account.status]
-    : isConnected
-    ? 'Real connected'
-    : STATUS_LABEL[account.status];
+  // One plain word per state. Demo mode adds a "(demo)" suffix so the
+  // practice accounts read clearly as not real — no "Real connected" jargon.
+  const statusLabel =
+    demoOnly && isConnected ? 'Connected (demo)' : STATUS_LABEL[account.status];
 
   const [formOpen, setFormOpen] = useState(false);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);

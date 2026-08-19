@@ -50,13 +50,13 @@ describe('CampaignsView', () => {
   it('groups items with no campaign under "No campaign"', async () => {
     setContentClient(stub([], [item('Loose', undefined, 'draft')]));
     render(<CampaignsView />);
-    const card = await screen.findByLabelText('No campaign');
+    const card = await screen.findByLabelText('Not in a campaign');
     expect(within(card).getByText('Loose')).toBeInTheDocument();
   });
 
   it('shows an empty state when there is nothing', async () => {
     setContentClient(stub([], []));
     render(<CampaignsView />);
-    expect(await screen.findByText('No campaigns yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No campaigns yet')).toBeInTheDocument();
   });
 });

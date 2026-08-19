@@ -252,35 +252,48 @@ export function OutboxScreen() {
           </Button>
         </Callout>
       )}
-      <Group
-        title="Ready to post"
-        posts={ready}
-        empty="Nothing approved yet."
-        onEdit={openEditor}
-        onSchedule={openSchedule}
-        onPublish={setConfirmingId}
-        publishingId={publishingId}
-        canPublish={canPublish}
-      />
-      <Group
-        title="Failed"
-        posts={failed}
-        empty="Nothing failed — good."
-        onEdit={openEditor}
-        onPublish={setConfirmingId}
-        publishingId={publishingId}
-        canPublish={canPublish}
-      />
-      <Group
-        title="Scheduled"
-        posts={scheduled}
-        empty="Nothing scheduled yet."
-        onEdit={openEditor}
-        onPublish={setConfirmingId}
-        publishingId={publishingId}
-        canPublish={canPublish}
-      />
-      <Group title="Published" posts={published} empty="Nothing published yet." onEdit={openEditor} />
+      {posts.length === 0 ? (
+        <Card as="section" className="flex flex-col items-center gap-3 p-8 text-center">
+          <p className="text-sm text-slate-400">
+            Nothing here yet. Write a post and approve it, and it’ll be ready to publish here.
+          </p>
+          <Button size="sm" onClick={() => { window.location.hash = '#/studio'; }}>
+            Open Draft Studio →
+          </Button>
+        </Card>
+      ) : (
+        <>
+          <Group
+            title="Ready to post"
+            posts={ready}
+            empty="Nothing approved yet."
+            onEdit={openEditor}
+            onSchedule={openSchedule}
+            onPublish={setConfirmingId}
+            publishingId={publishingId}
+            canPublish={canPublish}
+          />
+          <Group
+            title="Failed"
+            posts={failed}
+            empty="Nothing failed — good."
+            onEdit={openEditor}
+            onPublish={setConfirmingId}
+            publishingId={publishingId}
+            canPublish={canPublish}
+          />
+          <Group
+            title="Scheduled"
+            posts={scheduled}
+            empty="Nothing scheduled yet."
+            onEdit={openEditor}
+            onPublish={setConfirmingId}
+            publishingId={publishingId}
+            canPublish={canPublish}
+          />
+          <Group title="Published" posts={published} empty="Nothing published yet." onEdit={openEditor} />
+        </>
+      )}
       <ConfirmDialog
         open={Boolean(confirmingPost)}
         title="Publish now?"

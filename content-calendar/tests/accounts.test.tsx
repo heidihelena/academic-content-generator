@@ -33,9 +33,9 @@ describe('ConnectedAccounts UI', () => {
     render(<App />);
     gotoAccounts();
     expect(screen.getByTestId('account-instagram')).toBeInTheDocument();
-    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Demo only');
-    expect(screen.getByTestId('account-status-linkedin')).toHaveTextContent('Demo only');
-    expect(screen.getByTestId('account-status-threads')).toHaveTextContent('Demo off');
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Connected (demo)');
+    expect(screen.getByTestId('account-status-linkedin')).toHaveTextContent('Connected (demo)');
+    expect(screen.getByTestId('account-status-threads')).toHaveTextContent('Not connected');
   });
 
   it('connects a disconnected account', async () => {
@@ -56,7 +56,7 @@ describe('ConnectedAccounts UI', () => {
 
     await vi.runAllTimersAsync();
 
-    expect(screen.getByTestId('account-status-threads')).toHaveTextContent('Demo only');
+    expect(screen.getByTestId('account-status-threads')).toHaveTextContent('Connected (demo)');
   });
 
   it('shows an error state and a retry button when connecting fails', async () => {
@@ -91,14 +91,14 @@ describe('ConnectedAccounts UI', () => {
 
     // A confirmation dialog guards the destructive action — nothing happens yet.
     expect(screen.getByText(/Disconnect Instagram\?/i)).toBeInTheDocument();
-    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Demo only');
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Connected (demo)');
 
     // Confirm: the dialog's own Disconnect button carries it out.
     const dialog = screen.getByRole('dialog');
     fireEvent.click(within(dialog).getByRole('button', { name: /Disconnect/i }));
     await vi.runAllTimersAsync();
 
-    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Demo off');
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Not connected');
   });
 
   it('keeps the account connected when disconnect is cancelled', async () => {
@@ -112,6 +112,6 @@ describe('ConnectedAccounts UI', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: /Cancel/i }));
     await vi.runAllTimersAsync();
 
-    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Demo only');
+    expect(screen.getByTestId('account-status-instagram')).toHaveTextContent('Connected (demo)');
   });
 });

@@ -42,7 +42,7 @@ describe('Home', () => {
     render(<HomeScreen onNavigate={onNavigate} />);
 
     // "Connect a publishing account" is done → no CTA; "Publish your first post" isn't.
-    fireEvent.click(screen.getByRole('button', { name: /Outbox →/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Outbox →' }));
     expect(onNavigate).toHaveBeenCalledWith('outbox');
   });
 });
@@ -92,10 +92,19 @@ describe('Outbox', () => {
     expect(failed.getByText(/No connected bluesky account/)).toBeInTheDocument();
   });
 
-  it('shows empty-state copy when there is nothing in a group', () => {
+  it('offers a start CTA when the outbox is completely empty', () => {
+    render(<OutboxScreen />);
+    expect(screen.getByText(/Nothing here yet/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Open Draft Studio/i })).toBeInTheDocument();
+  });
+
+  it('shows per-group empty copy once some posts exist', () => {
+    useStore.setState({
+      accounts: [{ platform: 'bluesky', status: 'connected' }],
+      posts: [post({ id: 'p_pub', status: 'published', body: 'shipped' })],
+    });
     render(<OutboxScreen />);
     expect(screen.getByText(/Nothing approved yet/)).toBeInTheDocument();
-    expect(screen.getByText(/Nothing published yet/)).toBeInTheDocument();
     expect(screen.getByText(/Nothing failed/)).toBeInTheDocument();
   });
 
